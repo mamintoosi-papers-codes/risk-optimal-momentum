@@ -152,19 +152,6 @@ If you use this code, please cite the manuscript *Risk-Optimal Momentum Weights 
 }
 ```
 
-## Relationship to the rejected v0 paper
-
-| | v0 (rejected) | this repo (revision) |
-|--|---------------|----------------------|
-| Title | Stein-Rule Shrinkage for Stochastic Gradient Estimation… | Risk-Optimal Momentum Weights… |
-| Optimizer | `SRAdamAdaptiveLocal` in old `src/optimizers.py` | `SRAdam` in `code/sr_adam.py` |
-| Variance estimate | raw \(v-m^2\), global, clipped shrink | debiased + pooled, peff gate |
-| Moments | updated from shrunk direction | updated from raw gradients |
-| Preconditioner | Adam | AMSGrad |
-| Baselines | SGD / Momentum / Adam | + AdamW / AMSGrad |
-| Metric | best test accuracy over epochs | final-epoch test accuracy |
-| Status | rejected; archived | active; CIFAR tables to be filled |
-
 ## License / declarations
 
 Research code accompanying a manuscript under review. No competing interests declared by the authors. Add a LICENSE file before making the repository public if the venue requires one.
