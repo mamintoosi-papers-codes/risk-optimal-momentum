@@ -1,0 +1,10 @@
+# Core scientific stack (simulation / theory scripts)
+numpy>=1.24
+scipy>=1.10
+matplotlib>=3.7
+
+# Deep learning (CIFAR grids + optimizer + tests)
+# For CUDA 12.x on Linux + RTX 3090, install torch/torchvision from
+# https://pytorch.org/get-started/locally/ instead of the default CPU wheels.
+torch>=2.1
+torchvision>=0.16
