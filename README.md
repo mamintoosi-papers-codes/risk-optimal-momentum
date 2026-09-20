@@ -20,11 +20,6 @@ Code URL used in the manuscript: `https://github.com/mamintoosi-papers-codes/ris
 | `scripts/` | Helper scripts for the CIFAR experimental grid |
 | `data/` | CIFAR download directory (gitignored) |
 
-This repo is the **v1 / revision** codebase for the rewritten paper. The earlier rejected submission (old optimizer pipeline, old CIFAR results, reviewer files) lives in the archived repository:
-
-- `https://github.com/mamintoosi-papers-codes/SR-Adam-v0-rejected` *(or the renamed legacy clone of `SR-Adam`)*
-
-Do **not** mix old `results/` / `runs/` numbers with the tables of this manuscript: the algorithm, baselines (AdamW / AMSGrad), and evaluation protocol (final-epoch accuracy, not best-over-epochs) are different.
 
 ## Method in one paragraph
 

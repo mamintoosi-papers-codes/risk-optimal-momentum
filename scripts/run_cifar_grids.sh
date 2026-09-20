@@ -3,8 +3,9 @@
 # Intended for a Linux machine with a CUDA GPU (e.g. RTX 3090).
 #
 # Usage (from repo root):
-#   bash scripts/run_cifar_grids.sh              # full paper grids
-#   bash scripts/run_cifar_grids.sh smoke        # tiny smoke test
+#   bash scripts/run_cifar_grids.sh download  # CIFAR-10/100 only
+#   bash scripts/run_cifar_grids.sh smoke     # download + tiny train/eval
+#   bash scripts/run_cifar_grids.sh           # download + full paper grids
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -17,9 +18,18 @@ MODE="${1:-full}"
 echo "Using Python: $($PY -c 'import sys; print(sys.executable)')"
 $PY -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available())"
 
+echo "=== download CIFAR-10 / CIFAR-100 (skip if already present) ==="
+$PY download_cifar.py --root ./data
+
+if [[ "$MODE" == "download" ]]; then
+  echo "Download-only mode finished."
+  exit 0
+fi
+
 if [[ "$MODE" == "smoke" ]]; then
   echo "=== smoke: 1 seed, 2 epochs, diagnostics only ==="
   $PY train_cifar.py --grid diagnostics --epochs 2 --seeds 1 --out "$OUT"
+  echo "Smoke finished. CSV: $ROOT/code/$OUT (if written)"
   exit 0
 fi
 
