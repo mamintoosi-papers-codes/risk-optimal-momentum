@@ -9,8 +9,10 @@ be run on a single GPU; the complete grid used for the paper is
     python3 train_cifar.py --grid scope       # shrinkage-scope ablation
     python3 train_cifar.py --grid diagnostics # per-layer diagnostics, one run
 
-Results are appended to a CSV, one row per (dataset, noise, optimiser, batch size, seed,
-epoch), so that every table and figure in the paper can be regenerated from a single file.
+Each invocation writes a new run folder under ../results/runs/<grid>_<timestamp>/ with
+results.csv and run_meta.json (grid, seeds, device, torch version, command). Re-runs
+never overwrite earlier folders unless you pass --out pointing at an existing CSV and
+--append.
 
 Only the optimiser changes between arms.  Backbone, preprocessing, epoch count, batch
 size, input-noise injection, evaluation procedure and seed schedule are held fixed.
@@ -22,6 +24,7 @@ import argparse
 import csv
 import json
 import os
+import sys
 import time
 
 import numpy as np
@@ -169,6 +172,45 @@ def train_one(dataset, noise_sd, opt_name, batch_size, seed, epochs, writer,
 FIELDS = ["dataset", "noise", "optimizer", "batch_size", "seed", "epoch",
           "test_acc", "test_loss", "epoch_time"]
 
+DEFAULT_RUN_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                "..", "results", "runs")
+
+
+def resolve_run_dir(grid, out):
+    """One folder per invocation. --out may be a CSV path or a directory."""
+    if out is None:
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        run_dir = os.path.join(DEFAULT_RUN_ROOT, f"{grid}_{stamp}")
+    else:
+        out_abs = os.path.abspath(out)
+        if str(out).lower().endswith(".csv"):
+            run_dir = os.path.dirname(out_abs) or "."
+        else:
+            run_dir = out_abs
+    os.makedirs(run_dir, exist_ok=True)
+    return run_dir
+
+
+def write_run_meta(run_dir, args, csv_path):
+    meta = dict(
+        grid=args.grid,
+        epochs=args.epochs,
+        seeds=args.seeds,
+        csv=os.path.abspath(csv_path),
+        started_at=time.strftime("%Y-%m-%d %H:%M:%S"),
+        device=DEVICE,
+        torch_version=torch.__version__,
+        cuda_available=bool(torch.cuda.is_available()),
+        gpu=torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+        command=" ".join(sys.argv),
+        cwd=os.getcwd(),
+        note="Only the optimizer changes across arms; paper tables use final-epoch metrics.",
+    )
+    path = os.path.join(run_dir, "run_meta.json")
+    with open(path, "w") as g:
+        json.dump(meta, g, indent=2)
+    return path
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -176,13 +218,33 @@ def main():
                     choices=["main", "batch", "scope", "diagnostics"])
     ap.add_argument("--epochs", type=int, default=20)
     ap.add_argument("--seeds", type=int, default=5)
-    ap.add_argument("--out", default="results.csv")
+    ap.add_argument(
+        "--out",
+        default=None,
+        help="CSV path or run directory. Default: ../results/runs/<grid>_<timestamp>/",
+    )
+    ap.add_argument(
+        "--append",
+        action="store_true",
+        help="Append to the chosen CSV. Default is a fresh run folder (old runs kept).",
+    )
     args = ap.parse_args()
 
-    new = not os.path.exists(args.out)
-    with open(args.out, "a", newline="") as fh:
+    run_dir = resolve_run_dir(args.grid, args.out)
+    if args.out and str(args.out).lower().endswith(".csv"):
+        csv_path = os.path.abspath(args.out)
+    else:
+        csv_path = os.path.join(run_dir, "results.csv")
+    meta_path = write_run_meta(run_dir, args, csv_path)
+    print(f"Run dir : {os.path.abspath(run_dir)}")
+    print(f"CSV     : {csv_path}")
+    print(f"Meta    : {os.path.abspath(meta_path)}")
+
+    write_header = args.append and os.path.exists(csv_path)
+    mode = "a" if args.append else "w"
+    with open(csv_path, mode, newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=FIELDS)
-        if new:
+        if not write_header:
             w.writeheader()
 
         if args.grid == "main":
@@ -213,9 +275,12 @@ def main():
         else:
             rows = train_one("cifar10", 0.05, "sradam", 512, 0, args.epochs, w,
                              diagnostics=True)
-            with open("diagnostics.json", "w") as g:
+            diag_path = os.path.join(run_dir, "diagnostics.json")
+            with open(diag_path, "w") as g:
                 json.dump(rows, g)
-            print(f"  wrote {len(rows)} diagnostic records to diagnostics.json")
+            print(f"  wrote {len(rows)} diagnostic records to {diag_path}")
+
+    print(f"Finished grid={args.grid}. Results kept in {os.path.abspath(run_dir)}")
 
 
 if __name__ == "__main__":
