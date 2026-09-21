@@ -1,0 +1,14 @@
+{
+  "grid": "main",
+  "epochs": 20,
+  "seeds": 5,
+  "csv": "/data/git/mamintoosi-papers-codes/risk-optimal-momentum/results/runs/main_20260921-085656/results.csv",
+  "started_at": "2026-09-21 08:56:56",
+  "device": "cuda",
+  "torch_version": "2.13.0+cu130",
+  "cuda_available": true,
+  "gpu": "NVIDIA GeForce RTX 3090",
+  "command": "train_cifar.py --grid main --epochs 20 --seeds 5",
+  "cwd": "/data/git/mamintoosi-papers-codes/risk-optimal-momentum/code",
+  "note": "Only the optimizer changes across arms; paper tables use final-epoch metrics."
+}
