@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -7,14 +7,14 @@ venv/
 .env
 
 # Experiment outputs (regenerate; keep out/ JSON in git)
+code/results.csv
+code/diagnostics.json
 code/data/
 data/*
 !data/.gitkeep
 *.pt
 *.pth
 *.ckpt
-runs/
-results/
 tmp/
 
 # LaTeX build artifacts
