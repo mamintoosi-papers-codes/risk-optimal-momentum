@@ -7,8 +7,6 @@ venv/
 .env
 
 # Experiment outputs (regenerate; keep out/ JSON in git)
-code/results.csv
-code/diagnostics.json
 code/data/
 data/*
 !data/.gitkeep
