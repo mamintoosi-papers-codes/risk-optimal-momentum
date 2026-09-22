@@ -1,0 +1,117 @@
+{
+  "meta": {
+    "created": "2026-09-22 13:50:33",
+    "seconds": 44.140292167663574,
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "steps": 500,
+    "note": "regression: positive \u0394 = lower MSE for SR; classification: positive \u0394 = higher acc for SR"
+  },
+  "rows": [
+    {
+      "dataset": "year",
+      "status": "skipped",
+      "error": "year download failed: HTTP Error 404: Not Found"
+    },
+    {
+      "sgdm": Infinity,
+      "sgdm_sd": NaN,
+      "sgdm_all": [
+        Infinity,
+        Infinity,
+        Infinity
+      ],
+      "adamw": 3.3300776878992715,
+      "adamw_sd": 1.6162274794201419,
+      "adamw_all": [
+        3.559537172317505,
+        4.819312572479248,
+        1.611383318901062
+      ],
+      "amsgrad": 3.098628044128418,
+      "amsgrad_sd": 1.9501602546211012,
+      "amsgrad_all": [
+        3.5663325786590576,
+        4.772408962249756,
+        0.9571425914764404
+      ],
+      "sradam": 1.888546625773112,
+      "sradam_sd": 0.8373023245348762,
+      "sradam_all": [
+        1.1142867803573608,
+        2.7771408557891846,
+        1.7742122411727905
+      ],
+      "paired_diff": 1.4415310621261597,
+      "t_stat": 1.7784051540541836,
+      "win_sradam": true,
+      "dataset": "blogfeedback",
+      "model": "linear",
+      "n": 15000,
+      "d": 280,
+      "status": "ok"
+    },
+    {
+      "sgdm": 0.6657829682032267,
+      "sgdm_sd": 0.0923880294727393,
+      "sgdm_all": [
+        0.5958020687103271,
+        0.631041407585144,
+        0.770505428314209
+      ],
+      "adamw": 0.722170889377594,
+      "adamw_sd": 0.16961242982024866,
+      "adamw_all": [
+        0.6888118982315063,
+        0.5717164278030396,
+        0.9059843420982361
+      ],
+      "amsgrad": 0.723225990931193,
+      "amsgrad_sd": 0.17087726440177853,
+      "amsgrad_all": [
+        0.6892762780189514,
+        0.5718719959259033,
+        0.9085296988487244
+      ],
+      "sradam": 0.36394577225049335,
+      "sradam_sd": 0.05718854121620645,
+      "sradam_all": [
+        0.3801150321960449,
+        0.41130882501602173,
+        0.30041345953941345
+      ],
+      "paired_diff": 0.35822511712710065,
+      "t_stat": 2.737219249625157,
+      "win_sradam": true,
+      "dataset": "protein",
+      "model": "linear",
+      "n": 123,
+      "d": 126,
+      "status": "ok"
+    },
+    {
+      "dataset": "digits_noisy_logistic",
+      "model": "logistic",
+      "noise": 0.3,
+      "adamw": 0.8314814814814815,
+      "adamw_sd": 0.04412500947201425,
+      "sradam": 0.8444444444444444,
+      "sradam_sd": 0.029000851413640418,
+      "paired_diff": 0.01296296296296299,
+      "t_stat": 1.4214846311870706,
+      "win_sradam": true,
+      "metric": "test_accuracy",
+      "status": "ok",
+      "qualitative": {
+        "adamw": 0.7472222222222222,
+        "sradam": 0.7805555555555556,
+        "n_disagree": 49,
+        "n_interesting": 40,
+        "n_shown": 12
+      }
+    }
+  ]
+}

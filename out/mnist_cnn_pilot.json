@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "created": "2026-09-22 14:50:59",
+    "seconds": 877.8388993740082,
+    "note": "positive \u0394 = higher test acc for SR-Adam"
+  },
+  "rows": [
+    {
+      "dataset": "mnist_cnn",
+      "model": "SmallCNN",
+      "label_noise": 0.0,
+      "epochs": 3,
+      "seeds": 2,
+      "device": "cpu",
+      "adamw": 97.95500000000001,
+      "adamw_sd": 0.07778174593051983,
+      "sradam": 97.0,
+      "sradam_sd": 0.5091168824543134,
+      "paired_diff": -0.9550000000000054,
+      "win_sradam": false,
+      "metric": "test_accuracy_pct"
+    },
+    {
+      "dataset": "mnist_cnn",
+      "model": "SmallCNN",
+      "label_noise": 0.3,
+      "epochs": 3,
+      "seeds": 2,
+      "device": "cpu",
+      "adamw": 97.155,
+      "adamw_sd": 0.14849242404918062,
+      "sradam": 96.33500000000001,
+      "sradam_sd": 0.9970205614730396,
+      "paired_diff": -0.8200000000000003,
+      "win_sradam": false,
+      "metric": "test_accuracy_pct"
+    }
+  ]
+}

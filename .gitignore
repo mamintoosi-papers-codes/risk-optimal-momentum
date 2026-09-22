@@ -33,3 +33,7 @@ paper/*.blg
 Thumbs.db
 .idea/
 .vscode/
+
+data/
+!data/.gitkeep
+
