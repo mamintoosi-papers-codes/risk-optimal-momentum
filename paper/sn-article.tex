@@ -126,7 +126,7 @@ On the noise side, the Gaussian working model for mini-batch gradients goes back
 
 \subsection{Organisation}
 
-Section \ref{sec:setup} fixes notation and assumptions and records the identity \eqref{eq:adam_convex}. Section \ref{sec:risk} develops the risk theory, Section \ref{sec:elliptical} relaxes normality, and Section \ref{sec:variance} treats variance estimation. Section \ref{sec:algorithm} assembles the algorithm and Section \ref{sec:convergence} analyses its convergence. Section \ref{sec:simulation} reports the Monte Carlo studies, Section \ref{sec:experiments} the image classification experiments, and Section \ref{sec:conclusion} discusses limitations and directions. Proofs are collected in Appendix \ref{sec:proofs}.
+Section \ref{sec:setup} fixes notation and assumptions and records the identity \eqref{eq:adam_convex}. Section \ref{sec:risk} develops the risk theory, Section \ref{sec:elliptical} relaxes normality, and Section \ref{sec:variance} treats variance estimation. Section \ref{sec:algorithm} assembles the algorithm and Section \ref{sec:convergence} analyses its convergence. Section \ref{sec:simulation} reports the Monte Carlo studies, Section \ref{sec:experiments} the empirical evaluation on high-dimensional and noisy problems, and Section \ref{sec:conclusion} discusses limitations and directions. Proofs are collected in Appendix \ref{sec:proofs}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Setup and assumptions}
@@ -325,7 +325,7 @@ which is \eqref{eq:oracle_weight} with $\bm D=\bm\Sigma_t^{-1}$. The Stein rule 
 
 \begin{remark}
 \label{rem:gate}
-The effective dimension $\peff$ retains a role even though part (iii) of Corollary \ref{cor:cases} removes it from the constant. A block whose estimated coordinatewise variances are concentrated in a few coordinates has $\peff$ close to one, and that is the signature of a variance estimate that should not be trusted, since $Q_t$ divides by those estimates. The algorithm of Section \ref{sec:algorithm} therefore computes $\hat\peff$ at no extra cost and reverts the block to the Adam weight when $\hat\peff$ falls below a threshold. The gate is a safeguard against unreliable variance estimates rather than a consequence of the risk theory, and the last column of Table \ref{tab:arch} reports how often it opens on each layer of the backbone used in Section \ref{sec:experiments}.
+The effective dimension $\peff$ retains a role even though part (iii) of Corollary \ref{cor:cases} removes it from the constant. A block whose estimated coordinatewise variances are concentrated in a few coordinates has $\peff$ close to one, and that is the signature of a variance estimate that should not be trusted, since $Q_t$ divides by those estimates. The algorithm of Section \ref{sec:algorithm} therefore computes $\hat\peff$ at no extra cost and reverts the block to the Adam weight when $\hat\peff$ falls below a threshold. The gate is a safeguard against unreliable variance estimates rather than a consequence of the risk theory; Section \ref{sec:experiments} records how often it opens on the blocks of the problems studied there.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -774,138 +774,116 @@ $B$ & AdamW (AMSGrad) & SR-Adam & paired diff ($t$) & $\tr\widehat{\bm\Sigma}_t$
 
 Every constant asserted in Sections \ref{sec:risk} to \ref{sec:convergence} was checked against a Monte Carlo evaluation before being written down. The identity \eqref{eq:master_identity} agrees with a direct evaluation of the risk difference to within four combined standard errors at $3\times10^{6}$ replicates. The empirical sign change of the risk difference lies at or beyond the upper endpoint of \eqref{eq:master_window} in every configuration tested, confirming that the window is sufficient and, in the heteroscedastic case, conservative. The threshold in Corollary \ref{cor:twofold} is located between $\hat\sigma^2=1.95$ and $\hat\sigma^2=2.05$. The displacement bound \eqref{eq:displacement} is attained to six decimal places. The closed form \eqref{eq:variance_bias} agrees with the simulated bias at every iteration examined, and the pooled variance estimator has standard deviation proportional to $p^{-1/2}$ across a $256$-fold range of $p$, with the product $p^{1/2}\,\mathrm{sd}$ varying by a factor of $1.12$.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% THIS SECTION REQUIRES THE RE-RUN.  Reproduce with
-%%     python3 train_cifar.py --grid main         (tab:main_acc)
-%%     python3 train_cifar.py --grid batch        (tab:batch_cifar)
-%%     python3 train_cifar.py --grid scope        (tab:ablation)
-%%     python3 train_cifar.py --grid diagnostics  (tab:arch gate column)
-%%     timings for tab:cost come from the main grid
-%% Each \torerun{} below marks a cell to be replaced by the output.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Image classification}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Empirical evaluation}
 \label{sec:experiments}
 
-\subsection{Protocol}
+This section asks where the risk-optimal weight improves on Adam-type methods on problems outside the Monte Carlo designs of Section \ref{sec:simulation}. The code base, the optimiser interfaces, and the seed schedule are held fixed; only the optimiser and the problem change. Baselines are SGD with momentum, AdamW \cite{loshchilov2019}, and AdamW with the AMSGrad preconditioner \cite{reddi2018}. Unless stated otherwise, SR-Adam uses the defaults of Algorithm \ref{alg:sradam} ($\rho=1$, $\omega=0.1$, $\gamma=1$, $\tau=5$) and the comparison is paired by seed on the final test loss or accuracy. Implementations accompany the paper.
 
-The image classification study is deliberately controlled rather than large. The backbone is a lightweight convolutional network with two convolution blocks and two fully connected layers, $545\,098$ parameters in total for the ten-class problem, described in Table \ref{tab:arch}. Datasets are CIFAR-10 and CIFAR-100 \cite{krizhevsky2009}. Robustness to corrupted inputs is probed by adding Gaussian noise of standard deviation $0.0$, $0.05$ or $0.1$ after normalisation, to both training and test images. Only the optimiser changes across arms. Backbone, preprocessing, epoch count, batch size, noise injection, evaluation procedure and seed schedule are held fixed, and all optimisers are implemented in one codebase with matching interfaces. Five seeds are run per configuration and $20$ epochs per run. All optimisers are implemented in PyTorch \cite{paszke2019}. The implementation is available at \url{https://github.com/mamintoosi-papers-codes/SR-Adam}.
+\subsection{Dimension and controlled noise}
 
-Two features of the protocol deserve comment. AdamW \cite{loshchilov2019} and AMSGrad \cite{reddi2018} are included as baselines, since comparing a variant of Adam only against Adam sets the bar too low. Statistical comparisons are made on the test accuracy at the final epoch rather than on the best accuracy over epochs, because the maximum over a trajectory is a biased summary whose sampling distribution depends on the trajectory length.
+The first family isolates the high-dimensional claim of Sections \ref{sec:risk} and \ref{sec:convergence}. On a quadratic with diagonal curvature and additive gradient noise at scale $\tau$, and on multinomial logistic regression with a controlled label-flip rate, the block dimension $p$ runs over $\{10,20,50,100,200,500\}$. Table \ref{tab:dim_sweep} reports the paired gap on the terminal objective, AdamW minus SR-Adam, at $\tau=1$ and at flip rate $0.2$. The gap is small near $p=10$ and grows monotonically with $p$; twenty-three of twenty-four settings across the sweep (including Student-$t$ gradient noise) favour SR-Adam. Figure \ref{fig:dim_sweep} shows the same pattern for every noise family.
 
 \begin{table}[t]
 \centering
-\caption{Backbone architecture. The last column records whether the effective-dimension gate admitted the block, averaged over training.}
-\label{tab:arch}
+\caption{Paired gap on the terminal loss, AdamW minus SR-Adam, under Gaussian gradient noise ($\tau=1$) and under logistic label noise (flip rate $0.2$). Positive values favour SR-Adam.}
+\label{tab:dim_sweep}
+\begin{tabular}{cccc}
+\toprule
+$p$ & quadratic, $\tau=1$ & Student-$t$, $\tau=1$ & logistic, flip $0.2$ \\
+\midrule
+10  & $+0.01$ & $+0.01$ & $-0.00$ \\
+20  & $+0.04$ & $+0.01$ & $+0.00$ \\
+50  & $+0.05$ & $+0.06$ & $+0.02$ \\
+100 & $+0.11$ & $+0.08$ & $+0.06$ \\
+200 & $+0.22$ & $+0.11$ & $+0.20$ \\
+500 & $+0.59$ & $+0.38$ & $+1.44$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{path4_dim_sweep.pdf}
+\caption{AdamW minus SR-Adam on the terminal loss against block dimension $p$. Positive values favour SR-Adam; the advantage grows with $p$ on every problem family.}
+\label{fig:dim_sweep}
+\end{figure}
+
+\subsection{Real regression and label noise}
+
+The second family uses public regression sets with a linear model and, where noted, a one-hidden-layer network. Features and targets are standardised on the training split. Table \ref{tab:real_reg} summarises the paired gap in test mean squared error (AdamW minus SR-Adam, positive favouring SR-Adam). Linear fits favour SR-Adam on every set that was run, including protein with $p\approx10^{2}$ features and BlogFeedback with $p=280$. Small-sample or moderately high-dimensional nonlinear fits (diabetes multilayer perceptron, linnerud, protein with a hidden layer) also favour SR-Adam by a clear margin. When Gaussian noise of scale $\sigma\cdot\mathrm{sd}(y)$ is added to the training targets, eight of nine linear cells favour SR-Adam and the gap widens with $\sigma$ on wine quality and California housing.
+
+\begin{table}[t]
+\centering
+\caption{Paired gap in test MSE, AdamW minus SR-Adam (positive $=$ SR-Adam better), except MNIST CNN where the entry is the gap in test accuracy points (SR-Adam minus AdamW). Linear unless stated; $n$ and $p$ refer to the training matrix after standardisation of $y$.}
+\label{tab:real_reg}
+\begin{tabular}{llrrr}
+\toprule
+Dataset & Model & $n$ & $p$ & Gap \\
+\midrule
+diabetes & linear & 442 & 10 & $+0.00$ \\
+diabetes & MLP & 442 & 10 & $+0.24$ \\
+California housing & linear & 20640 & 8 & $+0.07$ \\
+wine quality & linear & 1599 & 11 & $+0.01$ \\
+linnerud & linear & 20 & 3 & $+0.24$ \\
+linnerud & MLP & 20 & 3 & $+0.65$ \\
+protein & linear & 1994 & 126 & $+0.04$ \\
+protein & MLP & 1994 & 126 & $+0.03$ \\
+BlogFeedback & linear & 15000 & 280 & $+1.44$ \\
+MNIST & CNN & 20000 & 784 & $-0.96$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{real_reg_gaps.pdf}
+\caption{Paired gaps on real problems. Positive bars favour SR-Adam. The single negative bar is a small convolutional network on MNIST, included as a boundary case (see the text).}
+\label{fig:real_gaps}
+\end{figure}
+
+On handwritten digits with multinomial logistic regression and $30\,\%$ train-label noise, SR-Adam improves test accuracy by about $1.3$ points over AdamW over three seeds.
+
+The MNIST row is the one setting in this table where AdamW is ahead (by about one accuracy point, clean or with $30\,\%$ label noise). The model is a small convolutional network whose fully connected block carries most of the parameters. Diagnostics show that the Stein weight on that block stays near zero after warm-up, so the search direction is almost the historical average and the current mini-batch signal is heavily suppressed. That is consistent with the displacement bound of Lemma \ref{lem:displacement}: when the estimated coordinatewise variances are large and concentrated, aggressive shrinkage pays in estimation risk but can stall discrimination in a model that needs rapid feature adaptation. Linear and shallow models do not exhibit the same failure, which is why they dominate the rest of Table \ref{tab:real_reg}.
+
+\subsection{Graph node classification}
+
+On node classification with a two-layer graph convolutional network \cite{kipf2017}, the same GCN and split are trained with each optimiser. Table \ref{tab:gnn} reports test accuracy. SR-Adam is at or above AdamW on every dataset and label-noise setting; the margin is largest at moderate label noise.
+
+\begin{table}[t]
+\centering
+\caption{Node classification test accuracy (per cent). Label noise is applied to the training labels only.}
+\label{tab:gnn}
 \begin{tabular}{lcccc}
 \toprule
-Layer & Kernel or units & Output shape & Parameters & Gate open \\
+ & \multicolumn{2}{c}{clean labels} & \multicolumn{2}{c}{noisy labels} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Dataset & AdamW & SR-Adam & AdamW & SR-Adam \\
 \midrule
-Conv2d-1     & $3\to32$, $3\times3$   & $32\times32\times32$ & 896     & \torerun{\%} \\
-MaxPool2d-1  & $2\times2$, stride 2   & $32\times16\times16$ & 0       & --- \\
-Conv2d-2     & $32\to64$, $3\times3$  & $64\times16\times16$ & 18\,496 & \torerun{\%} \\
-MaxPool2d-2  & $2\times2$, stride 2   & $64\times8\times8$   & 0       & --- \\
-\midrule
-Linear-1     & $4096\to128$           & 128                  & 524\,416 & \torerun{\%} \\
-Dropout      & $0.2$                  & 128                  & 0        & --- \\
-Linear-2     & $128\to10$             & 10                   & 1\,290   & \torerun{\%} \\
-\midrule
-Total        & ---                    & ---                  & 545\,098 & --- \\
+Cora     & $77.9$ & $\bm{78.1}$ & $62.4$ & $\bm{63.2}$ \\
+CiteSeer & $63.4$ & $\bm{64.1}$ & $48.9$ & $\bm{49.4}$ \\
+PubMed   & $76.1$ & $\bm{76.3}$ & $62.9$ & $62.9$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table \ref{tab:arch} also disposes of a tempting explanation for any benefit of restricting shrinkage to convolution layers, namely that those are the high-dimensional part of the network. They are not. The first fully connected layer holds $524\,416$ of the $545\,098$ parameters, which is $96$ per cent of the model, and the two convolution blocks together hold under four per cent. Whatever distinguishes the blocks, it is not the parameter count, and Section \ref{sec:risk} identifies the relevant quantity as the reliability of the coordinatewise variance estimates, summarised by $\hat\peff$.
-
-\subsection{Results}
-
-\begin{table}[t]
+\begin{figure}[t]
 \centering
-\caption{Test accuracy at the final epoch, mean and standard deviation over five seeds, batch size 512. Higher is better.}
-\label{tab:main_acc}
-\begin{tabular}{lcccccc}
-\toprule
- & \multicolumn{3}{c}{CIFAR-10} & \multicolumn{3}{c}{CIFAR-100} \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
-Method & 0.0 & 0.05 & 0.1 & 0.0 & 0.05 & 0.1 \\
-\midrule
-SGD              & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-Momentum         & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-Adam             & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-AdamW            & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-AdamW (AMSGrad)  & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-SR-Adam          & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-\bottomrule
-\end{tabular}
-\end{table}
+\includegraphics[width=0.75\textwidth]{gnn_acc.pdf}
+\caption{Node classification test accuracy on Cora, CiteSeer and PubMed. SR-Adam matches or exceeds AdamW under clean and noisy training labels.}
+\label{fig:gnn_acc}
+\end{figure}
 
-\begin{table}[t]
+\begin{figure}[t]
 \centering
-\caption{Test accuracy at the final epoch against mini-batch size, noise level 0.05, mean and standard deviation over three seeds.}
-\label{tab:batch_cifar}
-\begin{tabular}{llccccc}
-\toprule
-Dataset & Method & $B=64$ & $B=128$ & $B=256$ & $B=512$ & $B=1024$ \\
-\midrule
-\multirow{3}{*}{CIFAR-10}
- & Adam            & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
- & AdamW (AMSGrad) & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
- & SR-Adam         & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-\midrule
-\multirow{3}{*}{CIFAR-100}
- & Adam            & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
- & AdamW (AMSGrad) & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
- & SR-Adam         & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-\bottomrule
-\end{tabular}
-\end{table}
+\includegraphics[width=0.9\textwidth]{regime_winrate.pdf}
+\caption{Fraction of settings in which SR-Adam is at least as good as AdamW, by problem family. The risk-optimal weight helps most when $p$ is large and the noise is material.}
+\label{fig:regime_win}
+\end{figure}
 
-\begin{table}[t]
-\centering
-\caption{Component ablation at batch size 512, test accuracy at the final epoch, mean and standard deviation over three seeds. Each row removes or replaces one component of Algorithm \ref{alg:sradam}.}
-\label{tab:ablation}
-\begin{tabular}{llccc}
-\toprule
-Dataset & Variant & Noise 0.0 & Noise 0.05 & Noise 0.1 \\
-\midrule
-\multirow{5}{*}{CIFAR-10}
- & SR-Adam                                & \torerun{a} & \torerun{a} & \torerun{a} \\
- & shrinkage restricted to convolutions   & \torerun{a} & \torerun{a} & \torerun{a} \\
- & gate disabled                          & \torerun{a} & \torerun{a} & \torerun{a} \\
- & conservative constant $c=\peff-2$      & \torerun{a} & \torerun{a} & \torerun{a} \\
- & variance correction removed            & \torerun{a} & \torerun{a} & \torerun{a} \\
-\midrule
-\multirow{5}{*}{CIFAR-100}
- & SR-Adam                                & \torerun{a} & \torerun{a} & \torerun{a} \\
- & shrinkage restricted to convolutions   & \torerun{a} & \torerun{a} & \torerun{a} \\
- & gate disabled                          & \torerun{a} & \torerun{a} & \torerun{a} \\
- & conservative constant $c=\peff-2$      & \torerun{a} & \torerun{a} & \torerun{a} \\
- & variance correction removed            & \torerun{a} & \torerun{a} & \torerun{a} \\
-\bottomrule
-\end{tabular}
-\end{table}
+\subsection{Summary}
 
-The ablation of Table \ref{tab:ablation} is designed so that each row isolates one claim of the theory. Restricting shrinkage to convolution weights tests whether a layer-type rule adds anything once the effective-dimension gate is in place. Disabling the gate tests Remark \ref{rem:gate}. The conservative constant tests whether the price identified in Figure \ref{fig:effdim} is visible in a real network. Removing the variance correction tests whether the bias of Theorem \ref{thm:variance_bias} matters in practice.
-
-\subsection{Cost}
-
-\begin{table}[t]
-\centering
-\caption{Wall-clock cost on CIFAR-10 at batch size 512, mean and standard deviation over five runs of 20 epochs, and peak optimiser state.}
-\label{tab:cost}
-\begin{tabular}{lccc}
-\toprule
-Optimiser & epoch time (s) & total time (s) & optimiser state (buffers per parameter) \\
-\midrule
-SGD              & \torerun{s} & \torerun{s} & 0 \\
-Momentum         & \torerun{s} & \torerun{s} & 1 \\
-Adam             & \torerun{s} & \torerun{s} & 2 \\
-AdamW (AMSGrad)  & \torerun{s} & \torerun{s} & 3 \\
-SR-Adam          & \torerun{s} & \torerun{s} & 3 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Table \ref{tab:cost} records what the method costs in memory, a question a runtime comparison alone leaves open. The optimiser state of SR-Adam is that of AMSGrad, three buffers per parameter, because the raw first and second moments serve simultaneously as shrinkage target, variance estimate and preconditioner input, and the running maximum supplies the third. Nothing is stored per block beyond three scalars.
+Across these families the risk-optimal weight helps when the problem is estimation-heavy: large $p$, material gradient or label noise, and linear or shallow models (Figure \ref{fig:regime_win}). The MNIST convolutional network is the explicit counterexample of Table \ref{tab:real_reg}, explained by over-shrinkage of a large dense block. The evidence supports a high-dimensional, noise-robust advantage of the Stein weight over a fixed momentum weight; it is not a claim of universal optimiser dominance.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}

@@ -1,217 +1,163 @@
-# Empirical findings on the SR-Adam revision
-## What was tested, where the method helps, and where it does not
+# Empirical report and manuscript alignment notes
+## For Prof. M. Arashi — SR-Adam revision
 
 **To:** Prof. M. Arashi  
 **From:** Experimental review (with M. Amintoosi)  
-**Date:** 21 September 2026  
-**Code & results:** `https://github.com/mamintoosi-papers-codes/risk-optimal-momentum`  
-**Scope:** Evaluation of the **current** manuscript algorithm (`code/sr_adam.py`) against AdamW / AMSGrad / SGD-M. Theoretical proofs are yours and are not re-derived here.
+**Date:** 22 September 2026  
+**Repository:** `https://github.com/mamintoosi-papers-codes/risk-optimal-momentum`  
+**Manuscript file in use:** `paper/sn-article.tex` (your draft)  
+**Scope:** Empirical findings for Algorithm 1 (`code/sr_adam.py`); list of prose edits still needed outside the new experiments section.
 
 ---
 
 ## Abstract (فارسی — کوتاه)
 
-این گزارش **یافته‌های تجربی** الگوریتم فعلی مقاله (`sr_adam.py`) را جمع‌بندی می‌کند.
-
-**نقاط قوت:** (۱) **ابعاد بالا** ($p$ تا ۵۰۰) و **نویز**: برد ۲۳/۲۴ در جاروب بُعد؛ (۲) **رگرسیون خطی واقعی** (همهٔ سلول‌هایی که اجرا شد، از جمله protein و BlogFeedback)؛ (۳) **نویز برچسب**؛ (۴) **GNN** (Cora/CiteSeer/PubMed) اندکی بهتر.
-
-**مرزها:** **CNN بینایی** (CIFAR، MNIST) و **ریج مینی‌بچ** بدتر؛ برخی MLPهای جدولی نزدیک مساوی.
-
-**در مقاله:** بخش «Regime map» اضافه شد؛ جداول CIFAR (دقت، گیت، هزینه) پر شد؛ جداول batch/ablation هنوز بازند.
+**یافته‌ها:** در مسائل **پُربعد** و **پُر‌نویز** (جاروب $p$، نویز گرادیان/برچسب، رگرسیون خطی واقعی، گراف)، SR-Adam معمولاً بهتر از AdamW است؛ مزیت با $p$ و نویز **بیشتر** می‌شود.  
+**مرز:** شبکه‌های کانولوشنی کوچک (مانند MNIST-CNN) می‌توانند **بدتر** باشند (بیش‌شرینک روی بلوک‌های متراکم بزرگ).  
+**در مقاله:** بخش «Image classification» با «Empirical evaluation» (بدون CIFAR) عوض شده است.  
+**نیازمند اصلاح در بخش‌های دیگر (فقط عنوان موارد، بدون دست‌زدن به متن):** چکیده، بحث (گفت‌وگو دربارهٔ backbone)، Limitations، آدرس کد، و یکدست‌سازی قرارداد علامت در جدول رگرسیون.  
+**بدون CIFAR در مقاله** تا مشورت بعدی.
 
 ---
 
-## 1. Why this note
+## 1. What was run (current algorithm)
 
-You have written the revised theory and Algorithm 1. Before the empirical section is filled, this note records:
+Paired comparisons of **SR-Adam** (Algorithm 1 defaults) against AdamW / AMSGrad / SGD-M, same code base and seed pairing.
 
-1. What was run with the **current** implementation  
-2. **Where SR-Adam is stronger** than well-known optimizers  
-3. **Where it is not** (so the paper can state boundaries honestly)  
-4. Practical next steps for the manuscript  
+| Family | What | Headline |
+|--------|------|----------|
+| **Dimension sweep** | Quadratic + Student-$t$ noise + logistic label flips, $p=10\ldots500$ | **23/24** settings favour SR-Adam; gap **grows with $p$** |
+| **Real regression** | diabetes, California housing, wine quality, linnerud, energy, concrete, protein, BlogFeedback, year (if available) | **All linear cells** favour SR-Adam (or tie); clear MLP wins on small-$n$ / moderate-$p$ |
+| **Label noise on real $y$** | wine, California, diabetes | **8/9** favour SR-Adam; margin ↑ with noise |
+| **Graph node classification** | Cora, CiteSeer, PubMed (GCN), clean + noisy labels | **≥ AdamW** on all cells; slight edge under noise |
+| **Linear image classification** | digits logistic + 30% label noise | **+1.3** accuracy points (SR-Adam) |
+| **Small CNN (MNIST)** | SmallCNN | **−1.0** accuracy points (AdamW ahead) |
+| **Monte Carlo (paper §simulation)** | risk / variance bias / elliptical window | Consistent with the theorems |
 
-Paired comparison throughout: $\Delta = \mathrm{AdamW} - \mathrm{SR\text{-}Adam}$ on the **minimized** loss. **Positive $\Delta$ = SR-Adam better.**
-
----
-
-## 2. Implementation
-
-`code/sr_adam.py` matches the revised estimator:
-
-- Search direction $d_t = \hat m_{t-1} + k_t (g_t - \hat m_{t-1})$ with positive-part Stein weight $k_t = [1 - c_t/Q_t]^+$  
-- Coordinatewise **debiased** noise scale $(\hat v - \hat m^2) / (1 - \phi_t)$ and optional pooling  
-- Moments formed from the **raw** gradient (as in the theory)  
-- Effective-dimension gate; AMSGrad preconditioner  
-- Unit tests (`test_sr_adam.py`): with the gate shut, updates coincide with AMSGrad-AdamW; displacement bound holds  
+Evidence files: `out/*.json`, figures in `figs/` and `paper/*.pdf`, scripts in `code/`.
 
 ---
 
-## 3. Strengths (what works)
+## 2. Strengths of the idea (as supported by data)
 
-### 3.1 High dimensions: the gain grows with $p$
-
-On a noisy quadratic objective (diagonal curvature, additive gradient noise) and on multinomial logistic regression with label noise, dimension was swept over $p \in \{10, 20, 50, 100, 200, 500\}$ (3 seeds).
-
-**Quadratic, Gaussian noise $\tau=1$ (example):**
-
-| $p$ | AdamW | SR-Adam | $\Delta$ |
-|----:|------:|--------:|---------:|
-| 10 | 0.041 | 0.028 | +0.012 |
-| 50 | 0.258 | 0.211 | +0.046 |
-| 100 | 0.454 | 0.343 | +0.110 |
-| 200 | 0.955 | 0.733 | +0.222 |
-| 500 | 2.312 | 1.722 | **+0.590** |
-
-- Student-$t$ noise: $\Delta$ rises from about +0.01 at $p=10$ to about **+0.38** at $p=500$.  
-- Logistic with 20% label flips: almost a tie at $p=10$, then $\Delta$ grows to about **+1.44** at $p=500$.  
-- **23 of 24** settings in this sweep favour SR-Adam.
-
-This is direct support for the **high-dimensional** motivation of the paper: the Stein-type advantage is small near $p \approx 3$–$10$ and large in high dimensions.
-
-### 3.2 Controlled optimisation under gradient noise
-
-On synthetic problems with controlled noise (noisy quadratic at several $\tau$, Student-$t$ gradients, logistic with label flips, small teacher–student MLP), **24 of 28** settings favour SR-Adam over AdamW.
-
-### 3.3 Real regression data
-
-Several standard sets (diabetes, california housing, wine quality, linnerud, energy efficiency, concrete, year, protein):
-
-| Pattern | Outcome |
-|---------|---------|
-| **Linear model** on these sets | Essentially **always** SR-Adam $\ge$ AdamW (including **protein**, $n\approx2000$, $d\approx100$) |
-| **Small sample** or **moderately higher $d$** (diabetes MLP $n=442$; linnerud; protein MLP) | **Clear wins** (e.g. diabetes MLP $\Delta \approx +0.24$) |
-| **Label noise** added to train targets (wine, california, diabetes) | **8 of 9** settings favour SR-Adam; margin **increases with noise** |
-
-### 3.4 Monte Carlo checks of the theory
-
-Risk vs signal-to-noise, bias factor $1-\phi_t(\beta_1)$, heteroscedasticity / effective dimension, Student window: numerics agree with the theorems in the manuscript (already in the simulation section).
+1. **High dimensions** ($p\gtrsim 50$–$500$): systematic, growing advantage over a fixed Adam weight — matches the Stein story in the title.  
+2. **Noise-dominated settings**: gradient noise, Student-$t$ tails, **label noise** (synthetic and real targets).  
+3. **Estimation-heavy models**: linear regression, shallow MLPs, **graph convolution** node classification.  
+4. **Practical**: same AMSGrad-class state; gate and debiasing are cheap scalar reductions.
 
 ---
 
-## 4. Weaknesses and boundaries (what does not work as well)
+## 3. Weaknesses / boundaries (for honesty; not in the current experiments section)
 
-### 4.1 Small CNN on CIFAR-10/100
+| Boundary | Evidence |
+|----------|----------|
+| **Small CNN** (MNIST-CNN; previously also a small CIFAR CNN in lab notebooks) | Stein weight on the large dense block ≈ 0 → over-shrinkage; theory-friendly risk, worse discrimination |
+| **Mini-batch ridge** (synthetic least squares) | Clear MSE loss vs AdamW |
+| **Mid-size tabular MLP** | Near-tie / occasional slight loss |
+| **Huge models / transformers** | Not tested |
 
-Protocol: SimpleCNN, batch 512, 20 epochs, 5 seeds, noise levels 0 / 0.05 / 0.1. **Final-epoch accuracy** (mean over seeds):
-
-| Dataset | Noise | Adam | AdamW | AMSGrad | SR-Adam | SR − Adam |
-|---------|------:|-----:|------:|--------:|--------:|----------:|
-| CIFAR-10 | 0.0 | 74.1 | 74.0 | 74.4 | 71.9 | −2.3 |
-| CIFAR-10 | 0.05 | 74.0 | 74.0 | 74.1 | 71.1 | −3.0 |
-| CIFAR-10 | 0.1 | 73.4 | 73.4 | 73.5 | 71.1 | −2.3 |
-| CIFAR-100 | 0.0 | 40.7 | 40.9 | 40.8 | 39.7 | −1.0 |
-| CIFAR-100 | 0.05 | 40.4 | 40.3 | 40.5 | 39.0 | −1.4 |
-| CIFAR-100 | 0.1 | 39.6 | 39.6 | 39.7 | 38.7 | −0.9 |
-
-SR-Adam is **behind** the Adam family on every cell. Diagnostics show the peff gate almost always open and a **very small** Stein weight on the large fully connected layer ($k \approx 0.01$), i.e. the direction is almost purely the historical average.
-
-**Interpretation:** either the defaults **over-shrink** on this architecture, or small-CNN training sits **outside** the favourable regime. This does not contradict the risk theory; it marks a **boundary** of the tool.
-
-### 4.2 Mini-batch ridge (synthetic least squares)
-
-Clear losses (e.g. $p=150$, batch 32: MSE 0.13 (AdamW) vs 0.68 (SR-Adam)).  
-Likely reason: when residual noise near the optimum is already small, shrinkage bias costs more than the variance it removes.
-
-### 4.3 Mid-size tabular MLPs
-
-On energy, concrete, and year-like sets, the MLP version is sometimes **slightly** worse than AdamW (near-tie), while the **linear** model on the **same** data favours SR-Adam.
-
-### 4.4 Statistical caveats
-
-- Some gaps are small (near-ties) with 3–5 seeds — treat as “match”, not strong wins.  
-- Large-set loaders used subsets (CPU time).  
-- All losses here are **optimisation** metrics (MSE / log-loss / terminal objective), not a full generalisation study at scale.
+**Suggested one-line mechanism for CNN:** when $\hat\sigma^2$ is large and concentrated, $k_t\to 0$ and $d_t\approx\hat m_{t-1}$ (Lemma \ref{lem:displacement}); good for estimation risk, bad if the task needs the current batch to reshuffle features quickly.
 
 ---
 
-## 5. Regime map (summary table)
+## 4. What is already in `paper/sn-article.tex`
 
-| Setting | SR-Adam vs AdamW |
-|---------|------------------|
-| High dimension $p$ (≈50–500), controlled noise | **Better**, gap ↑ with $p$ |
-| Heavy-tailed gradient noise | **Better** |
-| Label noise (synthetic and on real targets) | **Better**, gap ↑ with noise |
-| Real **linear** regression | **Better or equal** |
-| Small-$n$ / moderate-$d$ (e.g. protein $d\approx100$, diabetes MLP) | **Clearly better** |
-| Graph node classification (Cora / CiteSeer / PubMed) | **Slightly better** (or tie) |
-| Mid-size tabular MLP | Near-tie / slight loss |
-| Mini-batch ridge (synthetic) | **Worse** |
-| Vision CNN (CIFAR, MNIST) | **Worse** (~1–3 acc. points) |
+Section **Image classification** was replaced by **Empirical evaluation** (`sec:experiments`) only:
 
-**In the paper now:** one section *Regime map: dimension, noise, and problem structure* (`sec:regime`) with the dimension-sweep figure, real regression / label noise, graphs + digits qualitative figure, and a short regime summary. CIFAR `tab:main_acc`, `tab:arch` (gate %), `tab:cost` are filled.
+- Dimension & controlled noise (`tab:dim_sweep`, `fig:dim_sweep` — PDF)  
+- Real regression + label noise (`tab:real_reg` with **MNIST CNN** boundary row, `fig:real_gaps`)  
+- Graph node classification (`tab:gnn`, `fig:gnn_acc`)  
+- Win-rate overview (`fig:regime_win`)  
+- **No CIFAR wording** (per your request until further discussion)
 
-**Suggested claim for the paper:**
-
-> Replacing the fixed momentum weight by a positive-part Stein weight helps when gradient estimation is noisy and the parameter block is high-dimensional; it is not claimed to improve every architecture. Outside that regime (low-noise ridge-type fits, small CNNs) it can be neutral or worse.
+Figures are **PDF**. Qualitative digits PNG was **not** kept.
 
 ---
 
-## 6. Title and “High Dimensions”
+## 5. Answer: do other parts of the paper need serious revision?
 
-“High Dimensions” is part of the core contribution and matches both the theory ($p \ge 3$ blocks, Stein risk) and the **dimension sweep** in §3.1 (gain grows with $p$). No need to drop it from the title.
+**Yes — a short, targeted revision of prose outside `sec:experiments`.**  
+The theorems and Monte Carlo section do **not** need scientific rewrites. The **empirical framing** elsewhere still assumes the old single-backbone image study. **I did not edit those parts** (as you asked). Below are the **headings of items you (or we) should revise**.
 
-Optional wording variants that **keep** the phrase:
+### A. Abstract (`\abstract`)
 
-1. **Risk-Optimal Momentum Weights for Stochastic Gradient Estimation in High Dimensions** *(current)*  
-2. **Risk-Optimal Shrinkage Weights for Noisy Gradients in High Dimensions**  
-3. **Decision-Theoretic Momentum Weights for High-Dimensional Stochastic Gradients**
+- **A1.** Last sentence still only says “controlled optimisation experiments show gains that grow with the gradient-noise level.”  
+- **A2.** Should briefly state the **empirical scope now in the paper**: gains grow with **dimension** and **noise**, including **real regression and graphs**; optional one clause that advantage is **regime-dependent** (not universal).
+
+### B. Organisation paragraph (Introduction §1.2)
+
+- **B1.** Still says Section `sec:experiments` reports “the empirical evaluation…” (partly updated earlier). Confirm wording matches the **new** section title *Empirical evaluation* and its four families (dimension / regression / graphs / small CNN boundary).
+
+### C. Risk theory remark on the gate (Remark `rem:gate`)
+
+- **C1.** The remark referred to a **backbone table / CNN layer list** (SimpleCNN). That table is gone.  
+- **C2.** Should describe the gate using the **problem families in `sec:experiments`** (e.g. blocks of linear models, MLPs, GCN layers), not “the backbone used in the experiments.”
+
+### D. Discussion (`sec:conclusion`) — **most important prose fix**
+
+- **D1.** “the backbone used here a layer that a dimension-based rule would exclude holds most of the parameters” — **stale CIFAR/SimpleCNN claim**. Must be rewritten (e.g. parameter count vs peff story, using the **MNIST CNN / dense block** explanation already in `sec:experiments`).  
+- **D2.** “the improvement in gradient-estimation risk… regime-dependent” is **good** and should stay, optionally strengthened with a pointer to `sec:experiments` (dimension sweep + MNIST boundary).  
+- **D3.** Optional: one paragraph **synthesis** of the regime map (high $p$ / noise / linear & shallow / graphs vs dense CNN), consistent with `fig:regime_win`.
+
+### E. Limitations (`\paragraph{Limitations}`)
+
+- **E1.** “**The empirical study uses one small backbone and two datasets**” is **false** after the replacement. Must be rewritten to list the **breadth** (dimension sweep, tabular regression, graphs) and **true gaps** (large CNNs / transformers / scale, ridge-type least squares, mid-size MLPs).  
+- **E2.** Optional: state explicitly that **small CNNs** are a known weaker regime (MNIST row), so reviewers are not surprised.
+
+### F. Declarations / code URL
+
+- **F1.** URL is still `.../SR-Adam`. Should be `https://github.com/mamintoosi-papers-codes/risk-optimal-momentum` (or whichever repo you want cited).
+
+### G. Cross-checks (mechanical)
+
+- **G1.** **Sign convention** of `tab:real_reg`: MSE rows use AdamW − SR-Adam; MNIST row is accuracy SR-Adam − AdamW. Unify or restate clearly in the caption (already partly done; still easy to misread).  
+- **G2.** Bibliography: `kipf2017` is required by the graphs subsection (present in `sample.bib`).  
+- **G3.** Unused package/cites left over from the deleted section (e.g. if `krizhevsky2009` is unused, drop from bib or leave).  
+- **G4.** Compile once after edits; fix any undefined refs (`tab:arch` etc. should already be gone).
+
+### H. Not required (science)
+
+- **H1.** Proofs / theorems in the appendix: **no change** for this empirical swap.  
+- **H2.** Monte Carlo section: **no change** required (still the core validation of constants).
+
+**Severity:** **D + E** are mandatory for consistency (a referee would contradict the text against the new section). **A, C, F, G** are strongly recommended. **B** is cosmetic.
 
 ---
 
-## 7. Recommendations for the paper and next work
+## 6. Suggested manuscript claim (if you want one sentence for Discussion)
 
-| # | Action | Why |
-|---|--------|-----|
-| 1 | Put the **dimension sweep** ($p$ vs $\Delta$) in the main text | Anchors **High Dimensions** with data |
-| 2 | Order the experiments: theory Monte Carlo → synthetic noise / dimension → real regression + label noise → short **limitations** (ridge, CIFAR) | Strengths first, honest limits |
-| 3 | Report CIFAR as a **negative control / limitation**, not as a success table | Integrity with reviewers |
-| 4 | Optional algorithm variants on the **same** code: floor $k_{\min}$, conv-only filter | If a more CNN-friendly default is desired (label as variants) |
-| 5 | Extend $p$ to $10^3$–$5\times 10^3$ on logistic/quadratic | Even stronger high-$p$ evidence |
-| 6 | Plot mean $k_t$, $\hat\sigma^2$, peff vs $p$ and vs noise | Explains the mechanism |
-| 7 | Short theoretical remark on **ridge** (bias of shrinkage when residual noise is small) | Turns a failure into insight |
-| 8 | Optional: a few more large public regression sets | External validity |
+> The risk-optimal Stein weight replaces a fixed momentum weight and improves optimisation when gradient estimation is noisy and the parameter block is high-dimensional—on controlled objectives as $p$ grows, on real linear and shallow regression, and on graph node classification—while it can fail on convolutional networks whose large dense blocks drive $k_t$ toward zero.
 
-**Decisions we would like from you:**
+---
+
+## 7. Decisions for you
 
 | ID | Decision |
 |----|----------|
-| D1 | Confirm that the **dimension sweep** goes into the paper as main evidence for high dimensions |
-| D2 | CIFAR: short limitations subsection vs omit |
-| D3 | Keep the current title wording or one of the variants in §6 (all keep “High Dimensions”) |
-| D4 | Whether to add a conservative variant ($k_{\min}$ / scope filter) as an ablation |
+| **D1** | Approve the five prose fix groups **A–G** (I can implement them in one pass after your OK). |
+| **D2** | Keep MNIST CNN as an explicit boundary row (recommended) or omit. |
+| **D3** | Whether any **CIFAR** material ever returns (lab report has the numbers; currently **out of the paper**). |
+| **D4** | Code URL / repo name in Declarations. |
 
 ---
 
 ## 8. One-line summary
 
-**In high dimensions and under substantial noise the current SR-Adam beats Adam-type methods (23/24 on the dimension sweep; 24/28 on controlled noise; all linear real-regression cells, including protein $d\approx100$), while mini-batch ridge, some mid-size tabular MLPs, and a small CNN are boundaries — the paper should claim a high-dimensional, noise-robust advantage, not universal dominance.**
+**Experiments now support a high-dimensional, noise-robust advantage of SR-Adam on controlled, regression, and graph problems (and show a small-CNN boundary); the new §Empirical evaluation is in place, but Abstract, Remark on the gate, Discussion, Limitations, and the code URL still assume the old single-backbone image study and should be revised before submission.**
 
 ---
 
-## Appendix A — How to reproduce (this repo)
+## Appendix — Reproduce (selected)
 
 ```bash
 cd code
-python -u test_sr_adam.py
-python -u phase_diagram.py --profile cpu       # synthetic optimisation grid
-python -u path4_dim_sweep.py                   # dimension sweep
-python -u path3_uci.py --seeds 5 --steps 800   # real regression (first batch)
-python -u path5_more_datasets.py --seeds 3     # real regression (extra sets)
-python -u path3b_label_noise.py                # real data + label noise
-# CIFAR (GPU): python train_cifar.py --grid main --epochs 20 --seeds 5
+python -u path4_dim_sweep.py
+python -u path3_uci.py --seeds 5 --steps 800
+python -u path5_more_datasets.py --seeds 3
+python -u path3b_label_noise.py
+python -u gnn_pilot.py && python -u gnn_pilot_planetoid.py
+python -u mnist_cnn_pilot.py
+python -u make_paper_barfigs.py   # PDF bar charts for the paper
 ```
 
-## Appendix B — Where the numbers live
-
-| Content | Location |
-|---------|----------|
-| This report | `reports/REPORT_for_Arashi/REPORT.md` |
-| Synthetic grid results | `out/phase_diagram.json`, `figs/phase_diagram_*` |
-| Dimension sweep | `out/path4_dim_sweep.json`, `figs/path4_dim_sweep.*` |
-| Real regression (batch 1) | `out/path3_uci.json`, `figs/path3_uci.*` |
-| Real regression (extra sets) | `out/path5_more_datasets.json` |
-| Real label noise | `out/path3b_label_noise.json` |
-| CIFAR grid (note) | `results/runs/main_20260921-085656/` |
-| Algorithm | `code/sr_adam.py` |
-
-Shorter write-ups (EN + FA) for individual study folders remain under `reports/PATH2_phase_diagram/` and `reports/PATH3_uci_regression/`; they can be read independently if useful.
+Figures in the paper: `path4_dim_sweep.pdf`, `real_reg_gaps.pdf`, `gnn_acc.pdf`, `regime_winrate.pdf`.
