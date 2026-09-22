@@ -14,13 +14,13 @@
 
 | Block | Wins (SR-Adam better terminal objective / test loss) |
 |-------|-----------------------------------------------------|
-| Noisy quadratic, Gaussian, \(p\in\{50,150,300\}\), \(\tau\in\{0.1..4\}\) | **15/15** |
-| Noisy quadratic, Student-\(t\), \(p=150\) | **5/5** |
-| Logistic + label flips \(\{0,0.1,0.3\}\) | **3/3** |
+| Noisy quadratic, Gaussian, $p\in\{50,150,300\}$, $\tau\in\{0.1..4\}$ | **15/15** |
+| Noisy quadratic, Student-$t$, $p=150$ | **5/5** |
+| Logistic + label flips $\{0,0.1,0.3\}$ | **3/3** |
 | Small MLP regressor | **1/1** |
 | **Ridge / linear regression, mini-batch** | **0/4** ← only failure family |
 
-Paired metric: \(d = \mathrm{AdamW} - \mathrm{SR-Adam}\) on the minimized loss (positive = SR better).
+Paired metric: $d = \mathrm{AdamW} - \mathrm{SR-Adam}$ on the minimized loss (positive = SR better).
 
 ---
 
@@ -28,8 +28,8 @@ Paired metric: \(d = \mathrm{AdamW} - \mathrm{SR-Adam}\) on the minimized loss (
 
 | Claim | Evidence here |
 |-------|----------------|
-| Risk-optimal Stein weight can help optimization under controlled gradient noise | **Supported** on quadratic (all \(p,\tau\)) |
-| Helps under heavy-tailed / elliptical noise | **Supported** (Student-\(t\) all \(\tau\)) |
+| Risk-optimal Stein weight can help optimization under controlled gradient noise | **Supported** on quadratic (all $p,\tau$) |
+| Helps under heavy-tailed / elliptical noise | **Supported** (Student-$t$ all $\tau$) |
 | Helps when labels are noisy (estimation-heavy classification) | **Supported** (logistic flips) |
 | Helps on mild non-convex regression | **Supported** (small MLP) |
 | Always helps on every regression problem | **False** — **ridge with mini-batch gradients loses clearly** |
@@ -47,9 +47,9 @@ So the right empirical story is **regime-dependent**, exactly as you proposed: g
 |--:|------:|------:|----:|----:|----:|
 | 50 | SR wins (0.006 vs 0.02) | SR | SR | SR | SR (0.90 vs 1.45) |
 | 150 | SR | SR | SR | SR | SR |
-| 300 | SR (strong \(t\)) | SR | SR | SR | SR (near tie at τ=4) |
+| 300 | SR (strong $t$) | SR | SR | SR | SR (near tie at τ=4) |
 
-### Student-\(t\), \(p=150\): SR wins at every τ.
+### Student-$t$, $p=150$: SR wins at every τ.
 
 ### Logistic test log-loss: SR wins at flip 0.0, 0.1, 0.3.
 
@@ -73,7 +73,7 @@ Hypothesis for later theory work: ridge has **small residual variance near the o
 | | CIFAR CNN (`main`) | Path 2 synthetic |
 |--|-------------------|------------------|
 | SR-Adam vs Adam-family | **Loses 6/6** | **Wins 24/28 vs AdamW** |
-| Problem | over-parameterized CNN, huge FC block | controlled \(p\), known noise |
+| Problem | over-parameterized CNN, huge FC block | controlled $p$, known noise |
 | Story | method not a drop-in for CNN training | method is a **candidate in noise-dominated / estimation-like regimes** |
 
 ---
@@ -83,9 +83,9 @@ Hypothesis for later theory work: ridge has **small residual variance near the o
 | File | Role |
 |------|------|
 | `code/phase_diagram.py` | Suite (`--profile cpu` / `full` / `smoke`) |
-| `out/phase_diagram.json` | All rows + paired \(t\) |
+| `out/phase_diagram.json` | All rows + paired $t$ |
 | `figs/phase_diagram_slices.pdf` | Slice + win/lose bars (if PDF locked, timestamped copy) |
-| `figs/phase_diagram_heatmap.pdf` | \(p\times\tau\) map + mean \(k_t\) |
+| `figs/phase_diagram_heatmap.pdf` | $p\times\tau$ map + mean $k_t$ |
 
 Reproduce:
 
