@@ -52,7 +52,7 @@ Two OpenML sets (`energy_efficiency`, `concrete`) were **skipped** (loader/API i
 | Item | Choice |
 |------|--------|
 | Datasets | diabetes, california_housing, wine_quality (OpenML); energy/concrete pending |
-| Models | (1) linear \(w,b\) (2) MLP 32 tanh |
+| Models | (1) linear $w,b$ (2) MLP 32 tanh |
 | Preprocess | standardize X on train; standardize y (report MSE in y-std units) |
 | Split | 70/30, 5 seeds |
 | Optimizers | SGD-M, AdamW, AMSGrad, **SR-Adam** (same `sr_adam.py` defaults) |
@@ -114,7 +114,7 @@ python -u path3_uci.py --seeds 5 --steps 800
 
 1. Fix OpenML loaders for `energy_efficiency`, `concrete` (and/or add `year`, `protein`).  
 2. Add **noisy labels** variants of these UCI sets (theory-favourable stress).  
-3. Correlate win/loss with logged \(k_t\), \(\hat\sigma^2\), peff (Path 5 lite).  
+3. Correlate win/loss with logged $k_t$, $\hat\sigma^2$, peff (Path 5 lite).  
 4. Write the regime paragraph in `paper/sn-article.tex` and drop `\torerun` CIFAR superiority tables (or replace with honest limitation text).
 
 ---
