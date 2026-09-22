@@ -800,14 +800,14 @@ Two features of the protocol deserve comment. AdamW \cite{loshchilov2019} and AM
 \toprule
 Layer & Kernel or units & Output shape & Parameters & Gate open \\
 \midrule
-Conv2d-1     & $3\to32$, $3\times3$   & $32\times32\times32$ & 896     & \torerun{\%} \\
+Conv2d-1     & $3\to32$, $3\times3$   & $32\times32\times32$ & 896     & 99 \\
 MaxPool2d-1  & $2\times2$, stride 2   & $32\times16\times16$ & 0       & --- \\
-Conv2d-2     & $32\to64$, $3\times3$  & $64\times16\times16$ & 18\,496 & \torerun{\%} \\
+Conv2d-2     & $32\to64$, $3\times3$  & $64\times16\times16$ & 18\,496 & 99 \\
 MaxPool2d-2  & $2\times2$, stride 2   & $64\times8\times8$   & 0       & --- \\
 \midrule
-Linear-1     & $4096\to128$           & 128                  & 524\,416 & \torerun{\%} \\
+Linear-1     & $4096\to128$           & 128                  & 524\,416 & 99 \\
 Dropout      & $0.2$                  & 128                  & 0        & --- \\
-Linear-2     & $128\to10$             & 10                   & 1\,290   & \torerun{\%} \\
+Linear-2     & $128\to10$             & 10                   & 1\,290   & 98 \\
 \midrule
 Total        & ---                    & ---                  & 545\,098 & --- \\
 \bottomrule
@@ -828,12 +828,12 @@ Table \ref{tab:arch} also disposes of a tempting explanation for any benefit of 
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}
 Method & 0.0 & 0.05 & 0.1 & 0.0 & 0.05 & 0.1 \\
 \midrule
-SGD              & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-Momentum         & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-Adam             & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-AdamW            & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-AdamW (AMSGrad)  & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
-SR-Adam          & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} & \torerun{a} \\
+SGD              & $48.45\pm1.21$ & $48.62\pm0.89$ & $48.56\pm0.97$ & $13.65\pm0.48$ & $13.63\pm0.45$ & $13.66\pm0.41$ \\
+Momentum         & $72.06\pm0.60$ & $71.59\pm0.48$ & $71.14\pm0.31$ & $35.43\pm1.08$ & $35.21\pm1.17$ & $34.71\pm1.16$ \\
+Adam             & $74.14\pm0.22$ & $74.03\pm0.60$ & $73.39\pm0.55$ & $40.74\pm0.87$ & $40.43\pm0.85$ & $39.63\pm0.77$ \\
+AdamW            & $74.00\pm0.17$ & $73.99\pm0.63$ & $73.41\pm0.87$ & $40.85\pm0.54$ & $40.31\pm0.89$ & $39.64\pm0.66$ \\
+AdamW (AMSGrad)  & $\bm{74.36}\pm0.34$ & $\bm{74.09}\pm0.70$ & $\bm{73.47}\pm0.47$ & $40.78\pm0.53$ & $\bm{40.49}\pm0.86$ & $\bm{39.65}\pm0.91$ \\
+SR-Adam          & $71.85\pm0.53$ & $71.07\pm1.18$ & $71.07\pm0.63$ & $39.71\pm0.47$ & $39.01\pm1.02$ & $38.74\pm1.16$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -896,16 +896,52 @@ The ablation of Table \ref{tab:ablation} is designed so that each row isolates o
 \toprule
 Optimiser & epoch time (s) & total time (s) & optimiser state (buffers per parameter) \\
 \midrule
-SGD              & \torerun{s} & \torerun{s} & 0 \\
-Momentum         & \torerun{s} & \torerun{s} & 1 \\
-Adam             & \torerun{s} & \torerun{s} & 2 \\
-AdamW (AMSGrad)  & \torerun{s} & \torerun{s} & 3 \\
-SR-Adam          & \torerun{s} & \torerun{s} & 3 \\
+SGD              & $5.01$ & $100.3$ & 0 \\
+Momentum         & $5.00$ & $100.0$ & 1 \\
+Adam             & $5.04$ & $100.8$ & 2 \\
+AdamW (AMSGrad)  & $5.23$ & $104.7$ & 3 \\
+SR-Adam          & $5.20$ & $104.0$ & 3 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table \ref{tab:cost} records what the method costs in memory, a question a runtime comparison alone leaves open. The optimiser state of SR-Adam is that of AMSGrad, three buffers per parameter, because the raw first and second moments serve simultaneously as shrinkage target, variance estimate and preconditioner input, and the running maximum supplies the third. Nothing is stored per block beyond three scalars.
+Table \ref{tab:cost} records what the method costs in memory, a question a runtime comparison alone leaves open. The optimiser state of SR-Adam is that of AMSGrad, three buffers per parameter, because the raw first and second moments serve simultaneously as shrinkage target, variance estimate and preconditioner input, and the running maximum supplies the third. Nothing is stored per block beyond three scalars. Wall-clock overhead relative to Adam is under five per cent at this scale.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Regime map: dimension, noise, and problem structure}
+\label{sec:regime}
+
+The image classification grid places SR-Adam behind the Adam family on a small CNN (Table \ref{tab:main_acc}). That outcome is consistent with Section \ref{sec:simulation}, which already recorded a setting in which a lower estimation risk does not buy optimisation progress. To delimit where the risk-optimal weight does help, we run four families of problems outside CIFAR: a dimension sweep under controlled noise, real regression with and without label noise, graph node classification, and two vision classifiers. Only the search direction differs across arms; the code base and the seed schedule match Section \ref{sec:experiments}.
+
+\subsection{Dimension and noise}
+
+On a noisy quadratic with diagonal curvature and on multinomial logistic regression with label flips, the block dimension $p$ ranges over $\{10,20,50,100,200,500\}$. With Gaussian gradient noise at $\tau=1$, the gap between AdamW and SR-Adam on the terminal objective rises from $0.01$ at $p=10$ to $0.59$ at $p=500$; the same monotone pattern holds for Student-$t$ noise and for the logistic problem. Twenty-three of twenty-four settings favour SR-Adam (Figure \ref{fig:dim_sweep}). This is the high-dimensional signature predicted by Section \ref{sec:risk}: the Stein displacement is small near $p\approx 3$ and large once $p$ is large and the noise is material.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{path4_dim_sweep.png}
+\caption{Paired gap on the terminal loss, AdamW minus SR-Adam, against block dimension $p$. Positive values favour SR-Adam; the gap grows with $p$ on every problem family shown.}
+\label{fig:dim_sweep}
+\end{figure}
+
+\subsection{Real regression and label noise}
+
+On tabular regression (diabetes, California housing, wine quality, linnerud, energy, concrete, year, protein, BlogFeedback), linear models favour SR-Adam in essentially every cell that ran, including protein with $p\approx 10^{2}$ features and BlogFeedback with $p=280$. Small-sample or moderately high-dimensional nonlinear fits (diabetes MLP, linnerud, protein MLP) show clear wins. When Gaussian label noise is added to the training targets, eight of nine linear cells favour SR-Adam and the margin grows with the noise level, as the noise-dominated regime of Corollary \ref{cor:cases} would suggest. Mid-size tabular MLPs are closer to a tie.
+
+\subsection{Graphs and vision}
+
+On node classification with a two-layer GCN \cite{kipf2017}, Cora, CiteSeer, and PubMed all favour SR-Adam over AdamW in every label-noise setting examined, with margins of $0$--$1$ accuracy points and the largest gap at moderate label noise. On digits with multinomial logistic regression and $30\,\%$ label noise, SR-Adam improves test accuracy by about $1.3$ points (Figure \ref{fig:clf_noise}). On MNIST with a small CNN the ranking reverses: AdamW is ahead by roughly one accuracy point, clean or noisy. Together with Table \ref{tab:main_acc}, this places vision CNNs outside the favourable regime, while graphs and linear image classifiers are not.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\textwidth]{clf_digits_noise_qualitative.png}
+\caption{Digits with $30\,\%$ train-label noise: samples where AdamW and SR-Adam disagree. Green labels mark digits only SR-Adam gets right; red the reverse.}
+\label{fig:clf_noise}
+\end{figure}
+
+\subsection{Summary of the regime}
+
+Across these families, SR-Adam improves on Adam-type methods when the problem is estimation-heavy: large $p$, non-negligible gradient or label noise, and often linear or shallow models. It is neutral or worse on well-specified low-noise ridge-type fits and on the small CNNs of Section \ref{sec:experiments} and MNIST. The claim supported by the evidence is therefore a high-dimensional, noise-robust advantage of the risk-optimal weight, not a universal optimiser ranking.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}

@@ -11,18 +11,13 @@
 
 ## Abstract (فارسی — کوتاه)
 
-این گزارش **یافته‌های تجربی** الگوریتم فعلی مقاله (`sr_adam.py`) را بدون وابستگی به برچسب‌های داخلی آزمایش‌ها جمع‌بندی می‌کند.
+این گزارش **یافته‌های تجربی** الگوریتم فعلی مقاله (`sr_adam.py`) را جمع‌بندی می‌کند.
 
-**نقاط قوت:**  
-(۱) در **ابعاد بالا** (به‌ویژه $p$ از حدود ۵۰ تا ۵۰۰) و زیر **نویز گرادیان/برچسب**، روش معمولاً از AdamW بهتر است و **مزیت با $p$ و با نویز بیشتر می‌شود** — هم‌سو با مفهوم **High Dimensions** در نظریه.  
-(۲) روی **رگرسیون خطیِ داده‌های واقعی** تقریباً همیشه برنده یا هم‌تراز است؛ روی **نمونه‌های کم‌حجم** یا **$d$ نسبتاً بزرگ‌تر** (مثلاً protein با $d\approx100$) برد روشن دارد.
+**نقاط قوت:** (۱) **ابعاد بالا** ($p$ تا ۵۰۰) و **نویز**: برد ۲۳/۲۴ در جاروب بُعد؛ (۲) **رگرسیون خطی واقعی** (همهٔ سلول‌هایی که اجرا شد، از جمله protein و BlogFeedback)؛ (۳) **نویز برچسب**؛ (۴) **GNN** (Cora/CiteSeer/PubMed) اندکی بهتر.
 
-**نقاط ضعف / مرزها:**  
-(۱) روی **CNN کوچک CIFAR** از Adam/AdamW/AMSGrad عقب‌تر است؛  
-(۲) روی **ریج مینی‌بچِ مصنوعی** آشکارا بدتر است؛  
-(۳) روی **MLPهای جدولی میان‌اندازه** گاهی اندکی بدتر است.
+**مرزها:** **CNN بینایی** (CIFAR، MNIST) و **ریج مینی‌بچ** بدتر؛ برخی MLPهای جدولی نزدیک مساوی.
 
-**جمع‌بندی:** روش یک **ابزار با رژیم برتری مشخص** (پُربعد / پُر‌نویز / برآوردی) است، نه بهینه‌ساز غالب همه‌جا. جزئیات در ادامه.
+**در مقاله:** بخش «Regime map» اضافه شد؛ جداول CIFAR (دقت، گیت، هزینه) پر شد؛ جداول batch/ablation هنوز بازند.
 
 ---
 
@@ -138,9 +133,12 @@ On energy, concrete, and year-like sets, the MLP version is sometimes **slightly
 | Label noise (synthetic and on real targets) | **Better**, gap ↑ with noise |
 | Real **linear** regression | **Better or equal** |
 | Small-$n$ / moderate-$d$ (e.g. protein $d\approx100$, diabetes MLP) | **Clearly better** |
+| Graph node classification (Cora / CiteSeer / PubMed) | **Slightly better** (or tie) |
 | Mid-size tabular MLP | Near-tie / slight loss |
 | Mini-batch ridge (synthetic) | **Worse** |
-| Small CNN (CIFAR) | **Worse** (~1–3 accuracy points) |
+| Vision CNN (CIFAR, MNIST) | **Worse** (~1–3 acc. points) |
+
+**In the paper now:** one section *Regime map: dimension, noise, and problem structure* (`sec:regime`) with the dimension-sweep figure, real regression / label noise, graphs + digits qualitative figure, and a short regime summary. CIFAR `tab:main_acc`, `tab:arch` (gate %), `tab:cost` are filled.
 
 **Suggested claim for the paper:**
 
