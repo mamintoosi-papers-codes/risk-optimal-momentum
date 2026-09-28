@@ -177,6 +177,8 @@ class SRAdam(Optimizer):
         amsgrad: bool = True,
         shrink_filter=None,
         track_stats: bool = False,
+        grouping: str = "block",
+        k_min: float = 0.0,
     ):
         if lr <= 0.0:
             raise ValueError(f"lr must be positive, got {lr}")
@@ -190,6 +192,10 @@ class SRAdam(Optimizer):
             raise ValueError(f"constant must be 'p' or 'peff', got {constant}")
         if not 0.0 <= omega < 1.0:
             raise ValueError(f"omega must lie in [0,1), got {omega}")
+        if grouping not in ("block", "filter", "channel"):
+            raise ValueError(f"grouping must be block|filter|channel, got {grouping}")
+        if not 0.0 <= k_min <= 1.0:
+            raise ValueError(f"k_min must lie in [0,1], got {k_min}")
         defaults = dict(
             lr=lr,
             betas=betas,
@@ -201,6 +207,8 @@ class SRAdam(Optimizer):
             peff_margin=peff_margin,
             warmup=warmup,
             amsgrad=amsgrad,
+            grouping=grouping,
+            k_min=k_min,
         )
         super().__init__(params, defaults)
         self.shrink_filter = shrink_filter
@@ -229,6 +237,8 @@ class SRAdam(Optimizer):
             constant = group["constant"]
             omega = group["omega"]
             amsgrad = group["amsgrad"]
+            grouping = group.get("grouping", "block")
+            k_min = group.get("k_min", 0.0)
 
             for p in group["params"]:
                 if p.grad is None:
@@ -253,6 +263,15 @@ class SRAdam(Optimizer):
                 # Adam weight, used during warm-up and whenever the gate is closed.
                 w_adam = (1.0 - beta1) / (1.0 - beta1 ** t)
 
+                # Grouping for the Stein weight: one k per block (default) or one k
+                # per filter/channel (dim 0 of conv/linear weights). Bias vectors stay
+                # a single block under channel/filter so that k is defined for p >= 3.
+                if grouping == "block" or p.dim() < 2:
+                    n_groups, group_size = 1, p.numel()
+                else:
+                    n_groups = p.shape[0]
+                    group_size = p.numel() // max(n_groups, 1)
+
                 if s < 1:
                     direction = g
                     peff_v = float("nan")
@@ -272,25 +291,38 @@ class SRAdam(Optimizer):
                         if omega > 0.0:
                             pooled = s2.mean() * omega
                             s2.mul_(1.0 - omega).add_(pooled)
-                        s2_max = s2.max().clamp_min(_TINY)
-                        s2_sum = s2.sum()
-                        peff = s2_sum / s2_max                       # tensor, no host sync
-                        dim = peff if constant == "peff" else \
-                            torch.as_tensor(float(p.numel()), dtype=g.dtype, device=g.device)
-                        c = rho * (dim - 2.0).clamp(min=0.0)
-                        q = (y * y / (s2 + eps)).sum().clamp_min(_TINY)
-                        k_stein = (1.0 - c / q).clamp(min=0.0)
-                        gate = (peff > 2.0 + margin).to(g.dtype)
-                        k = gate * k_stein + (1.0 - gate) * w_adam
-                    else:
-                        k = torch.as_tensor(w_adam, dtype=g.dtype, device=g.device)
 
-                    direction = m_prev + k * y
+                        y_g = y.reshape(n_groups, group_size)
+                        s2_g = s2.reshape(n_groups, group_size)
+                        s2_max = s2_g.max(dim=1).values.clamp_min(_TINY)   # (G,)
+                        s2_sum = s2_g.sum(dim=1)                           # (G,)
+                        peff = s2_sum / s2_max                             # (G,)
+                        if constant == "peff":
+                            dim = peff
+                        else:
+                            dim = torch.full_like(peff, float(group_size))
+                        c = rho * (dim - 2.0).clamp(min=0.0)               # (G,)
+                        q = (y_g * y_g / (s2_g + eps)).sum(dim=1).clamp_min(_TINY)
+                        k_stein = (1.0 - c / q).clamp(min=max(k_min, 0.0))
+                        if k_min > 0.0:
+                            k_stein = k_stein.clamp(min=k_min)
+                        gate = (peff > 2.0 + margin).to(y_g.dtype)
+                        k_g = gate * k_stein + (1.0 - gate) * w_adam       # (G,)
+                        direction = m_prev + (k_g.unsqueeze(1) * y_g).reshape_as(p)
+                        k_for_stats = k_g
+                    else:
+                        k_for_stats = torch.as_tensor(w_adam, dtype=g.dtype, device=g.device)
+                        direction = m_prev + k_for_stats * y
 
                     if self.track_stats:
-                        kfac_v = float(k)
-                        peff_v = float(peff) if use_stein else float("nan")
-                        sig2_v = float(s2_sum / p.numel()) if use_stein else float("nan")
+                        if use_stein:
+                            kfac_v = float(k_for_stats.mean())
+                            peff_v = float(peff.mean())
+                            sig2_v = float(s2_sum.mean() / group_size)
+                        else:
+                            kfac_v = float(k_for_stats)
+                            peff_v = float("nan")
+                            sig2_v = float("nan")
 
                 # ---- raw-moment updates ----------------------------------------------
                 mbar.mul_(beta1).add_(g, alpha=1.0 - beta1)

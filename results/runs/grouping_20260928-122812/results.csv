@@ -1,0 +1,4 @@
+dataset,optimizer,grouping,k_min,seed,epoch,test_acc,test_loss,epoch_time
+mnist,adamw,adamw,0.0,1,1,21.12,2.242313427734375,31.03611922264099
+mnist,sradam_block,block,0.0,1,1,21.12,2.242313427734375,24.979416847229004
+mnist,sradam_channel,channel,0.0,1,1,21.12,2.242313427734375,21.819180011749268

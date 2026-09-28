@@ -1,0 +1,18 @@
+{
+  "created": "2026-09-28 12:28:12",
+  "device": "cpu",
+  "torch": "2.3.1",
+  "command": "train_grouping.py --smoke",
+  "datasets": [
+    "mnist"
+  ],
+  "groupings": [
+    "adamw",
+    "sradam_block",
+    "sradam_channel"
+  ],
+  "epochs": 1,
+  "seeds": 1,
+  "subset": 256,
+  "smoke": true
+}
