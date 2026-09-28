@@ -44,11 +44,11 @@ FIELDS = ["dataset", "optimizer", "grouping", "k_min", "seed", "epoch",
 
 
 class SmallCNN(nn.Module):
-    def __init__(self, n_classes=10, in_ch=1):
+    def __init__(self, n_classes=10, in_ch=1, spatial=7):
         super().__init__()
         self.c1 = nn.Conv2d(in_ch, 32, 3, padding=1)
         self.c2 = nn.Conv2d(32, 64, 3, padding=1)
-        self.fc1 = nn.Linear(64 * 7 * 7, 64)
+        self.fc1 = nn.Linear(64 * spatial * spatial, 64)
         self.fc2 = nn.Linear(64, n_classes)
 
     def forward(self, x):
@@ -79,7 +79,7 @@ def loaders(dataset, batch_size, subset=None):
         tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
         tr = datasets.MNIST(str(DATA_ROOT / "mnist"), train=True, download=True, transform=tf)
         te = datasets.MNIST(str(DATA_ROOT / "mnist"), train=False, download=True, transform=tf)
-        net_in = 1
+        net_in, spatial = 1, 7  # 28x28 -> two pools -> 7x7
     else:
         mean, std = (0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)
         tf = transforms.Compose([
@@ -91,12 +91,12 @@ def loaders(dataset, batch_size, subset=None):
         tfe = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
         tr = datasets.CIFAR10(str(DATA_ROOT / "cifar10"), train=True, download=True, transform=tf)
         te = datasets.CIFAR10(str(DATA_ROOT / "cifar10"), train=False, download=True, transform=tfe)
-        net_in = 3
+        net_in, spatial = 3, 8  # 32x32 -> two pools -> 8x8
     if subset is not None:
         tr = Subset(tr, list(range(min(subset, len(tr)))))
     return (DataLoader(tr, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True),
             DataLoader(te, batch_size=1000, shuffle=False, num_workers=2, pin_memory=True),
-            net_in)
+            net_in, spatial)
 
 
 @torch.no_grad()
@@ -116,8 +116,8 @@ def evaluate(net, loader):
 def train_one(dataset, opt_name, seed, epochs, batch_size, subset, writer):
     torch.manual_seed(seed)
     np.random.seed(seed)
-    tr, te, in_ch = loaders(dataset, batch_size, subset=subset)
-    net = SmallCNN(n_classes=10, in_ch=in_ch).to(DEVICE)
+    tr, te, in_ch, spatial = loaders(dataset, batch_size, subset=subset)
+    net = SmallCNN(n_classes=10, in_ch=in_ch, spatial=spatial).to(DEVICE)
     opt = make_optimizer(opt_name, net.parameters())
     grouping = "adamw" if opt_name == "adamw" else opt_name.replace("sradam_", "")
     k_min = 0.3 if opt_name.endswith("kmin") else 0.0
