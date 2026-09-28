@@ -1,0 +1,20 @@
+{
+  "created": "2026-09-28 14:01:20",
+  "device": "cuda",
+  "torch": "2.13.0+cu130",
+  "command": "train_grouping.py --dataset cifar10 --seeds 3 --epochs 5",
+  "datasets": [
+    "cifar10"
+  ],
+  "groupings": [
+    "adamw",
+    "sradam_block",
+    "sradam_filter",
+    "sradam_channel",
+    "sradam_channel_kmin"
+  ],
+  "epochs": 5,
+  "seeds": 3,
+  "subset": null,
+  "smoke": false
+}

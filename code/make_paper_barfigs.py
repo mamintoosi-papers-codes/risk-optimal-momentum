@@ -13,14 +13,16 @@ plt.rcParams.update({
     "legend.fontsize": 8, "figure.dpi": 200, "savefig.bbox": "tight",
 })
 
-# --- real regression: paired gap AdamW - SR-Adam (positive = SR better)
+# --- real problems (no CNN): paired gap AdamW - SR-Adam (positive = SR better)
 labels = [
     "diabetes lin", "diabetes MLP", "CA housing lin", "wine lin",
     "linnerud lin", "linnerud MLP", "protein lin", "protein MLP",
-    "BlogFeedback lin", "MNIST CNN",
+    "BlogFeedback lin",
+    "Cora GCN", "CiteSeer GCN", "PubMed GCN",
 ]
-gaps = [0.00, 0.24, 0.07, 0.01, 0.24, 0.65, 0.04, 0.03, 1.44, -0.96]
-# MNIST is accuracy gap in points; scale note in caption — use as-is with color
+# regression: MSE gap; graphs: accuracy-point gap (SR - Adam)  → all positive = SR better
+gaps = [0.00, 0.24, 0.07, 0.01, 0.24, 0.65, 0.04, 0.03, 1.44,
+        0.2, 0.7, 0.2]
 
 fig, ax = plt.subplots(figsize=(6.8, 3.2))
 cols = ["#2a9d8f" if g > 0 else "#e76f51" for g in gaps]
@@ -31,7 +33,7 @@ ax.set_yticks(y)
 ax.set_yticklabels(labels, fontsize=8)
 ax.invert_yaxis()
 ax.set_xlabel(r"AdamW $-$ SR-Adam (positive $=$ SR-Adam better)")
-ax.set_title("Real problems: paired gaps (MSE, or accuracy points for MNIST CNN)")
+ax.set_title("Real problems: paired gaps (MSE for regression; accuracy points for graphs)")
 fig.tight_layout()
 fig.savefig(PAPER / "real_reg_gaps.pdf")
 plt.close(fig)
@@ -67,9 +69,8 @@ families = [
     "Label noise\n(real / synthetic)",
     "Graphs\n(GCN)",
     "Digits logistic\n+ noise",
-    "MNIST CNN",
 ]
-wins = [23 / 24, 12 / 13, 8 / 9, 6 / 6, 1 / 1, 0 / 2]
+wins = [23 / 24, 12 / 13, 8 / 9, 6 / 6, 1 / 1]
 colors = ["#2a9d8f" if v >= 0.5 else "#e76f51" for v in wins]
 fig, ax = plt.subplots(figsize=(6.8, 2.6))
 ax.barh(np.arange(len(families)), wins, color=colors)

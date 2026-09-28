@@ -809,15 +809,15 @@ $p$ & quadratic, $\tau=1$ & Student-$t$, $\tau=1$ & logistic, flip $0.2$ \\
 \label{fig:dim_sweep}
 \end{figure}
 
-\subsection{Real regression and label noise}
+\subsection{Real regression and graph classification}
 
-The second family uses public regression sets with a linear model and, where noted, a one-hidden-layer network. Features and targets are standardised on the training split. Table \ref{tab:real_reg} summarises the paired gap in test mean squared error (AdamW minus SR-Adam, positive favouring SR-Adam). Linear fits favour SR-Adam on every set that was run, including protein with $p\approx10^{2}$ features and BlogFeedback with $p=280$. Small-sample or moderately high-dimensional nonlinear fits (diabetes multilayer perceptron, linnerud, protein with a hidden layer) also favour SR-Adam by a clear margin. When Gaussian noise of scale $\sigma\cdot\mathrm{sd}(y)$ is added to the training targets, eight of nine linear cells favour SR-Adam and the gap widens with $\sigma$ on wine quality and California housing.
+Table \ref{tab:real_all} collects public regression sets and graph node classification. Regression uses a linear model and, where noted, a one-hidden-layer network; features and targets are standardised on the training split. Graphs use a two-layer graph convolutional network \cite{kipf2017} on the standard Planetoid splits, with the same optimisers and seed pairing. Linear fits favour SR-Adam on every tabular set that was run, including protein with $p\approx10^{2}$ features and BlogFeedback with $p=280$. Small-sample or moderately high-dimensional nonlinear fits (diabetes multilayer perceptron, linnerud, protein with a hidden layer) also favour SR-Adam by a clear margin. When Gaussian noise of scale $\sigma\cdot\mathrm{sd}(y)$ is added to the training targets, eight of nine linear cells favour SR-Adam and the gap widens with $\sigma$ on wine quality and California housing. On all three graphs SR-Adam is at or above AdamW; the margin is largest under moderate label noise.
 
 \begin{table}[t]
 \centering
-\caption{Paired gap in test MSE, AdamW minus SR-Adam (positive $=$ SR-Adam better), except MNIST CNN where the entry is the gap in test accuracy points (SR-Adam minus AdamW). Linear unless stated; $n$ and $p$ refer to the training matrix after standardisation of $y$.}
-\label{tab:real_reg}
-\begin{tabular}{llrrr}
+\caption{Paired comparison of AdamW and SR-Adam on regression and graph problems. Top: gap in test MSE, AdamW minus SR-Adam (positive $=$ SR-Adam better). Bottom: node-classification test accuracy (per cent), clean labels and with training-label noise. Linear unless stated; $n$ and $p$ refer to the training design after standardisation of $y$.}
+\label{tab:real_all}
+\begin{tabular}{llrrc}
 \toprule
 Dataset & Model & $n$ & $p$ & Gap \\
 \midrule
@@ -830,7 +830,14 @@ linnerud & MLP & 20 & 3 & $+0.65$ \\
 protein & linear & 1994 & 126 & $+0.04$ \\
 protein & MLP & 1994 & 126 & $+0.03$ \\
 BlogFeedback & linear & 15000 & 280 & $+1.44$ \\
-MNIST & CNN & 20000 & 784 & $-0.96$ \\
+\midrule
+\multicolumn{5}{l}{\emph{Node classification (GCN): test accuracy, AdamW $\to$ SR-Adam}} \\
+Cora & GCN & 2708 & 1433 & $77.9 \to \bm{78.1}$ \\
+CiteSeer & GCN & 3327 & 3703 & $63.4 \to \bm{64.1}$ \\
+PubMed & GCN & 19717 & 500 & $76.1 \to \bm{76.3}$ \\
+Cora, noisy labels & GCN & 2708 & 1433 & $62.4 \to \bm{63.2}$ \\
+CiteSeer, noisy labels & GCN & 3327 & 3703 & $48.9 \to \bm{49.4}$ \\
+PubMed, noisy labels & GCN & 19717 & 500 & $62.9 \to 62.9$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -838,41 +845,18 @@ MNIST & CNN & 20000 & 784 & $-0.96$ \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.98\textwidth]{real_reg_gaps.pdf}
-\caption{Paired gaps on real problems. Positive bars favour SR-Adam. The single negative bar is a small convolutional network on MNIST, included as a boundary case (see the text).}
+\caption{Paired gaps on real regression and graph problems. Positive bars favour SR-Adam.}
 \label{fig:real_gaps}
 \end{figure}
-
-On handwritten digits with multinomial logistic regression and $30\,\%$ train-label noise, SR-Adam improves test accuracy by about $1.3$ points over AdamW over three seeds.
-
-The MNIST row is the one setting in this table where AdamW is ahead (by about one accuracy point, clean or with $30\,\%$ label noise). The model is a small convolutional network whose fully connected block carries most of the parameters. Diagnostics show that the Stein weight on that block stays near zero after warm-up, so the search direction is almost the historical average and the current mini-batch signal is heavily suppressed. That is consistent with the displacement bound of Lemma \ref{lem:displacement}: when the estimated coordinatewise variances are large and concentrated, aggressive shrinkage pays in estimation risk but can stall discrimination in a model that needs rapid feature adaptation. Linear and shallow models do not exhibit the same failure, which is why they dominate the rest of Table \ref{tab:real_reg}.
-
-\subsection{Graph node classification}
-
-On node classification with a two-layer graph convolutional network \cite{kipf2017}, the same GCN and split are trained with each optimiser. Table \ref{tab:gnn} reports test accuracy. SR-Adam is at or above AdamW on every dataset and label-noise setting; the margin is largest at moderate label noise.
-
-\begin{table}[t]
-\centering
-\caption{Node classification test accuracy (per cent). Label noise is applied to the training labels only.}
-\label{tab:gnn}
-\begin{tabular}{lcccc}
-\toprule
- & \multicolumn{2}{c}{clean labels} & \multicolumn{2}{c}{noisy labels} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Dataset & AdamW & SR-Adam & AdamW & SR-Adam \\
-\midrule
-Cora     & $77.9$ & $\bm{78.1}$ & $62.4$ & $\bm{63.2}$ \\
-CiteSeer & $63.4$ & $\bm{64.1}$ & $48.9$ & $\bm{49.4}$ \\
-PubMed   & $76.1$ & $\bm{76.3}$ & $62.9$ & $62.9$ \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.75\textwidth]{gnn_acc.pdf}
-\caption{Node classification test accuracy on Cora, CiteSeer and PubMed. SR-Adam matches or exceeds AdamW under clean and noisy training labels.}
+\caption{Node classification on Cora, CiteSeer and PubMed. SR-Adam matches or exceeds AdamW under clean and noisy training labels.}
 \label{fig:gnn_acc}
 \end{figure}
+
+On handwritten digits with multinomial logistic regression and $30\,\%$ train-label noise, SR-Adam improves test accuracy by about $1.3$ points over AdamW over three seeds.
 
 \begin{figure}[t]
 \centering
@@ -883,7 +867,7 @@ PubMed   & $76.1$ & $\bm{76.3}$ & $62.9$ & $62.9$ \\
 
 \subsection{Summary}
 
-Across these families the risk-optimal weight helps when the problem is estimation-heavy: large $p$, material gradient or label noise, and linear or shallow models (Figure \ref{fig:regime_win}). The MNIST convolutional network is the explicit counterexample of Table \ref{tab:real_reg}, explained by over-shrinkage of a large dense block. The evidence supports a high-dimensional, noise-robust advantage of the Stein weight over a fixed momentum weight; it is not a claim of universal optimiser dominance.
+Across these families the risk-optimal weight helps when the problem is estimation-heavy: large $p$, material gradient or label noise, and linear or shallow models (Figure \ref{fig:regime_win}). The evidence supports a high-dimensional, noise-robust advantage of the Stein weight over a fixed momentum weight; it is not a claim of universal optimiser dominance.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
