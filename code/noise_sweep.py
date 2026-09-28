@@ -1,0 +1,225 @@
+"""
+Label-noise sweep for the paper: how the SR-Adam gap changes with noise.
+
+Short CPU-friendly grid (override with --steps/--seeds for the GPU box).
+
+Problems
+--------
+  digits + logistic, label noise {0, 0.1, 0.2, 0.3, 0.5}
+  breast_cancer + logistic, same noise grid
+  wine quality regression + linear, target noise {0, 0.5, 1.0}
+
+Outputs
+-------
+  ../out/noise_sweep.json
+  ../paper/tab_noise.tex
+  ../paper/fig_noise_sweep.pdf
+
+Run:  python -u noise_sweep.py
+      python -u noise_sweep.py --seeds 5 --steps 800
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import time
+import warnings
+from pathlib import Path
+
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import torch
+
+from paper_tables import load_clf, load_reg, split_clf, run_logistic_clf, run_linear
+from path3_uci import OPTS, paired, split_scale
+
+HERE = Path(__file__).resolve().parent
+OUT = HERE.parent / "out"
+PAPER = HERE.parent / "paper"
+for p in (OUT, PAPER):
+    p.mkdir(parents=True, exist_ok=True)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--seeds", type=int, default=3)
+    ap.add_argument("--steps", type=int, default=500)
+    ap.add_argument("--quick", action="store_true")
+    args = ap.parse_args()
+    if args.quick:
+        args.seeds, args.steps = 2, 250
+    seeds = list(range(1, args.seeds + 1))
+    noise_grid = [0.0, 0.1, 0.2, 0.3, 0.5]
+    t0 = time.time()
+    rows = []
+
+    print("=== digits logistic ===", flush=True)
+    X, y = load_clf("digits")
+    K = int(y.max()) + 1
+    for noise in noise_grid:
+        per = {o: [] for o in OPTS}
+        for seed in seeds:
+            Xtr, ytr, Xte, yte = split_clf(X, y, 0.3, seed)
+            if noise > 0:
+                gen = torch.Generator().manual_seed(900 + seed)
+                m = torch.rand(ytr.shape[0]) < noise
+                ytr = ytr.clone()
+                ytr[m] = torch.randint(0, K, (int(m.sum()),), generator=gen)
+            for o in OPTS:
+                per[o].append(run_logistic_clf(
+                    Xtr, ytr, Xte, yte, o, args.steps, 5e-2, 64, seed, K))
+        a = np.asarray(per["adamw"])
+        s = np.asarray(per["sradam"])
+        rec = dict(problem="digits_logistic", noise=float(noise), metric="acc_frac",
+                   adamw=float(a.mean()), sradam=float(s.mean()),
+                   paired_diff=float(s.mean() - a.mean()),
+                   win_sradam=bool(s.mean() >= a.mean()))
+        rows.append(rec)
+        print(f"  noise={noise:.1f}  AdamW={100*a.mean():.1f}  SR={100*s.mean():.1f}  "
+              f"Δ={100*rec['paired_diff']:+.1f}pp", flush=True)
+
+    print("=== breast_cancer logistic ===", flush=True)
+    X, y = load_clf("breast_cancer")
+    K = int(y.max()) + 1
+    for noise in noise_grid:
+        per = {o: [] for o in OPTS}
+        for seed in seeds:
+            Xtr, ytr, Xte, yte = split_clf(X, y, 0.3, seed)
+            if noise > 0:
+                gen = torch.Generator().manual_seed(910 + seed)
+                m = torch.rand(ytr.shape[0]) < noise
+                ytr = ytr.clone()
+                ytr[m] = torch.randint(0, K, (int(m.sum()),), generator=gen)
+            for o in OPTS:
+                per[o].append(run_logistic_clf(
+                    Xtr, ytr, Xte, yte, o, args.steps, 5e-2, 32, seed, K))
+        a = np.asarray(per["adamw"])
+        s = np.asarray(per["sradam"])
+        rec = dict(problem="breast_cancer_logistic", noise=float(noise), metric="acc_frac",
+                   adamw=float(a.mean()), sradam=float(s.mean()),
+                   paired_diff=float(s.mean() - a.mean()),
+                   win_sradam=bool(s.mean() >= a.mean()))
+        rows.append(rec)
+        print(f"  noise={noise:.1f}  AdamW={100*a.mean():.1f}  SR={100*s.mean():.1f}  "
+              f"Δ={100*rec['paired_diff']:+.1f}pp", flush=True)
+
+    print("=== regression (target noise) ===", flush=True)
+    for rname in ("wine_quality", "diabetes", "california_housing"):
+        X, y = load_reg(rname)
+        for noise in [0.0, 0.5, 1.0]:
+            per = {o: [] for o in OPTS}
+            for seed in seeds:
+                Xtr, ytr, Xte, yte, ysd = split_scale(X, y, 0.3, seed)
+                if noise > 0:
+                    gen = torch.Generator().manual_seed(920 + seed)
+                    ytr = ytr + noise * torch.randn(ytr.shape, generator=gen)
+                for o in OPTS:
+                    per[o].append(run_linear(
+                        Xtr, ytr, Xte, yte, o, args.steps, 3e-2, 64, seed))
+            rec = paired(per)
+            rec.update(problem=f"{rname}_linear", noise=float(noise), metric="mse")
+            rows.append(rec)
+            print(f"  {rname} sigma={noise:.1f}  Δ_MSE={rec['paired_diff']:+.4f}  "
+                  f"win={rec['win_sradam']}", flush=True)
+
+    # --- figure: classification gap vs label noise (+ regression panels)
+    fig, axes = plt.subplots(1, 3, figsize=(9.6, 3.0))
+    ax = axes[0]
+    for key, lab, st in (
+        ("digits_logistic", "digits (logistic)", "o-"),
+        ("breast_cancer_logistic", "breast cancer (logistic)", "s--"),
+    ):
+        xs = [r["noise"] for r in rows if r["problem"] == key]
+        ys = [100 * r["paired_diff"] for r in rows if r["problem"] == key]
+        ax.plot(xs, ys, st, ms=4, label=lab)
+    ax.axhline(0, color="k", lw=0.8)
+    ax.set_xlabel("training label-noise rate")
+    ax.set_ylabel("test acc. gap: SR-Adam $-$ AdamW (pp)")
+    ax.set_title("Classification")
+    ax.legend(fontsize=7)
+
+    ax2 = axes[1]
+    for rname, lab, st in (
+        ("wine_quality_linear", "wine quality", "o-"),
+        ("diabetes_linear", "diabetes", "s--"),
+        ("california_housing_linear", "California housing", "^-."),
+    ):
+        xs = [r["noise"] for r in rows if r["problem"] == rname]
+        ys = [r["paired_diff"] for r in rows if r["problem"] == rname]
+        ax2.plot(xs, ys, st, ms=4, label=lab)
+    ax2.axhline(0, color="k", lw=0.8)
+    ax2.set_xlabel("target-noise scale $\\sigma$")
+    ax2.set_ylabel("MSE gap: AdamW $-$ SR-Adam")
+    ax2.set_title("Regression (linear)")
+    ax2.legend(fontsize=7)
+
+    # right: classification table already has GCN clean rows; leave a text panel
+    axes[2].axis("off")
+    axes[2].text(
+        0.05, 0.95,
+        "Gap convention\n\n"
+        "Classification:\n"
+        "  SR-Adam $-$ AdamW  (acc. pp)\n\n"
+        "Regression:\n"
+        "  AdamW $-$ SR-Adam  (MSE)\n\n"
+        "Positive $=$ SR-Adam better",
+        va="top", fontsize=9,
+    )
+
+    fig.suptitle("Noise and the Stein weight", fontsize=10)
+    fig.tight_layout()
+    for ext in ("pdf", "png"):
+        try:
+            fig.savefig(PAPER / f"fig_noise_sweep.{ext}")
+        except PermissionError:
+            pass
+    plt.close(fig)
+
+    # --- LaTeX table
+    lines = [
+        r"% Auto-generated by noise_sweep.py",
+        r"\begin{tabular}{llccc}",
+        r"\toprule",
+        r"Problem & Noise & AdamW & SR-Adam & Gap \\",
+        r"\midrule",
+    ]
+    for r in rows:
+        if r.get("metric") == "acc_frac":
+            gap_pp = 100 * r["paired_diff"]
+            gap_s = f"${gap_pp:+.1f}$pp"
+            if gap_pp > 0:
+                gap_s = r"$\bm{" + f"{gap_pp:+.1f}" + r"}$pp"
+            lines.append(
+                f"{r['problem'].replace('_', ' ')} & {r['noise']:.1f} & "
+                f"{100*r['adamw']:.1f} & {100*r['sradam']:.1f} & "
+                f"{gap_s} \\\\"
+            )
+        else:
+            gap = r["paired_diff"]
+            gap_s = f"${gap:+.4f}$"
+            if gap > 0:
+                gap_s = r"$\bm{" + f"{gap:+.4f}" + r"}$"
+            lines.append(
+                f"{r['problem'].replace('_', ' ')} & {r['noise']:.1f} & "
+                f"{r['adamw']:.4f} & {r['sradam']:.4f} & "
+                f"{gap_s} \\\\"
+            )
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    (PAPER / "tab_noise.tex").write_text("\n".join(lines) + "\n")
+
+    payload = dict(meta=dict(created=time.strftime("%Y-%m-%d %H:%M:%S"),
+                             seconds=time.time() - t0, seeds=seeds, steps=args.steps),
+                   rows=rows)
+    (OUT / "noise_sweep.json").write_text(json.dumps(payload, indent=2))
+    print("wrote", OUT / "noise_sweep.json", flush=True)
+    print("wrote", PAPER / "tab_noise.tex", flush=True)
+    print("wrote", PAPER / "fig_noise_sweep.pdf", flush=True)
+    print(f"elapsed {time.time() - t0:.1f}s", flush=True)
+
+
+if __name__ == "__main__":
+    warnings.filterwarnings("ignore")
+    main()

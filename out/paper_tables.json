@@ -1,7 +1,7 @@
 {
   "meta": {
-    "created": "2026-09-28 14:43:20",
-    "seconds": 294.76116466522217,
+    "created": "2026-09-28 15:10:38",
+    "seconds": 218.9168519973755,
     "seeds": [
       1,
       2
@@ -443,38 +443,6 @@
       "adamw_sd": 0.004159430332691621,
       "sradam": 0.9676470458507538,
       "sradam_sd": 0.004159430332691621,
-      "paired_diff": 0.0,
-      "win_sradam": false
-    },
-    {
-      "dataset": "wine",
-      "model": "logistic",
-      "K": 3,
-      "label_noise": 0.0,
-      "n": 178,
-      "p": 13,
-      "status": "ok",
-      "metric": "acc_frac",
-      "adamw": 1.0,
-      "adamw_sd": 0.0,
-      "sradam": 1.0,
-      "sradam_sd": 0.0,
-      "paired_diff": 0.0,
-      "win_sradam": false
-    },
-    {
-      "dataset": "wine",
-      "model": "mlp",
-      "K": 3,
-      "label_noise": 0.0,
-      "n": 178,
-      "p": 13,
-      "status": "ok",
-      "metric": "acc_frac",
-      "adamw": 1.0,
-      "adamw_sd": 0.0,
-      "sradam": 1.0,
-      "sradam_sd": 0.0,
       "paired_diff": 0.0,
       "win_sradam": false
     },

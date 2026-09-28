@@ -256,9 +256,12 @@ def write_tex(reg_rows, clf_rows):
             continue
         model = "linear" if r.get("model") == "linear" else "MLP"
         gap = r["paired_diff"]
+        gap_s = f"${gap:+.3f}$"
+        if gap > 0:
+            gap_s = r"$\bm{" + f"{gap:+.3f}" + r"}$"
         lines.append(
             f"{r['dataset'].replace('_', ' ')} & {model} & {r['n']} & {r['p']} & "
-            f"${gap:+.2f}$ \\\\"
+        f"{gap_s} \\\\"
         )
     lines += [r"\bottomrule", r"\end{tabular}"]
     (PAPER / "tab_regression.tex").write_text("\n".join(lines) + "\n")
@@ -274,6 +277,8 @@ def write_tex(reg_rows, clf_rows):
     for r in clf_rows:
         if r.get("status") != "ok":
             continue
+        if r.get("label_noise"):
+            continue  # noisy rows belong in the dedicated noise table
         model = r.get("model", "")
         K = r.get("K", r.get("classes", "---"))
         nm = r["dataset"].replace("_", " ")
@@ -338,8 +343,6 @@ def main():
         ("digits", "mlp", 10, 0.3),
         ("breast_cancer", "logistic", 2, 0.0),
         ("breast_cancer", "mlp", 2, 0.0),
-        ("wine", "logistic", 3, 0.0),
-        ("wine", "mlp", 3, 0.0),
         ("ionosphere", "logistic", 2, 0.0),
         ("iris", "logistic", 3, 0.0),
     ]

@@ -815,21 +815,39 @@ Table \ref{tab:reg} reports public regression sets with a linear model and a one
 
 \begin{table}[t]
 \centering
-\caption{Regression: paired gap in test MSE, AdamW minus SR-Adam (positive $=$ SR-Adam better). Linear unless marked MLP.}
+\caption{Regression: paired gap in test MSE, AdamW minus SR-Adam. Bold positive entries favour SR-Adam. Linear unless marked MLP.}
 \label{tab:reg}
 \input{tab_regression}
 \end{table}
 
 \subsection{Classification}
 
-Table \ref{tab:clf} covers logistic regression, a small MLP, and a two-layer graph convolutional network \cite{kipf2017}. Test accuracy is reported for AdamW and SR-Adam; the better entry is bolded. Label noise is applied to the training labels only. SR-Adam is strongest when labels are noisy or the design is high-dimensional (digits with label noise, CiteSeer); on well-separated small problems the two are essentially tied.
+Table \ref{tab:clf} covers logistic regression, a small MLP, and a two-layer graph convolutional network \cite{kipf2017} on clean labels. Test accuracy is reported for AdamW and SR-Adam; the better entry is bolded. SR-Adam is strongest when the design is high-dimensional (CiteSeer) or the problem is estimation-heavy; on well-separated small problems the two are essentially tied.
 
 \begin{table}[t]
 \centering
-\caption{Classification test accuracy (per cent). Models: logistic regression, one-hidden-layer MLP, and GCN \cite{kipf2017}. Bold $=$ higher accuracy. ``Noisy'' marks $30\,\%$ training-label noise.}
+\caption{Classification test accuracy (per cent), clean training labels. Models: logistic regression, one-hidden-layer MLP, and GCN \cite{kipf2017}. Bold $=$ higher accuracy.}
 \label{tab:clf}
 \input{tab_classification}
 \end{table}
+
+\subsection{Label noise}
+
+Table \ref{tab:noise} and Figure \ref{fig:noise_sweep} isolate the effect of corrupting training labels or targets. On digits with multinomial logistic regression the gap in favour of SR-Adam grows as soon as noise is introduced (up to about $+5.6$ accuracy points at $30\,\%$ noise). On a well-separated binary problem (breast cancer) the ranking is flat or slightly in favour of AdamW. On linear regression (wine quality, diabetes, California housing), additive target noise increases the MSE gap in favour of SR-Adam. This is the noise-dominated regime of Corollary \ref{cor:cases}: shrinkage helps when the mini-batch signal is unreliable, and adds little when it is not.
+
+\begin{table}[t]
+\centering
+\caption{Label (or target) noise. Classification rows: test accuracy (per cent). Regression rows: test MSE. Gap is SR-Adam minus AdamW for accuracy (pp) and AdamW minus SR-Adam for MSE. Bold positive entries favour SR-Adam.}
+\label{tab:noise}
+\input{tab_noise}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=1\textwidth]{fig_noise_sweep.pdf}
+\caption{Noise and the Stein weight. Left: classification accuracy gap (SR-Adam minus AdamW) against training label-noise rate. Right: MSE gap (AdamW minus SR-Adam) on linear regression against target-noise scale for three tabular sets. Digits show a clear advantage of the Stein weight once labels are corrupted; the regression MSE gap also grows with target noise.}
+\label{fig:noise_sweep}
+\end{figure}
 
 \begin{figure}[t]
 \centering
