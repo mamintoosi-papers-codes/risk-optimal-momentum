@@ -125,8 +125,8 @@ def main():
             print(f"  {rname} sigma={noise:.1f}  Δ_MSE={rec['paired_diff']:+.4f}  "
                   f"win={rec['win_sradam']}", flush=True)
 
-    # --- figure: classification gap vs label noise (+ regression panels)
-    fig, axes = plt.subplots(1, 3, figsize=(9.6, 3.0))
+    # --- figure: two panels (classification + regression)
+    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0))
     ax = axes[0]
     for key, lab, st in (
         ("digits_logistic", "digits (logistic)", "o-"),
@@ -137,7 +137,7 @@ def main():
         ax.plot(xs, ys, st, ms=4, label=lab)
     ax.axhline(0, color="k", lw=0.8)
     ax.set_xlabel("training label-noise rate")
-    ax.set_ylabel("test acc. gap: SR-Adam $-$ AdamW (pp)")
+    ax.set_ylabel("acc. gap: SR-Adam $-$ AdamW (pp)")
     ax.set_title("Classification")
     ax.legend(fontsize=7)
 
@@ -156,20 +156,6 @@ def main():
     ax2.set_title("Regression (linear)")
     ax2.legend(fontsize=7)
 
-    # right: classification table already has GCN clean rows; leave a text panel
-    axes[2].axis("off")
-    axes[2].text(
-        0.05, 0.95,
-        "Gap convention\n\n"
-        "Classification:\n"
-        "  SR-Adam $-$ AdamW  (acc. pp)\n\n"
-        "Regression:\n"
-        "  AdamW $-$ SR-Adam  (MSE)\n\n"
-        "Positive $=$ SR-Adam better",
-        va="top", fontsize=9,
-    )
-
-    fig.suptitle("Noise and the Stein weight", fontsize=10)
     fig.tight_layout()
     for ext in ("pdf", "png"):
         try:

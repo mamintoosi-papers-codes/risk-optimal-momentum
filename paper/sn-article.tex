@@ -833,7 +833,7 @@ Table \ref{tab:clf} covers logistic regression, a small MLP, and a two-layer gra
 
 \subsection{Label noise}
 
-Table \ref{tab:noise} and Figure \ref{fig:noise_sweep} isolate the effect of corrupting training labels or targets. On digits with multinomial logistic regression the gap in favour of SR-Adam grows as soon as noise is introduced (up to about $+5.6$ accuracy points at $30\,\%$ noise). On a well-separated binary problem (breast cancer) the ranking is flat or slightly in favour of AdamW. On linear regression (wine quality, diabetes, California housing), additive target noise increases the MSE gap in favour of SR-Adam. This is the noise-dominated regime of Corollary \ref{cor:cases}: shrinkage helps when the mini-batch signal is unreliable, and adds little when it is not.
+Table \ref{tab:noise} and Figure \ref{fig:noise_sweep} isolate the effect of corrupting training labels or targets. Throughout this section the gap is signed so that positive favours SR-Adam: for classification it is test accuracy of SR-Adam minus AdamW in percentage points, and for regression it is test MSE of AdamW minus SR-Adam. On digits with multinomial logistic regression the gap in favour of SR-Adam grows as soon as noise is introduced (up to about $+3$--$6$ accuracy points). On a well-separated binary problem (breast cancer) the ranking is flat or slightly in favour of AdamW at high noise. On linear regression (wine quality, diabetes, California housing), additive target noise increases the MSE gap in favour of SR-Adam. This is the noise-dominated regime of Corollary \ref{cor:cases}: shrinkage helps when the mini-batch signal is unreliable, and adds little when it is not.
 
 \begin{table}[t]
 \centering
@@ -845,7 +845,7 @@ Table \ref{tab:noise} and Figure \ref{fig:noise_sweep} isolate the effect of cor
 \begin{figure}[t]
 \centering
 \includegraphics[width=1\textwidth]{fig_noise_sweep.pdf}
-\caption{Noise and the Stein weight. Left: classification accuracy gap (SR-Adam minus AdamW) against training label-noise rate. Right: MSE gap (AdamW minus SR-Adam) on linear regression against target-noise scale for three tabular sets. Digits show a clear advantage of the Stein weight once labels are corrupted; the regression MSE gap also grows with target noise.}
+\caption{Noise and the Stein weight. Left: classification accuracy gap (SR-Adam minus AdamW) against training label-noise rate. Right: MSE gap (AdamW minus SR-Adam) on linear regression against target-noise scale for three tabular sets. Positive values favour SR-Adam. Digits show a clear advantage of the Stein weight once labels are corrupted; the regression MSE gap also grows with target noise.}
 \label{fig:noise_sweep}
 \end{figure}
 
