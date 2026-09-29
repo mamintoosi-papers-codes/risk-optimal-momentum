@@ -36,6 +36,7 @@ import torch
 import torch.nn.functional as F
 
 from path3_uci import build, paired, split_scale, OPTS
+from dataset_names import pretty
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parent / "out"
@@ -250,6 +251,7 @@ def write_tex(reg_rows, clf_rows):
         r"\toprule",
         r"Dataset & Model & $n$ & $p$ & Gap (MSE) \\",
         r"\midrule",
+        r"% Model: linear = linear regressor; MLP = one hidden layer, nonlinear",
     ]
     for r in reg_rows:
         if r.get("status") != "ok":
@@ -260,7 +262,7 @@ def write_tex(reg_rows, clf_rows):
         if gap > 0:
             gap_s = r"$\bm{" + f"{gap:+.3f}" + r"}$"
         lines.append(
-            f"{r['dataset'].replace('_', ' ')} & {model} & {r['n']} & {r['p']} & "
+            f"{pretty(r['dataset'])} & {model} & {r['n']} & {r['p']} & "
         f"{gap_s} \\\\"
         )
     lines += [r"\bottomrule", r"\end{tabular}"]
@@ -279,11 +281,13 @@ def write_tex(reg_rows, clf_rows):
             continue
         if r.get("label_noise"):
             continue  # noisy rows belong in the dedicated noise table
-        model = r.get("model", "")
-        K = r.get("K", r.get("classes", "---"))
-        nm = r["dataset"].replace("_", " ")
+        nm = pretty(r["dataset"])
         if r.get("label_noise"):
             nm += " (noisy)"
+        mkey = str(r.get("model", "")).lower()
+        model = "MLP" if mkey == "mlp" else (
+            "GCN" if mkey == "gcn" else (
+                "logistic" if mkey == "logistic" else r.get("model", "")))
         aw = 100.0 * float(r["adamw"])
         sr = 100.0 * float(r["sradam"])
         aw_s = f"{aw:.1f}"

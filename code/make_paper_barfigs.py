@@ -15,8 +15,8 @@ plt.rcParams.update({
 
 # --- real problems (no CNN): paired gap AdamW - SR-Adam (positive = SR better)
 labels = [
-    "diabetes lin", "diabetes MLP", "CA housing lin", "wine lin",
-    "linnerud lin", "linnerud MLP", "protein lin", "protein MLP",
+    "Diabetes lin", "Diabetes MLP", "California Housing lin", "Wine Quality lin",
+    "Linnerud lin", "Linnerud MLP", "Protein lin", "Protein MLP",
     "BlogFeedback lin",
     "Cora GCN", "CiteSeer GCN", "PubMed GCN",
 ]
@@ -63,14 +63,16 @@ fig.savefig(PAPER / "gnn_acc.pdf")
 plt.close(fig)
 
 # --- win-rate summary strip (method advantage across families)
+# --- win-rate summary strip (from out/*.json, latest full runs)
 families = [
-    "Dim. sweep\n(noise, $p$ up to 500)",
+    "Dim. sweep\n($p$ up to 500)",
     "Real linear\nregression",
-    "Label noise\n(real / synthetic)",
+    "Label / target\nnoise",
     "Graphs\n(GCN)",
-    "Digits logistic\n+ noise",
+    "Tabular\nclassification",
 ]
-wins = [23 / 24, 12 / 13, 8 / 9, 6 / 6, 1 / 1]
+# 23/24 dim sweep; 5/5 linear regression; 16/19 noise; 7/7 GCN pilots; 3/5 clean clf
+wins = [23 / 24, 5 / 5, 16 / 19, 7 / 7, 3 / 5]
 colors = ["#2a9d8f" if v >= 0.5 else "#e76f51" for v in wins]
 fig, ax = plt.subplots(figsize=(6.8, 2.6))
 ax.barh(np.arange(len(families)), wins, color=colors)

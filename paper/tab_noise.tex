@@ -3,24 +3,27 @@
 \toprule
 Problem & Noise & AdamW & SR-Adam & Gap \\
 \midrule
-digits logistic & 0.0 & 95.9 & 95.7 & $-0.1$pp \\
-digits logistic & 0.1 & 85.2 & 88.3 & $\bm{+3.1}$pp \\
-digits logistic & 0.2 & 81.7 & 84.5 & $\bm{+2.8}$pp \\
-digits logistic & 0.3 & 76.6 & 78.9 & $\bm{+2.3}$pp \\
-digits logistic & 0.5 & 65.8 & 68.3 & $\bm{+2.6}$pp \\
-breast cancer logistic & 0.0 & 96.2 & 97.2 & $\bm{+0.9}$pp \\
-breast cancer logistic & 0.1 & 94.2 & 94.8 & $\bm{+0.6}$pp \\
-breast cancer logistic & 0.2 & 93.9 & 95.4 & $\bm{+1.5}$pp \\
-breast cancer logistic & 0.3 & 91.3 & 91.2 & $-0.1$pp \\
-breast cancer logistic & 0.5 & 88.5 & 88.0 & $-0.5$pp \\
-wine quality linear & 0.0 & 0.6397 & 0.6260 & $\bm{+0.0137}$ \\
-wine quality linear & 0.5 & 0.6501 & 0.6341 & $\bm{+0.0160}$ \\
-wine quality linear & 1.0 & 0.6760 & 0.6527 & $\bm{+0.0233}$ \\
-diabetes linear & 0.0 & 0.5114 & 0.5029 & $\bm{+0.0084}$ \\
-diabetes linear & 0.5 & 0.5183 & 0.5125 & $\bm{+0.0059}$ \\
-diabetes linear & 1.0 & 0.5571 & 0.5405 & $\bm{+0.0166}$ \\
-california housing linear & 0.0 & 0.4316 & 0.4082 & $\bm{+0.0234}$ \\
-california housing linear & 0.5 & 0.4225 & 0.4081 & $\bm{+0.0144}$ \\
-california housing linear & 1.0 & 0.4398 & 0.4098 & $\bm{+0.0300}$ \\
+\multicolumn{5}{l}{\emph{Regression (linear), target noise on $y$}} \\
+Wine Quality (linear) & 0.0 & 0.6397 & 0.6260 & $\bm{+0.0137}$ \\
+Wine Quality (linear) & 0.5 & 0.6501 & 0.6341 & $\bm{+0.0160}$ \\
+Wine Quality (linear) & 1.0 & 0.6760 & 0.6527 & $\bm{+0.0233}$ \\
+Diabetes (linear) & 0.0 & 0.5114 & 0.5029 & $\bm{+0.0084}$ \\
+Diabetes (linear) & 0.5 & 0.5183 & 0.5125 & $\bm{+0.0059}$ \\
+Diabetes (linear) & 1.0 & 0.5571 & 0.5405 & $\bm{+0.0166}$ \\
+California Housing (linear) & 0.0 & 0.4316 & 0.4082 & $\bm{+0.0234}$ \\
+California Housing (linear) & 0.5 & 0.4225 & 0.4081 & $\bm{+0.0144}$ \\
+California Housing (linear) & 1.0 & 0.4398 & 0.4098 & $\bm{+0.0300}$ \\
+\midrule
+\multicolumn{5}{l}{\emph{Classification, training-label noise}} \\
+Digits (logistic) & 0.0 & 95.9 & 95.7 & $-0.1$pp \\
+Digits (logistic) & 0.1 & 85.2 & 88.3 & $\bm{+3.1}$pp \\
+Digits (logistic) & 0.2 & 81.7 & 84.5 & $\bm{+2.8}$pp \\
+Digits (logistic) & 0.3 & 76.6 & 78.9 & $\bm{+2.3}$pp \\
+Digits (logistic) & 0.5 & 65.8 & 68.3 & $\bm{+2.6}$pp \\
+Breast Cancer (logistic) & 0.0 & 96.2 & 97.2 & $\bm{+0.9}$pp \\
+Breast Cancer (logistic) & 0.1 & 94.2 & 94.8 & $\bm{+0.6}$pp \\
+Breast Cancer (logistic) & 0.2 & 93.9 & 95.4 & $\bm{+1.5}$pp \\
+Breast Cancer (logistic) & 0.3 & 91.3 & 91.2 & $-0.1$pp \\
+Breast Cancer (logistic) & 0.5 & 88.5 & 88.0 & $-0.5$pp \\
 \bottomrule
 \end{tabular}
