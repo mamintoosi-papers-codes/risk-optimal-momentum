@@ -1,7 +1,7 @@
 {
   "meta": {
-    "created": "2026-09-22 13:35:55",
-    "seconds": 229.89274859428406,
+    "created": "2026-10-18 17:08:22",
+    "seconds": 116.72195029258728,
     "seeds": 3,
     "epochs": 120,
     "note": "positive \u0394 = higher test acc for SR-Adam"

@@ -149,6 +149,7 @@ def study_B(p=2048, T=60, reps=400, beta1=0.9, beta2=0.999, seed=12):
             deb.append(float((raw / (1 - phi(t, beta1))).mean() / s2_true.mean()))
             ts.append(t)
     RESULTS["B"] = dict(t=ts, naive_ratio=naive, debiased_ratio=deb,
+                        closed_form=[1 - phi(t, beta1) for t in ts],
                         limit_naive=2 * beta1 / (1 + beta1))
 
     fig, ax = plt.subplots(figsize=(3.4, 2.5))

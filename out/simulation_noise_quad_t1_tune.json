@@ -1,0 +1,212 @@
+{
+  "meta": {
+    "tag": "simulation_noise_quad_t1",
+    "created": "2026-10-18 16:35:01",
+    "tune_seeds": [
+      1,
+      2
+    ],
+    "lower_is_better": true,
+    "note": "grid identical across optimisers unless a driver default grid differs (recorded in rows)"
+  },
+  "chosen": {
+    "sgdm": {
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null
+    },
+    "adamw": {
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null
+    },
+    "amsgrad": {
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null
+    },
+    "sradam": {
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null
+    }
+  },
+  "rows": [
+    {
+      "opt": "sgdm",
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        20.435874938964844,
+        21.469568252563477
+      ],
+      "score": 20.95272159576416
+    },
+    {
+      "opt": "sgdm",
+      "lr": 0.05,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        49.80164337158203,
+        45.755287170410156
+      ],
+      "score": 47.778465270996094
+    },
+    {
+      "opt": "sgdm",
+      "lr": 0.1,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        109.59587097167969,
+        104.16119384765625
+      ],
+      "score": 106.87853240966797
+    },
+    {
+      "opt": "sgdm",
+      "lr": 0.2,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        215.10855102539062,
+        191.15670776367188
+      ],
+      "score": 203.13262939453125
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.005,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        6.624917984008789,
+        6.554511070251465
+      ],
+      "score": 6.589714527130127
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        1.5053743124008179,
+        1.6755695343017578
+      ],
+      "score": 1.5904719233512878
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        2.06186580657959,
+        2.054602861404419
+      ],
+      "score": 2.0582343339920044
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.05,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        5.237340927124023,
+        4.749334812164307
+      ],
+      "score": 4.993337869644165
+    },
+    {
+      "opt": "amsgrad",
+      "lr": 0.005,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        6.643156051635742,
+        6.571943283081055
+      ],
+      "score": 6.607549667358398
+    },
+    {
+      "opt": "amsgrad",
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        1.5063942670822144,
+        1.6805506944656372
+      ],
+      "score": 1.5934724807739258
+    },
+    {
+      "opt": "amsgrad",
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        2.061053991317749,
+        2.05295729637146
+      ],
+      "score": 2.0570056438446045
+    },
+    {
+      "opt": "amsgrad",
+      "lr": 0.05,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        5.235245227813721,
+        4.747262477874756
+      ],
+      "score": 4.991253852844238
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.005,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        18.27731704711914,
+        16.482481002807617
+      ],
+      "score": 17.37989902496338
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        3.4421534538269043,
+        3.2411303520202637
+      ],
+      "score": 3.341641902923584
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        1.5255882740020752,
+        1.5996063947677612
+      ],
+      "score": 1.5625973343849182
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.05,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        3.314781427383423,
+        3.1255054473876953
+      ],
+      "score": 3.220143437385559
+    }
+  ]
+}

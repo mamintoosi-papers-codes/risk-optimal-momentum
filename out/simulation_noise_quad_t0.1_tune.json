@@ -1,0 +1,212 @@
+{
+  "meta": {
+    "tag": "simulation_noise_quad_t0.1",
+    "created": "2026-10-18 16:33:58",
+    "tune_seeds": [
+      1,
+      2
+    ],
+    "lower_is_better": true,
+    "note": "grid identical across optimisers unless a driver default grid differs (recorded in rows)"
+  },
+  "chosen": {
+    "sgdm": {
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null
+    },
+    "adamw": {
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null
+    },
+    "amsgrad": {
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null
+    },
+    "sradam": {
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null
+    }
+  },
+  "rows": [
+    {
+      "opt": "sgdm",
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.2043401598930359,
+        0.21469908952713013
+      ],
+      "score": 0.209519624710083
+    },
+    {
+      "opt": "sgdm",
+      "lr": 0.05,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.49801650643348694,
+        0.4575529098510742
+      ],
+      "score": 0.4777847081422806
+    },
+    {
+      "opt": "sgdm",
+      "lr": 0.1,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        1.0959587097167969,
+        1.041612148284912
+      ],
+      "score": 1.0687854290008545
+    },
+    {
+      "opt": "sgdm",
+      "lr": 0.2,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        2.151085376739502,
+        1.911567211151123
+      ],
+      "score": 2.0313262939453125
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.005,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        2.024628162384033,
+        2.223623514175415
+      ],
+      "score": 2.124125838279724
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.07349745184183121,
+        0.08559819310903549
+      ],
+      "score": 0.07954782247543335
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.1416451781988144,
+        0.1418834924697876
+      ],
+      "score": 0.141764335334301
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.05,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.3802104592323303,
+        0.3870919942855835
+      ],
+      "score": 0.3836512267589569
+    },
+    {
+      "opt": "amsgrad",
+      "lr": 0.005,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        2.106900691986084,
+        2.2886810302734375
+      ],
+      "score": 2.1977908611297607
+    },
+    {
+      "opt": "amsgrad",
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.07454536855220795,
+        0.09019190818071365
+      ],
+      "score": 0.0823686383664608
+    },
+    {
+      "opt": "amsgrad",
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.13745132088661194,
+        0.1373949944972992
+      ],
+      "score": 0.13742315769195557
+    },
+    {
+      "opt": "amsgrad",
+      "lr": 0.05,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.3748869001865387,
+        0.3815435469150543
+      ],
+      "score": 0.3782152235507965
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.005,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        7.394083023071289,
+        6.9094038009643555
+      ],
+      "score": 7.151743412017822
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.5040565133094788,
+        0.5668789148330688
+      ],
+      "score": 0.5354677140712738
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.02,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.05862661078572273,
+        0.0657012090086937
+      ],
+      "score": 0.062163909897208214
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.05,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.16414666175842285,
+        0.16741247475147247
+      ],
+      "score": 0.16577956825494766
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+# SR-Adam — statistical analysis of the stored results (stats_tests.py)
+
+Positive difference favours SR-Adam in every row. Ties use tol = max(1e-9, 1e-6 * max|mean|).
+
+## dim_sweep (28 cells)
+
+| cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
+|---|---|---|---|---|---|---|---|---|---|
+| quadratic_gaussian tau=1.0, p=10 | 0.02668 | 0.03327 | -0.006584 | 0.00761 | -0.866 | 0.435 | NA | 1 | loss |
+| quadratic_gaussian tau=1.0, p=20 | 0.07355 | 0.1016 | -0.02808 | 0.0114 | -2.463 | 0.0694 | NA | 0.846 | loss |
+| quadratic_gaussian tau=1.0, p=50 | 0.1632 | 0.2172 | -0.05395 | 0.0214 | -2.524 | 0.0651 | NA | 0.846 | loss |
+| quadratic_gaussian tau=1.0, p=100 | 0.3256 | 0.3442 | -0.01855 | 0.038 | -0.489 | 0.651 | NA | 1 | loss |
+| quadratic_gaussian tau=1.0, p=200 | 0.6361 | 0.7917 | -0.1556 | 0.0326 | -4.774 | 0.00881 | NA | 0.159 | loss |
+| quadratic_gaussian tau=1.0, p=400 | 1.288 | 1.524 | -0.2368 | 0.0355 | -6.678 | 0.00261 | NA | 0.0575 | loss |
+| quadratic_gaussian tau=1.0, p=500 | 1.557 | 1.774 | -0.2164 | 0.0441 | -4.906 | 0.00801 | NA | 0.152 | loss |
+| quadratic_gaussian tau=0.1, p=10 | 0.001245 | 0.00114 | +0.0001049 | 0.000286 | +0.366 | 0.733 | NA | 1 | win |
+| quadratic_gaussian tau=0.1, p=20 | 0.004757 | 0.002478 | +0.002279 | 0.000995 | +2.290 | 0.0839 | NA | 0.922 | win |
+| quadratic_gaussian tau=0.1, p=50 | 0.009202 | 0.00834 | +0.0008625 | 0.00192 | +0.449 | 0.676 | NA | 1 | win |
+| quadratic_gaussian tau=0.1, p=100 | 0.01892 | 0.01389 | +0.005029 | 0.00226 | +2.221 | 0.0905 | NA | 0.922 | win |
+| quadratic_gaussian tau=0.1, p=200 | 0.03034 | 0.02974 | +0.0006034 | 0.00315 | +0.191 | 0.858 | NA | 1 | win |
+| quadratic_gaussian tau=0.1, p=400 | 0.06971 | 0.05781 | +0.01189 | 0.00288 | +4.128 | 0.0145 | NA | 0.232 | win |
+| quadratic_gaussian tau=0.1, p=500 | 0.08152 | 0.07417 | +0.007356 | 0.00399 | +1.843 | 0.139 | NA | 1 | win |
+| quadratic_student tau=1.0, p=10 | 0.01102 | 0.01198 | -0.0009605 | 0.00199 | -0.483 | 0.654 | NA | 1 | loss |
+| quadratic_student tau=1.0, p=20 | 0.027 | 0.03566 | -0.008651 | 0.00272 | -3.179 | 0.0336 | NA | 0.503 | loss |
+| quadratic_student tau=1.0, p=50 | 0.06191 | 0.07454 | -0.01263 | 0.0146 | -0.862 | 0.437 | NA | 1 | loss |
+| quadratic_student tau=1.0, p=100 | 0.1181 | 0.1214 | -0.003255 | 0.0159 | -0.205 | 0.847 | NA | 1 | loss |
+| quadratic_student tau=1.0, p=200 | 0.2118 | 0.2741 | -0.06229 | 0.00753 | -8.273 | 0.00117 | NA | 0.0268 | loss |
+| quadratic_student tau=1.0, p=400 | 0.456 | 0.523 | -0.06701 | 0.0112 | -5.980 | 0.00393 | NA | 0.0786 | loss |
+| quadratic_student tau=1.0, p=500 | 0.5518 | 0.6269 | -0.07516 | 0.028 | -2.685 | 0.055 | NA | 0.769 | loss |
+| logistic_labelnoise flip=0.2, p=10 | 0.7093 | 0.7145 | -0.005128 | 0.00109 | -4.694 | 0.00935 | NA | 0.159 | loss |
+| logistic_labelnoise flip=0.2, p=20 | 0.7191 | 0.7326 | -0.01354 | 0.00141 | -9.577 | 0.000664 | NA | 0.0159 | loss |
+| logistic_labelnoise flip=0.2, p=50 | 0.7499 | 0.7725 | -0.0226 | 0.0037 | -6.104 | 0.00365 | NA | 0.0766 | loss |
+| logistic_labelnoise flip=0.2, p=100 | 0.8424 | 0.9048 | -0.06238 | 0.00566 | -11.022 | 0.000385 | NA | 0.00963 | loss |
+| logistic_labelnoise flip=0.2, p=200 | 1.032 | 1.176 | -0.1443 | 0.00647 | -22.294 | 2.4e-05 | NA | 0.000623 | loss |
+| logistic_labelnoise flip=0.2, p=400 | 1.758 | 2.33 | -0.5721 | 0.00952 | -60.117 | 4.59e-07 | NA | 1.28e-05 | loss |
+| logistic_labelnoise flip=0.2, p=500 | 2.317 | 3.236 | -0.9193 | 0.0258 | -35.593 | 3.72e-06 | NA | 0.0001 | loss |
+
+**win / tie / loss = 7 / 0 / 21** (fraction with wins-only denominator = 25.00%; ties excluded from wins).
+
+## reg_linear (5 cells)
+
+| cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
+|---|---|---|---|---|---|---|---|---|---|
+| diabetes (linear) | 0.5019 | 0.4991 | +0.002782 | 0.00406 | +0.685 | 0.531 | 0.812 | 0.812 | win |
+| california_housing (linear) | 0.4316 | 0.4082 | +0.02342 | 0.0142 | +1.651 | 0.174 | 0.125 | 0.375 | win |
+| wine_quality (linear) | 0.6397 | 0.626 | +0.01368 | 0.00381 | +3.595 | 0.0229 | 0.0625 | 0.312 | win |
+| linnerud (linear) | 1.8 | 1.775 | +0.02523 | 0.0232 | +1.089 | 0.337 | 0.312 | 0.625 | win |
+| blogfeedback (linear) | 2.759 | 1.55 | +1.209 | 0.489 | +2.473 | 0.0688 | 0.0625 | 0.312 | win |
+
+**win / tie / loss = 5 / 0 / 0** (fraction with wins-only denominator = 100.00%; ties excluded from wins).
+
+## reg_mlp (5 cells)
+
+| cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
+|---|---|---|---|---|---|---|---|---|---|
+| diabetes (mlp) | 1.268 | 0.8029 | +0.4656 | 0.0963 | +4.835 | 0.00843 | 0.0625 | 0.312 | win |
+| california_housing (mlp) | 0.2763 | 0.2795 | -0.003222 | 0.00709 | -0.455 | 0.673 | 0.812 | 0.812 | loss |
+| wine_quality (mlp) | 0.7416 | 0.6742 | +0.06739 | 0.0135 | +5.010 | 0.00744 | 0.0625 | 0.312 | win |
+| linnerud (mlp) | 3.008 | 3.315 | -0.308 | 0.242 | -1.273 | 0.272 | 0.312 | 0.625 | loss |
+| blogfeedback (mlp) | 0.9767 | 0.9358 | +0.04089 | 0.0258 | +1.583 | 0.189 | 0.0625 | 0.312 | win |
+
+**win / tie / loss = 3 / 0 / 2** (fraction with wins-only denominator = 60.00%; ties excluded from wins).
+
+## clf_clean (5 cells)
+
+| cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
+|---|---|---|---|---|---|---|---|---|---|
+| digits logistic noise=0.0 | 0.9588 | 0.9581 | -0.0007421 | NA | NA | NA | NA | NA | loss |
+| breast_cancer logistic noise=0.0 | 0.9612 | 0.9741 | +0.01294 | NA | NA | NA | NA | NA | win |
+| breast_cancer mlp noise=0.0 | 0.9659 | 0.9753 | +0.009412 | NA | NA | NA | NA | NA | win |
+| ionosphere logistic noise=0.0 | 0.8648 | 0.8876 | +0.02286 | NA | NA | NA | NA | NA | win |
+| iris logistic noise=0.0 | 0.9511 | 0.9422 | -0.008889 | NA | NA | NA | NA | NA | loss |
+
+**win / tie / loss = 3 / 0 / 2** (fraction with wins-only denominator = 60.00%; ties excluded from wins).
+
+## noise_clf (12 cells)
+
+| cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
+|---|---|---|---|---|---|---|---|---|---|
+| digits logistic noise=0.3 | 0.7659 | 0.8653 | +0.09944 | NA | NA | NA | NA | NA | win |
+| digits mlp noise=0.3 | 0.6794 | 0.7532 | +0.07384 | NA | NA | NA | NA | NA | win |
+| digits_logistic noise=0.0 | 0.957 | 0.944 | -0.01299 | 0.00431 | -3.012 | 0.0395 | 0.125 | 0.625 | loss |
+| digits_logistic noise=0.1 | 0.892 | 0.931 | +0.03896 | 0.00884 | +4.408 | 0.0116 | 0.0625 | 0.625 | win |
+| digits_logistic noise=0.2 | 0.8545 | 0.9072 | +0.05269 | 0.0091 | +5.790 | 0.00442 | 0.0625 | 0.625 | win |
+| digits_logistic noise=0.3 | 0.8249 | 0.9035 | +0.07866 | 0.00932 | +8.436 | 0.00108 | 0.0625 | 0.625 | win |
+| digits_logistic noise=0.5 | 0.7288 | 0.8642 | +0.1354 | 0.00946 | +14.316 | 0.000138 | 0.0625 | 0.625 | win |
+| breast_cancer_logistic noise=0.0 | 0.9706 | 0.9729 | +0.002353 | 0.00399 | +0.590 | 0.587 | 0.75 | 1 | win |
+| breast_cancer_logistic noise=0.1 | 0.9612 | 0.9682 | +0.007059 | 0.0073 | +0.967 | 0.388 | 0.5 | 1 | win |
+| breast_cancer_logistic noise=0.2 | 0.9412 | 0.9494 | +0.008235 | 0.013 | +0.635 | 0.56 | 0.812 | 1 | win |
+| breast_cancer_logistic noise=0.3 | 0.9471 | 0.9635 | +0.01647 | 0.0057 | +2.888 | 0.0447 | 0.0625 | 0.625 | win |
+| breast_cancer_logistic noise=0.5 | 0.9094 | 0.9471 | +0.03765 | 0.0198 | +1.899 | 0.13 | 0.125 | 0.625 | win |
+
+**win / tie / loss = 11 / 0 / 1** (fraction with wins-only denominator = 91.67%; ties excluded from wins).
+
+## noise_reg (9 cells)
+
+| cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
+|---|---|---|---|---|---|---|---|---|---|
+| wine_quality_linear noise=0.0 | 0.627 | 0.6228 | +0.00423 | 0.00142 | +2.981 | 0.0407 | 0.125 | 1 | win |
+| wine_quality_linear noise=0.5 | 0.6312 | 0.6278 | +0.00335 | 0.00229 | +1.461 | 0.218 | 0.312 | 1 | win |
+| wine_quality_linear noise=1.0 | 0.6299 | 0.6309 | -0.001023 | 0.0013 | -0.784 | 0.477 | 0.625 | 1 | loss |
+| diabetes_linear noise=0.0 | 0.5315 | 0.5047 | +0.02677 | 0.0101 | +2.646 | 0.0572 | 0.0625 | 0.562 | win |
+| diabetes_linear noise=0.5 | 0.5263 | 0.5112 | +0.01514 | 0.0113 | +1.338 | 0.252 | 0.438 | 1 | win |
+| diabetes_linear noise=1.0 | 0.5494 | 0.5345 | +0.0149 | 0.0125 | +1.195 | 0.298 | 0.625 | 1 | win |
+| california_housing_linear noise=0.0 | 0.5384 | 0.5527 | -0.01425 | 0.0112 | -1.276 | 0.271 | 0.188 | 1 | loss |
+| california_housing_linear noise=0.5 | 0.5148 | 0.5322 | -0.01738 | 0.0119 | -1.455 | 0.219 | 0.188 | 1 | loss |
+| california_housing_linear noise=1.0 | 0.5183 | 0.4496 | +0.06875 | 0.0523 | +1.315 | 0.259 | 0.438 | 1 | win |
+
+**win / tie / loss = 6 / 0 / 3** (fraction with wins-only denominator = 66.67%; ties excluded from wins).
+
+## sim_quad (6 cells)
+
+| cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
+|---|---|---|---|---|---|---|---|---|---|
+| tau=0.1 | 0.08396 | 0.05652 | +0.02745 | 0.00305 | +8.990 | 0.000848 | 0.0625 | 0.375 | win |
+| tau=0.25 | 0.2384 | 0.2163 | +0.02211 | 0.00555 | +3.984 | 0.0163 | 0.0625 | 0.375 | win |
+| tau=0.5 | 0.5 | 0.5555 | -0.05546 | 0.0125 | -4.443 | 0.0113 | 0.0625 | 0.375 | loss |
+| tau=1.0 | 1.025 | 1.328 | -0.3029 | 0.0113 | -26.853 | 1.14e-05 | 0.0625 | 0.375 | loss |
+| tau=2.0 | 4.093 | 2.983 | +1.11 | 0.0402 | +27.605 | 1.02e-05 | 0.0625 | 0.375 | win |
+| tau=4.0 | 8.319 | 6.361 | +1.958 | 0.0969 | +20.212 | 3.54e-05 | 0.0625 | 0.375 | win |
+
+**win / tie / loss = 4 / 0 / 2** (fraction with wins-only denominator = 66.67%; ties excluded from wins).
+
+## sim_logistic (5 cells)
+
+| cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
+|---|---|---|---|---|---|---|---|---|---|
+| flip=0.0 | 0.2442 | 0.2346 | +0.009581 | 0.00052 | +18.416 | 0.00294 | 0.25 | 1 | win |
+| flip=0.1 | 0.5677 | 0.5381 | +0.02967 | 0.00231 | +12.843 | 0.00601 | 0.25 | 1 | win |
+| flip=0.2 | 0.808 | 0.7766 | +0.03138 | 0.00194 | +16.163 | 0.00381 | 0.25 | 1 | win |
+| flip=0.3 | 0.9326 | 0.9786 | -0.04595 | 0.0057 | -8.067 | 0.015 | 0.25 | 1 | loss |
+| flip=0.4 | 1.127 | 1.185 | -0.05825 | 0.00622 | -9.360 | 0.0112 | 0.25 | 1 | loss |
+
+**win / tie / loss = 3 / 0 / 2** (fraction with wins-only denominator = 60.00%; ties excluded from wins).
+
+## gnn (7 cells)
+
+| cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
+|---|---|---|---|---|---|---|---|---|---|
+| Cora noise=0.0 | 0.7784 | 0.7806 | +0.0022 | NA | NA | NA | NA | NA | win |
+| Cora noise=0.3 | 0.6286 | 0.6374 | +0.0088 | NA | NA | NA | NA | NA | win |
+| Cora noise=0.5 | 0.5278 | 0.5318 | +0.004 | NA | NA | NA | NA | NA | win |
+| CiteSeer noise=0.0 | 0.6343 | 0.6413 | +0.007 | NA | NA | NA | NA | NA | win |
+| CiteSeer noise=0.3 | 0.4893 | 0.4943 | +0.005 | NA | NA | NA | NA | NA | win |
+| PubMed noise=0.0 | 0.7607 | 0.7627 | +0.002 | NA | NA | NA | NA | NA | win |
+| PubMed noise=0.3 | 0.629 | 0.629 | +1.987e-08 | NA | NA | NA | NA | NA | tie |
+
+**win / tie / loss = 6 / 1 / 0** (fraction with wins-only denominator = 85.71%; ties excluded from wins).
+
+### A3 — tab:batch: which cells are 'statistically distinguishable'
+
+Paired t over 5 seeds, df=4, two-sided 5% critical value t = 2.776.
+
+| B | paired diff | t | significant at 5% ? |
+|---|---|---|---|
+| 8 | +0.0042 | +2.70 | **no** |
+| 16 | +0.0032 | +7.13 | yes |
+| 32 | +0.0010 | +1.89 | **no** |
+| 64 | -0.0012 | -4.59 | yes |
+| 128 | -0.0033 | -6.32 | yes |
+| 256 | -0.0054 | -8.22 | yes |
+| 512 | -0.0080 | -18.74 | yes |
+
+Cells the manuscript must NOT call distinguishable: B=8 (t=+2.70), B=32 (t=+1.89).
+
+### A4 — cell counts: '23 of 24' vs the printed table
+
+| population | cells | wins | ties | losses |
+|---|---|---|---|---|
+| all settings in path4_dim_sweep.json | 28 | 7 | 0 | 21 |
+| cells printed in tab:dim_sweep (3 columns x 6 p) | 21 | 0 | 0 | 21 |
+
+Rows NOT shown in the printed table:
+
+  - quadratic_gaussian tau=0.1 p=10 (W)
+  - quadratic_gaussian tau=0.1 p=20 (W)
+  - quadratic_gaussian tau=0.1 p=50 (W)
+  - quadratic_gaussian tau=0.1 p=100 (W)
+  - quadratic_gaussian tau=0.1 p=200 (W)
+  - quadratic_gaussian tau=0.1 p=400 (W)
+  - quadratic_gaussian tau=0.1 p=500 (W)
+
+Per-p gaps with the p-normalised gap (diagnostic a8):
+
+| p | median gap | gap / p |
+|---|---|---|
+| 10 | -0.005 | -0.00051 |
+| 20 | -0.014 | -0.00068 |
+| 50 | -0.023 | -0.00045 |
+| 100 | -0.019 | -0.00019 |
+| 200 | -0.144 | -0.00072 |
+| 400 | -0.237 | -0.00059 |
+| 500 | -0.216 | -0.00043 |
+

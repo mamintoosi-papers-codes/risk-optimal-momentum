@@ -1,0 +1,310 @@
+{
+  "summary": [
+    {
+      "name": "Dimension sweep",
+      "wins": 7,
+      "ties": 0,
+      "losses": 21,
+      "total": 28,
+      "fraction": 0.25,
+      "cells": [
+        {
+          "label": "quadratic_gaussian tau=1.0, p=10",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=1.0, p=20",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=1.0, p=50",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=1.0, p=100",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=1.0, p=200",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=1.0, p=400",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=1.0, p=500",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=0.1, p=10",
+          "outcome": "win"
+        },
+        {
+          "label": "quadratic_gaussian tau=0.1, p=20",
+          "outcome": "win"
+        },
+        {
+          "label": "quadratic_gaussian tau=0.1, p=50",
+          "outcome": "win"
+        },
+        {
+          "label": "quadratic_gaussian tau=0.1, p=100",
+          "outcome": "win"
+        },
+        {
+          "label": "quadratic_gaussian tau=0.1, p=200",
+          "outcome": "win"
+        },
+        {
+          "label": "quadratic_gaussian tau=0.1, p=400",
+          "outcome": "win"
+        },
+        {
+          "label": "quadratic_gaussian tau=0.1, p=500",
+          "outcome": "win"
+        },
+        {
+          "label": "quadratic_student tau=1.0, p=10",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_student tau=1.0, p=20",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_student tau=1.0, p=50",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_student tau=1.0, p=100",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_student tau=1.0, p=200",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_student tau=1.0, p=400",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_student tau=1.0, p=500",
+          "outcome": "loss"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.2, p=10",
+          "outcome": "loss"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.2, p=20",
+          "outcome": "loss"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.2, p=50",
+          "outcome": "loss"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.2, p=100",
+          "outcome": "loss"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.2, p=200",
+          "outcome": "loss"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.2, p=400",
+          "outcome": "loss"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.2, p=500",
+          "outcome": "loss"
+        }
+      ]
+    },
+    {
+      "name": "Real linear\nregression",
+      "wins": 5,
+      "ties": 0,
+      "losses": 0,
+      "total": 5,
+      "fraction": 1.0,
+      "cells": [
+        {
+          "label": "diabetes lin",
+          "outcome": "win"
+        },
+        {
+          "label": "california_housing lin",
+          "outcome": "win"
+        },
+        {
+          "label": "wine_quality lin",
+          "outcome": "win"
+        },
+        {
+          "label": "linnerud lin",
+          "outcome": "win"
+        },
+        {
+          "label": "blogfeedback lin",
+          "outcome": "win"
+        }
+      ]
+    },
+    {
+      "name": "Label / target\nnoise",
+      "wins": 15,
+      "ties": 0,
+      "losses": 4,
+      "total": 19,
+      "fraction": 0.7894736842105263,
+      "cells": [
+        {
+          "label": "digits_logistic n=0.0",
+          "outcome": "loss"
+        },
+        {
+          "label": "digits_logistic n=0.1",
+          "outcome": "win"
+        },
+        {
+          "label": "digits_logistic n=0.2",
+          "outcome": "win"
+        },
+        {
+          "label": "digits_logistic n=0.3",
+          "outcome": "win"
+        },
+        {
+          "label": "digits_logistic n=0.5",
+          "outcome": "win"
+        },
+        {
+          "label": "breast_cancer_logistic n=0.0",
+          "outcome": "win"
+        },
+        {
+          "label": "breast_cancer_logistic n=0.1",
+          "outcome": "win"
+        },
+        {
+          "label": "breast_cancer_logistic n=0.2",
+          "outcome": "win"
+        },
+        {
+          "label": "breast_cancer_logistic n=0.3",
+          "outcome": "win"
+        },
+        {
+          "label": "breast_cancer_logistic n=0.5",
+          "outcome": "win"
+        },
+        {
+          "label": "wine_quality_linear n=0.0",
+          "outcome": "win"
+        },
+        {
+          "label": "wine_quality_linear n=0.5",
+          "outcome": "win"
+        },
+        {
+          "label": "wine_quality_linear n=1.0",
+          "outcome": "loss"
+        },
+        {
+          "label": "diabetes_linear n=0.0",
+          "outcome": "win"
+        },
+        {
+          "label": "diabetes_linear n=0.5",
+          "outcome": "win"
+        },
+        {
+          "label": "diabetes_linear n=1.0",
+          "outcome": "win"
+        },
+        {
+          "label": "california_housing_linear n=0.0",
+          "outcome": "loss"
+        },
+        {
+          "label": "california_housing_linear n=0.5",
+          "outcome": "loss"
+        },
+        {
+          "label": "california_housing_linear n=1.0",
+          "outcome": "win"
+        }
+      ]
+    },
+    {
+      "name": "Graphs\n(GCN)",
+      "wins": 6,
+      "ties": 1,
+      "losses": 0,
+      "total": 7,
+      "fraction": 0.8571428571428571,
+      "cells": [
+        {
+          "label": "Cora n=0.0",
+          "outcome": "win"
+        },
+        {
+          "label": "Cora n=0.3",
+          "outcome": "win"
+        },
+        {
+          "label": "Cora n=0.5",
+          "outcome": "win"
+        },
+        {
+          "label": "CiteSeer n=0.0",
+          "outcome": "win"
+        },
+        {
+          "label": "CiteSeer n=0.3",
+          "outcome": "win"
+        },
+        {
+          "label": "PubMed n=0.0",
+          "outcome": "win"
+        },
+        {
+          "label": "PubMed n=0.3",
+          "outcome": "tie"
+        }
+      ]
+    },
+    {
+      "name": "Tabular\nclassification",
+      "wins": 3,
+      "ties": 0,
+      "losses": 2,
+      "total": 5,
+      "fraction": 0.6,
+      "cells": [
+        {
+          "label": "digits logistic",
+          "outcome": "loss"
+        },
+        {
+          "label": "breast_cancer logistic",
+          "outcome": "win"
+        },
+        {
+          "label": "breast_cancer mlp",
+          "outcome": "win"
+        },
+        {
+          "label": "ionosphere logistic",
+          "outcome": "win"
+        },
+        {
+          "label": "iris logistic",
+          "outcome": "loss"
+        }
+      ]
+    }
+  ]
+}

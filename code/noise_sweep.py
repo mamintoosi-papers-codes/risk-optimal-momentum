@@ -21,6 +21,15 @@ Run:  python -u noise_sweep.py
 
 from __future__ import annotations
 
+import sys
+
+# Windows redirected stdio uses the ANSI codepage (cp1252 here), which cannot
+# encode printed Unicode (Δ, k̄, …).  Keep non-interactive log output working.
+if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+    sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
+if hasattr(sys.stderr, "reconfigure") and not sys.stderr.isatty():
+    sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
+
 import argparse
 import json
 import time
@@ -36,6 +45,7 @@ import torch
 from paper_tables import load_clf, load_reg, split_clf, run_logistic_clf, run_linear
 from path3_uci import OPTS, paired, split_scale
 from dataset_names import pretty
+from tune_helper import add_tuning_args, run_tuning
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parent / "out"
@@ -49,6 +59,7 @@ def main():
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--steps", type=int, default=500)
     ap.add_argument("--quick", action="store_true")
+    add_tuning_args(ap)
     args = ap.parse_args()
     if args.quick:
         args.seeds, args.steps = 2, 250
@@ -57,27 +68,118 @@ def main():
     t0 = time.time()
     rows = []
 
+    # ---- Phase C helpers (fair baselines, item a7) ----------------------
+    def _carve(Xtr, ytr, frac=0.2, seed=0):
+        n = int(Xtr.shape[0])
+        m = max(1, int(n * frac))
+        perm = torch.randperm(n, generator=torch.Generator().manual_seed(seed))
+        return Xtr[perm[m:]], ytr[perm[m:]], Xtr[perm[:m]], ytr[perm[:m]]
+
+    def _ow(cfg, o, a):
+        kw = {}
+        if cfg.get("wd"):
+            kw["wd"] = cfg["wd"]
+        if cfg.get("beta1") is not None:
+            kw["beta1"] = cfg["beta1"]
+        if getattr(a, "gate_log", False) and o == "sradam":
+            kw["track_stats"] = True
+        return kw
+
+    def _sel(cfgs, o, default):
+        c = cfgs.get(o) or {}
+        return c.get("lr") or default
+
+    def _rec(mss, gfs, st):
+        if st.get("ms_per_step"):
+            mss.append(st["ms_per_step"])
+        if st.get("gate_open_frac") is not None:
+            gfs.append(st["gate_open_frac"])
+
+    def _attach(rec, mss, gfs):
+        if mss:
+            rec["ms_per_step"] = float(np.mean(mss))
+        if gfs:
+            rec["gate_open_frac"] = float(np.mean(gfs))
+        return rec
+
+    cfg_clf, cfg_reg = {}, {}
+    if args.tune:
+        print("=== TUNING (a7): identical grid across optimisers ===", flush=True)
+        CLF_GRID = {"sgdm": [0.01, 0.03, 0.1],
+                    "adamw": [1e-2, 3e-2, 5e-2, 1e-1],
+                    "amsgrad": [1e-2, 3e-2, 5e-2, 1e-1],
+                    "sradam": [1e-2, 3e-2, 5e-2, 1e-1]}
+        REG_GRID = {"sgdm": [0.03, 0.1, 0.3],
+                    "adamw": [1e-2, 3e-2, 1e-1],
+                    "amsgrad": [1e-2, 3e-2, 1e-1],
+                    "sradam": [1e-2, 3e-2, 1e-1]}
+        tune_steps = 200 if args.quick else min(args.steps, 400)
+        try:
+            Xd, yd = load_clf("digits")
+        except Exception:
+            Xd = yd = None
+        if Xd is not None:
+            def pilot_clf(cfg, seed, Xd=Xd, yd=yd):
+                Xtr, ytr, Xte, yte = split_clf(Xd, yd, 0.3, seed)
+                K0 = int(ytr.max()) + 1
+                return -run_logistic_clf(Xtr, ytr, Xte, yte, cfg["opt"],
+                                          tune_steps, cfg["lr"] or 5e-2,
+                                          64, seed, K0,
+                                          **_ow(cfg, cfg["opt"], args))
+            _, cfg_clf = run_tuning(args, OPTS, pilot_clf, "noise_sweep_clf",
+                                    lower_is_better=False,
+                                    default_grids=CLF_GRID)
+        try:
+            Xr, yr = load_reg("wine_quality")
+        except Exception:
+            Xr = yr = None
+        if Xr is not None:
+            def pilot_reg(cfg, seed, Xr=Xr, yr=yr):
+                Xtr, ytr, Xte, yte, _ = split_scale(Xr, yr, 0.3, seed)
+                return run_linear(Xtr, ytr, Xte, yte, cfg["opt"],
+                                  tune_steps, cfg["lr"] or 3e-2, 64, seed,
+                                  **_ow(cfg, cfg["opt"], args))
+            _, cfg_reg = run_tuning(args, OPTS, pilot_reg, "noise_sweep_reg",
+                                    default_grids=REG_GRID)
+    need_st = bool(args.timing or args.early_stop or args.gate_log)
+
     print("=== digits logistic ===", flush=True)
     X, y = load_clf("digits")
     K = int(y.max()) + 1
     for noise in noise_grid:
         per = {o: [] for o in OPTS}
+        mss, gfs = [], []
         for seed in seeds:
             Xtr, ytr, Xte, yte = split_clf(X, y, 0.3, seed)
+            val = None
+            if args.early_stop > 0 and Xtr.shape[0] > 20:
+                Xtr, ytr, Xv, yv = _carve(Xtr, ytr, 0.2, seed)
+                val = (Xv, yv)
             if noise > 0:
                 gen = torch.Generator().manual_seed(900 + seed)
                 m = torch.rand(ytr.shape[0]) < noise
                 ytr = ytr.clone()
                 ytr[m] = torch.randint(0, K, (int(m.sum()),), generator=gen)
             for o in OPTS:
+                st = {} if need_st else None
                 per[o].append(run_logistic_clf(
-                    Xtr, ytr, Xte, yte, o, args.steps, 5e-2, 64, seed, K))
+                    Xtr, ytr, Xte, yte, o, args.steps, _sel(cfg_clf, o, 5e-2),
+                    64, seed, K, val=val, patience=args.early_stop,
+                    timing=args.timing, stats_out=st,
+                    **_ow(cfg_clf.get(o) or {}, o, args)))
+                if need_st:
+                    _rec(mss, gfs, st)
         a = np.asarray(per["adamw"])
         s = np.asarray(per["sradam"])
         rec = dict(problem="digits_logistic", noise=float(noise), metric="acc_frac",
                    adamw=float(a.mean()), sradam=float(s.mean()),
                    paired_diff=float(s.mean() - a.mean()),
-                   win_sradam=bool(s.mean() >= a.mean()))
+                   adamw_all=[float(x) for x in per["adamw"]],
+                   sradam_all=[float(x) for x in per["sradam"]],
+                   paired_all=[float(x) for x in (s - a)],
+                   win_sradam=bool(s.mean() > a.mean()),
+                   tuned=(cfg_clf if args.tune else None))
+        _attach(rec, mss, gfs)
         rows.append(rec)
         print(f"  noise={noise:.1f}  AdamW={100*a.mean():.1f}  SR={100*s.mean():.1f}  "
               f"Δ={100*rec['paired_diff']:+.1f}pp", flush=True)
@@ -87,22 +189,38 @@ def main():
     K = int(y.max()) + 1
     for noise in noise_grid:
         per = {o: [] for o in OPTS}
+        mss, gfs = [], []
         for seed in seeds:
             Xtr, ytr, Xte, yte = split_clf(X, y, 0.3, seed)
+            val = None
+            if args.early_stop > 0 and Xtr.shape[0] > 20:
+                Xtr, ytr, Xv, yv = _carve(Xtr, ytr, 0.2, seed)
+                val = (Xv, yv)
             if noise > 0:
                 gen = torch.Generator().manual_seed(910 + seed)
                 m = torch.rand(ytr.shape[0]) < noise
                 ytr = ytr.clone()
                 ytr[m] = torch.randint(0, K, (int(m.sum()),), generator=gen)
             for o in OPTS:
+                st = {} if need_st else None
                 per[o].append(run_logistic_clf(
-                    Xtr, ytr, Xte, yte, o, args.steps, 5e-2, 32, seed, K))
+                    Xtr, ytr, Xte, yte, o, args.steps, _sel(cfg_clf, o, 5e-2),
+                    32, seed, K, val=val, patience=args.early_stop,
+                    timing=args.timing, stats_out=st,
+                    **_ow(cfg_clf.get(o) or {}, o, args)))
+                if need_st:
+                    _rec(mss, gfs, st)
         a = np.asarray(per["adamw"])
         s = np.asarray(per["sradam"])
         rec = dict(problem="breast_cancer_logistic", noise=float(noise), metric="acc_frac",
                    adamw=float(a.mean()), sradam=float(s.mean()),
                    paired_diff=float(s.mean() - a.mean()),
-                   win_sradam=bool(s.mean() >= a.mean()))
+                   adamw_all=[float(x) for x in per["adamw"]],
+                   sradam_all=[float(x) for x in per["sradam"]],
+                   paired_all=[float(x) for x in (s - a)],
+                   win_sradam=bool(s.mean() > a.mean()),
+                   tuned=(cfg_clf if args.tune else None))
+        _attach(rec, mss, gfs)
         rows.append(rec)
         print(f"  noise={noise:.1f}  AdamW={100*a.mean():.1f}  SR={100*s.mean():.1f}  "
               f"Δ={100*rec['paired_diff']:+.1f}pp", flush=True)
@@ -112,16 +230,32 @@ def main():
         X, y = load_reg(rname)
         for noise in [0.0, 0.5, 1.0]:
             per = {o: [] for o in OPTS}
+            mss, gfs = [], []
             for seed in seeds:
                 Xtr, ytr, Xte, yte, ysd = split_scale(X, y, 0.3, seed)
+                val = None
+                if args.early_stop > 0 and Xtr.shape[0] > 20:
+                    Xtr, ytr, Xv, yv = _carve(Xtr, ytr, 0.2, seed)
+                    val = (Xv, yv)
                 if noise > 0:
                     gen = torch.Generator().manual_seed(920 + seed)
                     ytr = ytr + noise * torch.randn(ytr.shape, generator=gen)
                 for o in OPTS:
+                    st = {} if need_st else None
                     per[o].append(run_linear(
-                        Xtr, ytr, Xte, yte, o, args.steps, 3e-2, 64, seed))
+                        Xtr, ytr, Xte, yte, o, args.steps, _sel(cfg_reg, o, 3e-2), 64, seed,
+                        val=val, patience=args.early_stop,
+                        timing=args.timing, stats_out=st,
+                        **_ow(cfg_reg.get(o) or {}, o, args)))
+                    if need_st:
+                        _rec(mss, gfs, st)
             rec = paired(per)
-            rec.update(problem=f"{rname}_linear", noise=float(noise), metric="mse")
+            rec.update(problem=f"{rname}_linear", noise=float(noise), metric="mse",
+                       paired_all=[float(x) for x in
+                                   (np.asarray(per["adamw"]) -
+                                    np.asarray(per["sradam"]))],
+                       tuned=(cfg_reg if args.tune else None))
+            _attach(rec, mss, gfs)
             rows.append(rec)
             print(f"  {rname} sigma={noise:.1f}  Δ_MSE={rec['paired_diff']:+.4f}  "
                   f"win={rec['win_sradam']}", flush=True)
