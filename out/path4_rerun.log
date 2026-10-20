@@ -1,0 +1,68 @@
+=== TUNING (a7): identical grid across optimisers ===
+  [tune] adamw    -> {'lr': 0.01, 'beta1': None, 'wd': None}  score=0.015797369182109833
+  [tune] amsgrad  -> {'lr': 0.01, 'beta1': None, 'wd': None}  score=0.015794693492352962
+  [tune] sradam   -> {'lr': 0.02, 'beta1': None, 'wd': None}  score=0.026967762038111687
+  [tune] wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\path4_quad_t1.0_tune.json
+  [tune] adamw    -> {'lr': 0.01, 'beta1': None, 'wd': None}  score=0.7040251791477203
+  [tune] amsgrad  -> {'lr': 0.01, 'beta1': None, 'wd': None}  score=0.7040565311908722
+  [tune] sradam   -> {'lr': 0.03, 'beta1': None, 'wd': None}  score=0.7052526772022247
+  [tune] wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\path4_log_f0.2_tune.json
+  [tune] adamw    -> {'lr': 0.02, 'beta1': None, 'wd': None}  score=0.10693420842289925
+  [tune] amsgrad  -> {'lr': 0.02, 'beta1': None, 'wd': None}  score=0.10693510621786118
+  [tune] sradam   -> {'lr': 0.02, 'beta1': None, 'wd': None}  score=0.1523066908121109
+  [tune] wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\path4_quad_t4.0_tune.json
+  [tune] adamw    -> {'lr': 0.1, 'beta1': None, 'wd': None}  score=1.0642544627189636
+  [tune] amsgrad  -> {'lr': 0.1, 'beta1': None, 'wd': None}  score=1.0642417073249817
+  [tune] sradam   -> {'lr': 0.1, 'beta1': None, 'wd': None}  score=1.0713861584663391
+  [tune] wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\path4_log_f0.4_tune.json
+=== quadratic gaussian, tau=1.0 (noise-dominated-ish) ===
+  p=  10  AdamW=0.0267  SR=0.0333  Δ=-0.0066 (t=-0.87)  win=False  k̄=None
+  p=  20  AdamW=0.0736  SR=0.1016  Δ=-0.0281 (t=-2.46)  win=False  k̄=None
+  p=  50  AdamW=0.1632  SR=0.2172  Δ=-0.0539 (t=-2.52)  win=False  k̄=None
+  p= 100  AdamW=0.3256  SR=0.3442  Δ=-0.0186 (t=-0.49)  win=False  k̄=None
+  p= 200  AdamW=0.6361  SR=0.7917  Δ=-0.1556 (t=-4.77)  win=False  k̄=None
+  p= 400  AdamW=1.2875  SR=1.5243  Δ=-0.2368 (t=-6.68)  win=False  k̄=None
+  p= 500  AdamW=1.5573  SR=1.7737  Δ=-0.2164 (t=-4.91)  win=False  k̄=None
+=== quadratic gaussian, tau=4.0 (heavy noise) ===
+  p=  10  AdamW=0.1641  SR=0.1801  Δ=-0.0159  win=False
+  p=  20  AdamW=0.4198  SR=0.5018  Δ=-0.0820  win=False
+  p=  50  AdamW=1.1137  SR=1.2568  Δ=-0.1432  win=False
+  p= 100  AdamW=2.3130  SR=2.0943  Δ=+0.2187  win=True
+  p= 200  AdamW=4.4927  SR=4.3456  Δ=+0.1471  win=True
+  p= 400  AdamW=9.2806  SR=9.6756  Δ=-0.3951  win=False
+  p= 500  AdamW=11.1117  SR=10.7292  Δ=+0.3825  win=True
+=== quadratic gaussian, tau=0.1 (more signal) ===
+  p=  10  AdamW=0.0012  SR=0.0011  Δ=+0.0001  win=True
+  p=  20  AdamW=0.0048  SR=0.0025  Δ=+0.0023  win=True
+  p=  50  AdamW=0.0092  SR=0.0083  Δ=+0.0009  win=True
+  p= 100  AdamW=0.0189  SR=0.0139  Δ=+0.0050  win=True
+  p= 200  AdamW=0.0303  SR=0.0297  Δ=+0.0006  win=True
+  p= 400  AdamW=0.0697  SR=0.0578  Δ=+0.0119  win=True
+  p= 500  AdamW=0.0815  SR=0.0742  Δ=+0.0074  win=True
+=== quadratic student-t, tau=1.0 ===
+  p=  10  AdamW=0.0110  SR=0.0120  Δ=-0.0010  win=False
+  p=  20  AdamW=0.0270  SR=0.0357  Δ=-0.0087  win=False
+  p=  50  AdamW=0.0619  SR=0.0745  Δ=-0.0126  win=False
+  p= 100  AdamW=0.1181  SR=0.1214  Δ=-0.0033  win=False
+  p= 200  AdamW=0.2118  SR=0.2741  Δ=-0.0623  win=False
+  p= 400  AdamW=0.4560  SR=0.5230  Δ=-0.0670  win=False
+  p= 500  AdamW=0.5518  SR=0.6269  Δ=-0.0752  win=False
+=== logistic label flip=0.2 ===
+  p=  10  AdamW=0.7093  SR=0.7145  Δ=-0.0051  win=False
+  p=  20  AdamW=0.7191  SR=0.7326  Δ=-0.0135  win=False
+  p=  50  AdamW=0.7499  SR=0.7725  Δ=-0.0226  win=False
+  p= 100  AdamW=0.8424  SR=0.9048  Δ=-0.0624  win=False
+  p= 200  AdamW=1.0319  SR=1.1762  Δ=-0.1443  win=False
+  p= 400  AdamW=1.7576  SR=2.3296  Δ=-0.5721  win=False
+  p= 500  AdamW=2.3169  SR=3.2362  Δ=-0.9193  win=False
+=== logistic label flip=0.4 (heavy label noise) ===
+  p=  10  AdamW=1.1316  SR=1.1170  Δ=+0.0146  win=True
+  p=  20  AdamW=1.1684  SR=1.1551  Δ=+0.0133  win=True
+  p=  50  AdamW=1.4384  SR=1.3384  Δ=+0.1000  win=True
+  p= 100  AdamW=2.0353  SR=1.7984  Δ=+0.2369  win=True
+  p= 200  AdamW=3.7785  SR=3.0148  Δ=+0.7637  win=True
+  p= 400  AdamW=9.7309  SR=7.3818  Δ=+2.3491  win=True
+  p= 500  AdamW=14.9607  SR=10.8290  Δ=+4.1317  win=True
+
+17/42 settings: SR-Adam better
+elapsed 515.0s

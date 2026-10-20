@@ -1,7 +1,8 @@
 """Verify every number the RESPONSE REPORT quotes against fresh phase-D outputs.
 
 Checks (against out/*.json regenerated 18 Oct 2026):
-  1. tab:dim_sweep headline: 7/28, wins all low-noise quadratic, AdamW wins
+  1. tab:dim_sweep headline: 17/42, wins only at the ends of the noise axis,
+     flip 0.4 wins everywhere with a per-coordinate gap growing with p
      at tau=1/flip 0.2 at every p, per-coordinate -0.0007..-0.0002
   2. tab:opt_noise quadratic percentages + logistic percentages + the
      "AdamW drops its lr to 0.003" claim
@@ -13,7 +14,7 @@ Checks (against out/*.json regenerated 18 Oct 2026):
   7. tab:batch: B=8/B=32 below crit 2.776, B=16 significant but +0.0032,
      B>=64 significant and favours AdamW
   8. gate: 100 % on tab:opt_noise + Digits, 0-0.75 elsewhere
-  9. timings 0.29 / 0.55 / 1.3 ms, three optimisers
+  9. timings 0.55 / 0.90 / 1.8 ms, three optimisers
  10. report wording: new claims present, stale claims gone
 """
 import json
@@ -49,23 +50,37 @@ rows = d4["rows"]
 wins = [r for r in rows if r.get("paired_diff", 0) > 0]
 losses = [r for r in rows if r.get("paired_diff", 0) < 0]
 claim(f"{len(wins)} wins / {len(losses)} losses out of {len(rows)}",
-      len(rows) == 28 and len(wins) == 7 and len(losses) == 21)
-claim("every win is quadratic_gaussian at tau=0.1",
-      all(r["problem"] == "quadratic_gaussian" and r["tau"] == 0.1 for r in wins))
-bad = [r for r in rows
-       if not (r["problem"] == "quadratic_gaussian" and r["tau"] == 0.1)
-       and r.get("paired_diff", 0) >= 0]
-claim("AdamW wins at every p at tau=1 (both laws) and flip 0.2", not bad,
-      f"offenders={[(r['problem'], r['p']) for r in bad]}")
-gap_over_p = []
-for p in sorted({r["p"] for r in rows}):
-    nov01 = [r["paired_diff"] for r in rows if r["p"] == p
-             and not (r["problem"] == "quadratic_gaussian" and r["tau"] == 0.1)]
-    gap_over_p.append(statistics.median(nov01) / p)
-claim(f"per-coordinate range {round(min(gap_over_p), 4):+.4f}.."
-      f"{round(max(gap_over_p), 4):+.4f} = -0.0007..-0.0002",
-      abs(round(min(gap_over_p), 4) + 0.0007) <= 1e-9
-      and abs(round(max(gap_over_p), 4) + 0.0002) <= 1e-9)
+      len(rows) == 42 and len(wins) == 17 and len(losses) == 25)
+def key(r):
+    return (r["problem"], round(r.get("tau", r.get("flip", -1)), 1))
+wkeys = sorted({key(r) for r in wins})
+claim("wins only in {gauss tau=0.1 (7), gauss tau=4 (3), flip 0.4 (7)}",
+      wkeys == [("logistic_labelnoise", 0.4), ("quadratic_gaussian", 0.1),
+                ("quadratic_gaussian", 4.0)], f"keys={wkeys}")
+g4 = {r["p"]: r["paired_diff"] for r in rows
+      if key(r) == ("quadratic_gaussian", 4.0)}
+claim("tau=4: positive exactly at p in {100,200,500}",
+      sorted(p for p, v in g4.items() if v > 0) == [100, 200, 500]
+      and len(g4) == 7, f"gaps={{{', '.join(f'{p}:{g4[p]:+.3f}' for p in sorted(g4))}}}")
+f4 = sorted([r for r in rows if key(r) == ("logistic_labelnoise", 0.4)],
+            key=lambda r: r["p"])
+claim("flip 0.4: SR wins at every p, all |t|>10 from p=50 on",
+      all(r["paired_diff"] > 0 for r in f4)
+      and all(abs(r["t_stat"]) > 10 for r in f4 if r["p"] >= 50))
+pc = [r["paired_diff"] / r["p"] for r in f4]
+claim(f"flip 0.4 per-coordinate grows: {pc[1]:.1e} (p=20) -> {pc[-1]:.1e} "
+      f"(p=500), text claims 7e-4 -> 8e-3",
+      abs(pc[1] - 7e-4) <= 2e-4 and abs(pc[-1] - 8e-3) <= 1e-3
+      and pc[-1] > 8 * pc[1])
+low = [r["paired_diff"] / r["p"] for r in rows if key(r) == ("quadratic_gaussian", 0.1)]
+claim(f"tau=0.1 per-coordinate flat {min(low):.1e}..{max(low):.1e} "
+      f"(text 3e-6..1.2e-4)",
+      abs(min(low) - 3.0e-6) <= 1.5e-6 and abs(max(low) - 1.2e-4) <= 3e-5)
+mid = [r for r in rows if key(r) in (("quadratic_gaussian", 1.0),
+                                     ("quadratic_student", 1.0),
+                                     ("logistic_labelnoise", 0.2))]
+claim("intermediate band: AdamW wins at every p (tau=1, student, flip 0.2)",
+      all(r["paired_diff"] < 0 for r in mid) and len(mid) == 21)
 
 # ---------------- 2. opt_noise percentages ----------------
 print("2. tab:opt_noise (simulation_noise.json + tune files)")
@@ -160,7 +175,7 @@ fam = {f["name"].replace("\n", " "): f for f in w}
 graphs = next(v for k, v in fam.items() if "Graphs" in k)
 claim(f"graphs {graphs['wins']} wins, {graphs['ties']} tie",
       graphs["wins"] == 6 and graphs["ties"] == 1 and graphs["total"] == 7)
-for name, wins_, total_ in (("Dimension sweep", 7, 28),
+for name, wins_, total_ in (("Dimension sweep", 17, 42),
                             ("Real linear", 5, 5),
                             ("Label / target noise", 15, 19),
                             ("Tabular classification", 3, 5)):
@@ -213,21 +228,22 @@ print("9. timings")
 ms = lambda prob, p: statistics.mean(
     [r["ms_per_step"] for r in d4["rows"] if r["problem"] == prob and r["p"] == p]
     or [float("nan")])
-check("ms gaussian p=400 vs 0.29", 0.29, ms("quadratic_gaussian", 400), 0.006)
-check("ms student p=400 vs 0.55", 0.55, ms("quadratic_student", 400), 0.006)
-check("ms logistic p=200 vs 1.3", 1.3, ms("logistic_labelnoise", 200), 0.06)
+check("ms gaussian p=400 vs 0.55", 0.55, ms("quadratic_gaussian", 400), 0.006)
+check("ms student p=400 vs 0.90", 0.90, ms("quadratic_student", 400), 0.006)
+check("ms logistic p=200 vs 1.8", 1.8, ms("logistic_labelnoise", 200), 0.06)
 
 # ---------------- 10. report wording ----------------
 print("10. report wording (new claims present, stale claims gone)")
 must_have = [
     "classification **9/10** in favour",
-    "0.29 ms (p=400 quadratic, Gaussian; 0.55 ms under Student-t) and 1.3 ms",
+    "0.55 ms (p=400 quadratic, Gaussian; 0.90 ms under Student-t) and 1.8 ms",
     "averaged over the three optimisers of the sweep",
     "open **at the last step** of each run",
     "B=16 is significant but the margin there is only +0.0032",
     "the agreed split assigns all prose to you",
     "with no argument is identical to `phaseD.bat full`",
-    "median over the three high-noise columns",
+    "The wins sit at *both ends of the noise axis*",
+    "42 cells, 20 Oct",
     "The graph pilots keep a common fixed lr (0.01)",
     "the fraction of parameter blocks open at the last step of a run",
 ]
@@ -235,6 +251,10 @@ must_not = [
     "11/12",
     "0.27 ms",
     "1.4 ms",
+    "0.29 ms",
+    "1.3 ms (200-feature",
+    "median over the three high-noise columns",
+    "tab:dim_sweep` (28 cells)",
     "open in 100 % of steps",
     "`TODO.md`",
     "averaged over the four optimisers",

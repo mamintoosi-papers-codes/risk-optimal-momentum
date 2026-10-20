@@ -27,9 +27,8 @@ Two special blocks requested by the diagnostic:
       the 5% two-sided critical value of t with 4 degrees of freedom (2.7764);
       the manuscript calls B=8 (t=2.7) and B=32 (t=1.9) "distinguishable".
 
-  A4  Table 5 vs Table 8 reconciliation — count how many settings
-      path4_dim_sweep.json actually holds (4 grids x 6 p = 24), how many of
-      them are shown in the printed tab:dim_sweep (3 columns x 6 p = 18), how
+  A4  Table 5 vs Table 8 reconciliation — count how many settings       path4_dim_sweep.json actually holds (6 grids x 7 p = 42), how many of
+       them are shown in the printed tab:dim_sweep (now all of them), how
       many are wins, and which rows the "23 of 24" claim can refer to.
 
 Known limitation (by design): a few driver rows do not store per-seed values
@@ -315,9 +314,12 @@ def reconcile_counts():
         return ["### A4 — Table 5 vs Table 8: path4_dim_sweep.json missing", ""]
     rows = d["rows"]
     printed = [r for r in rows
-               if (r.get("problem") == "quadratic_gaussian" and r.get("tau") == 1.0)
-               or (r.get("problem") == "quadratic_student" and r.get("tau") == 1.0)
-               or (r.get("problem") == "logistic_labelnoise" and r.get("flip") == 0.2)]
+               if (r.get("problem") == "quadratic_gaussian"
+                   and r.get("tau") in (0.1, 1.0, 4.0))
+               or (r.get("problem") == "quadratic_student"
+                   and r.get("tau") == 1.0)
+               or (r.get("problem") == "logistic_labelnoise"
+                   and r.get("flip") in (0.2, 0.4))]
     excluded = [r for r in rows if r not in printed]
 
     def desc(r):
@@ -338,7 +340,7 @@ def reconcile_counts():
              f"| all settings in path4_dim_sweep.json | {len(rows)} | {w_all} | "
              f"{sum(1 for r in rows if win(r)=='T')} | "
              f"{sum(1 for r in rows if win(r)=='L')} |",
-             f"| cells printed in tab:dim_sweep (3 columns x 6 p) | {len(printed)} | "
+             f"| cells printed in tab:dim_sweep (6 columns x 7 p) | {len(printed)} | "
              f"{w_pr} | {sum(1 for r in printed if win(r)=='T')} | "
              f"{sum(1 for r in printed if win(r)=='L')} |", "",
              "Rows NOT shown in the printed table:", ""]

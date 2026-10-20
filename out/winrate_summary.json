@@ -2,11 +2,11 @@
   "summary": [
     {
       "name": "Dimension sweep",
-      "wins": 7,
+      "wins": 17,
       "ties": 0,
-      "losses": 21,
-      "total": 28,
-      "fraction": 0.25,
+      "losses": 25,
+      "total": 42,
+      "fraction": 0.40476190476190477,
       "cells": [
         {
           "label": "quadratic_gaussian tau=1.0, p=10",
@@ -35,6 +35,34 @@
         {
           "label": "quadratic_gaussian tau=1.0, p=500",
           "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=4.0, p=10",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=4.0, p=20",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=4.0, p=50",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=4.0, p=100",
+          "outcome": "win"
+        },
+        {
+          "label": "quadratic_gaussian tau=4.0, p=200",
+          "outcome": "win"
+        },
+        {
+          "label": "quadratic_gaussian tau=4.0, p=400",
+          "outcome": "loss"
+        },
+        {
+          "label": "quadratic_gaussian tau=4.0, p=500",
+          "outcome": "win"
         },
         {
           "label": "quadratic_gaussian tau=0.1, p=10",
@@ -119,6 +147,34 @@
         {
           "label": "logistic_labelnoise flip=0.2, p=500",
           "outcome": "loss"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.4, p=10",
+          "outcome": "win"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.4, p=20",
+          "outcome": "win"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.4, p=50",
+          "outcome": "win"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.4, p=100",
+          "outcome": "win"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.4, p=200",
+          "outcome": "win"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.4, p=400",
+          "outcome": "win"
+        },
+        {
+          "label": "logistic_labelnoise flip=0.4, p=500",
+          "outcome": "win"
         }
       ]
     },

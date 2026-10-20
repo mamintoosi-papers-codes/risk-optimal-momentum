@@ -52,6 +52,22 @@ if not errorlevel 1 (
 )
 echo   OK - no \torerun{...} placeholder in the body
 
+echo [E2b] figure freshness - figs\*.pdf vs paper\*.pdf
+rem LaTeX \includegraphics resolves relative to paper\, so a figure that the
+rem drivers regenerate into figs\ but is never mirrored keeps the old drawing
+rem in the manuscript.  This happened to sim_noise_levels.pdf and
+rem path4_dim_sweep.pdf after the 18 Oct tuned re-run.
+for %%F in (sim_risk_snr sim_variance_bias sim_effective_dimension sim_heavy_tails sim_noise_levels sim_batch_size path4_dim_sweep) do (
+    if exist "figs\%%F.pdf" if exist "paper\%%F.pdf" (
+        fc /b "figs\%%F.pdf" "paper\%%F.pdf" >nul 2>&1
+        if errorlevel 1 (
+            echo   FAIL paper\%%F.pdf is stale - copy figs\%%F.pdf over it
+            goto fail
+        )
+    )
+)
+echo   OK - figures in paper\ match figs\
+
 if /i "%MODE%"=="check" goto checked
 
 echo [E3] PDF build

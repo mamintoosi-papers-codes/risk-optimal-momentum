@@ -7,8 +7,7 @@ Checks:
   B. simulation_batch.json: tab:batch cells, the 1.86 trace factor,
      Stein-weight range 0.13-0.16, |diff| < 0.01
   C. gate_open_frac: 1.0 on every tab:opt_noise run and every Digits row,
-     0-0.75 on the remaining tabular rows, not recorded elsewhere
-  D. ms_per_step: 0.29 ms (gaussian p=400), 0.55 ms (student p=400),
+     0-0.75 on the remaining tabular rows, not recorded elsewhere   D. ms_per_step: 0.55 ms (gaussian p=400), 0.90 ms (student p=400),
      1.3 ms (logistic p=200)
   E. per-p normalisation: -0.0007..-0.0002 (median over the three
      high-noise columns) and 3e-6..1.2e-4 at tau=0.1
@@ -255,7 +254,7 @@ for name in ("path4_dim_sweep", "noise_sweep", "simulation_batch"):
         print(f"   {name:<20} not recorded (as the text implies)  OK")
 
 # ================= D. timings =================
-print("\nD. ms_per_step (text: 0.29 ms gauss p=400, 0.55 ms student p=400, 1.3 ms logistic p=200)")
+print("\nD. ms_per_step (text: 0.55 ms gauss p=400, 0.90 ms student p=400, 1.8 ms logistic p=200)")
 d = json.loads((out / "path4_dim_sweep.json").read_text(encoding="utf-8"))
 g400 = [r["ms_per_step"] for r in d["rows"]
         if r["problem"] == "quadratic_gaussian" and r["p"] == 400]
@@ -263,35 +262,29 @@ s400 = [r["ms_per_step"] for r in d["rows"]
         if r["problem"] == "quadratic_student" and r["p"] == 400]
 l200 = [r["ms_per_step"] for r in d["rows"]
         if r["problem"] == "logistic_labelnoise" and r["p"] == 200]
-check("ms gauss quadratic p=400", 0.29, statistics.mean(g400), 0.006, "{:.3f}")
-check("ms student quadratic p=400", 0.55, statistics.mean(s400), 0.006, "{:.3f}")
-check("ms logistic p=200", 1.3, statistics.mean(l200), 0.06, "{:.3f}")
+check("ms gauss quadratic p=400", 0.55, statistics.mean(g400), 0.006, "{:.3f}")
+check("ms student quadratic p=400", 0.90, statistics.mean(s400), 0.006, "{:.3f}")
+check("ms logistic p=200", 1.8, statistics.mean(l200), 0.06, "{:.3f}")
 
 # ================= E. per-p normalisation =================
-print("\nE. per-p normalisation (text: -0.0007..-0.0002 as the median over the")
-print("   three high-noise columns; 3e-6..1.2e-4 at tau=0.1)")
+print("\nE. per-p normalisation (text: flip 0.4 per-coordinate gap grows from")
+print("   7e-4 (p=20) to 8e-3 (p=500); tau=0.1 flat 3e-6..1.2e-4)")
 rows = d["rows"]
-ps = sorted({r["p"] for r in rows})
-gap_over_p = []
-for p in ps:
-    nov01 = [r["paired_diff"] for r in rows if r["p"] == p
-             and not (r["problem"] == "quadratic_gaussian" and r["tau"] == 0.1)]
-    v = statistics.median(nov01) / p
-    gap_over_p.append(v)
-    print(f"   p={p:>3}  gap/p (median of 3 high-noise cols)={v:+.6f}")
-ok_e = (abs(round(min(gap_over_p), 4) + 0.0007) <= 1e-9
-        and abs(round(max(gap_over_p), 4) + 0.0002) <= 1e-9)
-if not ok_e:
-    fails.append(f"gap/p range {min(gap_over_p):+.6f}..{max(gap_over_p):+.6f} "
-                 "vs text -0.0007..-0.0002")
-print(f"   rounded range = {round(min(gap_over_p), 4):+.4f}..{round(max(gap_over_p), 4):+.4f}"
-      f" (text -0.0007..-0.0002)  {'OK' if ok_e else '*** MISMATCH ***'}")
-tau01 = [r["paired_diff"] / r["p"] for r in rows
+pc_hi = {r["p"]: r["paired_diff"] / r["p"] for r in rows
+         if r["problem"] == "logistic_labelnoise" and r["flip"] == 0.4}
+pc_lo = [r["paired_diff"] / r["p"] for r in rows
          if r["problem"] == "quadratic_gaussian" and r["tau"] == 0.1]
-ok_t = abs(round(min(tau01), 6) - 3e-6) <= 1e-9 and max(tau01) <= 1.2e-4
+ok_hi = (abs(pc_hi[20] - 7e-4) <= 1e-4 and abs(pc_hi[500] - 8e-3) <= 1e-3
+         and pc_hi[500] > 6 * pc_hi[20])
+if not ok_hi:
+    fails.append(f"flip 0.4 gap/p {pc_hi[20]:.2e}..{pc_hi[500]:.2e} "
+                 "vs text 7e-4..8e-3")
+print(f"   flip 0.4 gap/p: {pc_hi[20]:.2e} (p=20) .. {pc_hi[500]:.2e} (p=500)"
+      f" (text 7e-4..8e-3)  {'OK' if ok_hi else '*** MISMATCH ***'}")
+ok_t = abs(round(min(pc_lo), 6) - 3e-6) <= 1e-9 and max(pc_lo) <= 1.2e-4
 if not ok_t:
-    fails.append(f"tau=0.1 gap/p {min(tau01):.2e}..{max(tau01):.2e} vs text 3e-6..1.2e-4")
-print(f"   tau=0.1 gap/p = {min(tau01):.2e}..{max(tau01):.2e} (text 3e-6..1.2e-4) "
+    fails.append(f"tau=0.1 gap/p {min(pc_lo):.2e}..{max(pc_lo):.2e} vs text 3e-6..1.2e-4")
+print(f"   tau=0.1 gap/p = {min(pc_lo):.2e}..{max(pc_lo):.2e} (text 3e-6..1.2e-4) "
       f"{'OK' if ok_t else '*** MISMATCH ***'}")
 
 # ================= F. wording present / stale wording absent =================
@@ -300,13 +293,15 @@ must_have = [
     "All eleven paired differences",
     "At $B=8$ and at $B=32$ the difference is not statistically significant",
     "at $B=16$ it is significant, but the margin is only $0.0032$",
-    "$0.29$\\,ms",
     "$0.55$\\,ms",
-    "$1.3$\\,ms",
+    "$0.90$\\,ms",
+    "$1.8$\\,ms",
     "at the last step of a run",
     "fixed step size of $0.01$",
-    "median over the three high-noise columns of Table",
-    "between $3\\times10^{-6}$ and $1.2\\times10^{-4}$",
+    "from $7\\times10^{-4}$ at $p=20$ to $8\\times10^{-3}$",
+    "$3\\times10^{-6}$ to $1.2\\times10^{-4}$",
+    "Seventeen of the forty-two settings",
+    "tuned at their own noise level",
     "scored on two tuning seeds",
     "the quadratic grid is chosen at $\\tau=1$ and reused",
 ]
@@ -314,6 +309,10 @@ must_not = [
     "All twelve paired",
     "$0.27$\\,ms",
     "$1.4$\\,ms",
+    "$0.29$\\,ms",
+    "$1.3$\\,ms",
+    "median over the three high-noise columns",
+    "Seven of the twenty-eight",
     "every step of every run",
     "below $10^{-4}$",
     "held-out tuning seeds",

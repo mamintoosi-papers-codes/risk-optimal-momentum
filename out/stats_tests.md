@@ -2,40 +2,54 @@
 
 Positive difference favours SR-Adam in every row. Ties use tol = max(1e-9, 1e-6 * max|mean|).
 
-## dim_sweep (28 cells)
+## dim_sweep (42 cells)
 
 | cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
 |---|---|---|---|---|---|---|---|---|---|
 | quadratic_gaussian tau=1.0, p=10 | 0.02668 | 0.03327 | -0.006584 | 0.00761 | -0.866 | 0.435 | NA | 1 | loss |
-| quadratic_gaussian tau=1.0, p=20 | 0.07355 | 0.1016 | -0.02808 | 0.0114 | -2.463 | 0.0694 | NA | 0.846 | loss |
-| quadratic_gaussian tau=1.0, p=50 | 0.1632 | 0.2172 | -0.05395 | 0.0214 | -2.524 | 0.0651 | NA | 0.846 | loss |
+| quadratic_gaussian tau=1.0, p=20 | 0.07355 | 0.1016 | -0.02808 | 0.0114 | -2.463 | 0.0694 | NA | 1 | loss |
+| quadratic_gaussian tau=1.0, p=50 | 0.1632 | 0.2172 | -0.05395 | 0.0214 | -2.524 | 0.0651 | NA | 1 | loss |
 | quadratic_gaussian tau=1.0, p=100 | 0.3256 | 0.3442 | -0.01855 | 0.038 | -0.489 | 0.651 | NA | 1 | loss |
-| quadratic_gaussian tau=1.0, p=200 | 0.6361 | 0.7917 | -0.1556 | 0.0326 | -4.774 | 0.00881 | NA | 0.159 | loss |
-| quadratic_gaussian tau=1.0, p=400 | 1.288 | 1.524 | -0.2368 | 0.0355 | -6.678 | 0.00261 | NA | 0.0575 | loss |
-| quadratic_gaussian tau=1.0, p=500 | 1.557 | 1.774 | -0.2164 | 0.0441 | -4.906 | 0.00801 | NA | 0.152 | loss |
+| quadratic_gaussian tau=1.0, p=200 | 0.6361 | 0.7917 | -0.1556 | 0.0326 | -4.774 | 0.00881 | NA | 0.238 | loss |
+| quadratic_gaussian tau=1.0, p=400 | 1.288 | 1.524 | -0.2368 | 0.0355 | -6.678 | 0.00261 | NA | 0.081 | loss |
+| quadratic_gaussian tau=1.0, p=500 | 1.557 | 1.774 | -0.2164 | 0.0441 | -4.906 | 0.00801 | NA | 0.224 | loss |
+| quadratic_gaussian tau=4.0, p=10 | 0.1641 | 0.1801 | -0.01595 | 0.0373 | -0.428 | 0.691 | NA | 1 | loss |
+| quadratic_gaussian tau=4.0, p=20 | 0.4198 | 0.5018 | -0.08197 | 0.0658 | -1.246 | 0.281 | NA | 1 | loss |
+| quadratic_gaussian tau=4.0, p=50 | 1.114 | 1.257 | -0.1432 | 0.107 | -1.344 | 0.25 | NA | 1 | loss |
+| quadratic_gaussian tau=4.0, p=100 | 2.313 | 2.094 | +0.2187 | 0.238 | +0.921 | 0.409 | NA | 1 | win |
+| quadratic_gaussian tau=4.0, p=200 | 4.493 | 4.346 | +0.1471 | 0.364 | +0.405 | 0.706 | NA | 1 | win |
+| quadratic_gaussian tau=4.0, p=400 | 9.281 | 9.676 | -0.3951 | 0.321 | -1.231 | 0.286 | NA | 1 | loss |
+| quadratic_gaussian tau=4.0, p=500 | 11.11 | 10.73 | +0.3825 | 0.268 | +1.428 | 0.226 | NA | 1 | win |
 | quadratic_gaussian tau=0.1, p=10 | 0.001245 | 0.00114 | +0.0001049 | 0.000286 | +0.366 | 0.733 | NA | 1 | win |
-| quadratic_gaussian tau=0.1, p=20 | 0.004757 | 0.002478 | +0.002279 | 0.000995 | +2.290 | 0.0839 | NA | 0.922 | win |
+| quadratic_gaussian tau=0.1, p=20 | 0.004757 | 0.002478 | +0.002279 | 0.000995 | +2.290 | 0.0839 | NA | 1 | win |
 | quadratic_gaussian tau=0.1, p=50 | 0.009202 | 0.00834 | +0.0008625 | 0.00192 | +0.449 | 0.676 | NA | 1 | win |
-| quadratic_gaussian tau=0.1, p=100 | 0.01892 | 0.01389 | +0.005029 | 0.00226 | +2.221 | 0.0905 | NA | 0.922 | win |
+| quadratic_gaussian tau=0.1, p=100 | 0.01892 | 0.01389 | +0.005029 | 0.00226 | +2.221 | 0.0905 | NA | 1 | win |
 | quadratic_gaussian tau=0.1, p=200 | 0.03034 | 0.02974 | +0.0006034 | 0.00315 | +0.191 | 0.858 | NA | 1 | win |
-| quadratic_gaussian tau=0.1, p=400 | 0.06971 | 0.05781 | +0.01189 | 0.00288 | +4.128 | 0.0145 | NA | 0.232 | win |
+| quadratic_gaussian tau=0.1, p=400 | 0.06971 | 0.05781 | +0.01189 | 0.00288 | +4.128 | 0.0145 | NA | 0.363 | win |
 | quadratic_gaussian tau=0.1, p=500 | 0.08152 | 0.07417 | +0.007356 | 0.00399 | +1.843 | 0.139 | NA | 1 | win |
 | quadratic_student tau=1.0, p=10 | 0.01102 | 0.01198 | -0.0009605 | 0.00199 | -0.483 | 0.654 | NA | 1 | loss |
-| quadratic_student tau=1.0, p=20 | 0.027 | 0.03566 | -0.008651 | 0.00272 | -3.179 | 0.0336 | NA | 0.503 | loss |
+| quadratic_student tau=1.0, p=20 | 0.027 | 0.03566 | -0.008651 | 0.00272 | -3.179 | 0.0336 | NA | 0.805 | loss |
 | quadratic_student tau=1.0, p=50 | 0.06191 | 0.07454 | -0.01263 | 0.0146 | -0.862 | 0.437 | NA | 1 | loss |
 | quadratic_student tau=1.0, p=100 | 0.1181 | 0.1214 | -0.003255 | 0.0159 | -0.205 | 0.847 | NA | 1 | loss |
-| quadratic_student tau=1.0, p=200 | 0.2118 | 0.2741 | -0.06229 | 0.00753 | -8.273 | 0.00117 | NA | 0.0268 | loss |
-| quadratic_student tau=1.0, p=400 | 0.456 | 0.523 | -0.06701 | 0.0112 | -5.980 | 0.00393 | NA | 0.0786 | loss |
-| quadratic_student tau=1.0, p=500 | 0.5518 | 0.6269 | -0.07516 | 0.028 | -2.685 | 0.055 | NA | 0.769 | loss |
-| logistic_labelnoise flip=0.2, p=10 | 0.7093 | 0.7145 | -0.005128 | 0.00109 | -4.694 | 0.00935 | NA | 0.159 | loss |
-| logistic_labelnoise flip=0.2, p=20 | 0.7191 | 0.7326 | -0.01354 | 0.00141 | -9.577 | 0.000664 | NA | 0.0159 | loss |
-| logistic_labelnoise flip=0.2, p=50 | 0.7499 | 0.7725 | -0.0226 | 0.0037 | -6.104 | 0.00365 | NA | 0.0766 | loss |
-| logistic_labelnoise flip=0.2, p=100 | 0.8424 | 0.9048 | -0.06238 | 0.00566 | -11.022 | 0.000385 | NA | 0.00963 | loss |
-| logistic_labelnoise flip=0.2, p=200 | 1.032 | 1.176 | -0.1443 | 0.00647 | -22.294 | 2.4e-05 | NA | 0.000623 | loss |
-| logistic_labelnoise flip=0.2, p=400 | 1.758 | 2.33 | -0.5721 | 0.00952 | -60.117 | 4.59e-07 | NA | 1.28e-05 | loss |
-| logistic_labelnoise flip=0.2, p=500 | 2.317 | 3.236 | -0.9193 | 0.0258 | -35.593 | 3.72e-06 | NA | 0.0001 | loss |
+| quadratic_student tau=1.0, p=200 | 0.2118 | 0.2741 | -0.06229 | 0.00753 | -8.273 | 0.00117 | NA | 0.0373 | loss |
+| quadratic_student tau=1.0, p=400 | 0.456 | 0.523 | -0.06701 | 0.0112 | -5.980 | 0.00393 | NA | 0.114 | loss |
+| quadratic_student tau=1.0, p=500 | 0.5518 | 0.6269 | -0.07516 | 0.028 | -2.685 | 0.055 | NA | 1 | loss |
+| logistic_labelnoise flip=0.2, p=10 | 0.7093 | 0.7145 | -0.005128 | 0.00109 | -4.694 | 0.00935 | NA | 0.243 | loss |
+| logistic_labelnoise flip=0.2, p=20 | 0.7191 | 0.7326 | -0.01354 | 0.00141 | -9.577 | 0.000664 | NA | 0.0219 | loss |
+| logistic_labelnoise flip=0.2, p=50 | 0.7499 | 0.7725 | -0.0226 | 0.0037 | -6.104 | 0.00365 | NA | 0.109 | loss |
+| logistic_labelnoise flip=0.2, p=100 | 0.8424 | 0.9048 | -0.06238 | 0.00566 | -11.022 | 0.000385 | NA | 0.0135 | loss |
+| logistic_labelnoise flip=0.2, p=200 | 1.032 | 1.176 | -0.1443 | 0.00647 | -22.294 | 2.4e-05 | NA | 0.000887 | loss |
+| logistic_labelnoise flip=0.2, p=400 | 1.758 | 2.33 | -0.5721 | 0.00952 | -60.117 | 4.59e-07 | NA | 1.93e-05 | loss |
+| logistic_labelnoise flip=0.2, p=500 | 2.317 | 3.236 | -0.9193 | 0.0258 | -35.593 | 3.72e-06 | NA | 0.000145 | loss |
+| logistic_labelnoise flip=0.4, p=10 | 1.132 | 1.117 | +0.01458 | 0.0108 | +1.355 | 0.247 | NA | 1 | win |
+| logistic_labelnoise flip=0.4, p=20 | 1.168 | 1.155 | +0.01334 | 0.0148 | +0.900 | 0.419 | NA | 1 | win |
+| logistic_labelnoise flip=0.4, p=50 | 1.438 | 1.338 | +0.09999 | 0.00948 | +10.542 | 0.000458 | NA | 0.0156 | win |
+| logistic_labelnoise flip=0.4, p=100 | 2.035 | 1.798 | +0.2369 | 0.0182 | +12.991 | 0.000203 | NA | 0.00729 | win |
+| logistic_labelnoise flip=0.4, p=200 | 3.778 | 3.015 | +0.7637 | 0.016 | +47.718 | 1.15e-06 | NA | 4.73e-05 | win |
+| logistic_labelnoise flip=0.4, p=400 | 9.731 | 7.382 | +2.349 | 0.0606 | +38.792 | 2.64e-06 | NA | 0.000106 | win |
+| logistic_labelnoise flip=0.4, p=500 | 14.96 | 10.83 | +4.132 | 0.147 | +28.167 | 9.45e-06 | NA | 0.000359 | win |
 
-**win / tie / loss = 7 / 0 / 21** (fraction with wins-only denominator = 25.00%; ties excluded from wins).
+**win / tie / loss = 17 / 0 / 25** (fraction with wins-only denominator = 40.48%; ties excluded from wins).
 
 ## reg_linear (5 cells)
 
@@ -167,28 +181,24 @@ Cells the manuscript must NOT call distinguishable: B=8 (t=+2.70), B=32 (t=+1.89
 
 | population | cells | wins | ties | losses |
 |---|---|---|---|---|
-| all settings in path4_dim_sweep.json | 28 | 7 | 0 | 21 |
-| cells printed in tab:dim_sweep (3 columns x 6 p) | 21 | 0 | 0 | 21 |
+| all settings in path4_dim_sweep.json | 42 | 17 | 0 | 25 |
+| cells printed in tab:dim_sweep (6 columns x 7 p) | 42 | 17 | 0 | 25 |
 
 Rows NOT shown in the printed table:
 
-  - quadratic_gaussian tau=0.1 p=10 (W)
-  - quadratic_gaussian tau=0.1 p=20 (W)
-  - quadratic_gaussian tau=0.1 p=50 (W)
-  - quadratic_gaussian tau=0.1 p=100 (W)
-  - quadratic_gaussian tau=0.1 p=200 (W)
-  - quadratic_gaussian tau=0.1 p=400 (W)
-  - quadratic_gaussian tau=0.1 p=500 (W)
 
 Per-p gaps with the p-normalised gap (diagnostic a8):
 
 | p | median gap | gap / p |
 |---|---|---|
-| 10 | -0.005 | -0.00051 |
-| 20 | -0.014 | -0.00068 |
-| 50 | -0.023 | -0.00045 |
-| 100 | -0.019 | -0.00019 |
-| 200 | -0.144 | -0.00072 |
-| 400 | -0.237 | -0.00059 |
-| 500 | -0.216 | -0.00043 |
+| 10 | -0.001 | -0.00010 |
+| 20 | -0.009 | -0.00043 |
+| 50 | -0.013 | -0.00025 |
+| 100 | +0.005 | +0.00005 |
+| 200 | +0.001 | +0.00000 |
+| 400 | -0.067 | -0.00017 |
+| 500 | +0.007 | +0.00001 |
 
+
+wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\stats_tests.md
+wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\stats_tests.json

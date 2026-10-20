@@ -16,7 +16,7 @@ the bar shows wins / total and the annotation prints "W/T/L".
 
 Populations (same five families as the manuscript caption):
 
-  dim. sweep         out/path4_dim_sweep.json          rows = 4 grids x 6 p = 24
+  dim. sweep         out/path4_dim_sweep.json          rows = 6 grids x 7 p = 42
   real linear reg    out/paper_tables.json regression  model == "linear"
   label/target noise out/noise_sweep.json              all rows (19)
   graphs (GCN)       out/gnn_pilot_*.json              all rows (7)
@@ -158,8 +158,13 @@ def winrate_fig(summary, write_pdf=True):
     fig, ax = plt.subplots(figsize=(6.8, 2.8))
     ys = np.arange(len(summary))
     fracs = [r["wins"] / r["total"] for r in summary]
-    colors = ["#2a9d8f" if r["wins"] >= r["total"] - r["losses"] else "#e76f51"
-              for r in summary]
+    # Green when SR-Adam wins at least half of the settings (the rule the
+    # pre-diagnostic figure used).  The old condition
+    #     wins >= total - losses     (equivalently: ties == 0)
+    # painted the Graphs bar red merely because PubMed tied once, while the
+    # dimension sweep (7 wins, 21 losses) stayed green — the opposite of
+    # what the bar length says.
+    colors = ["#2a9d8f" if f >= 0.5 else "#e76f51" for f in fracs]
     ax.barh(ys, fracs, color=colors)
     ax.axvline(0.5, color="k", ls="--", lw=0.8)
     ax.set_yticks(ys)

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 
 import numpy as np
 import matplotlib
@@ -18,6 +19,7 @@ import matplotlib.pyplot as plt
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIGS = os.path.join(HERE, "..", "figs")
 OUT = os.path.join(HERE, "..", "out")
+PAPER = os.path.join(HERE, "..", "paper")
 
 plt.rcParams.update({
     "font.size": 9, "axes.labelsize": 9, "axes.titlesize": 9, "legend.fontsize": 7.5,
@@ -180,4 +182,14 @@ if __name__ == "__main__":
     fig_effdim(load("simulation_results3.json"))
     fig_batch(load("simulation_batch.json"))
     fig_noise(load("simulation_noise.json"))
-    print("figures regenerated in", os.path.normpath(FIGS))
+    # LaTeX includes the figures from ../paper, so mirror every freshly
+    # written PDF there too (otherwise the manuscript keeps embedding a
+    # stale copy, which is exactly how paper/sim_noise_levels.pdf ended up
+    # one revision behind out/simulation_noise.json).
+    for name in ("sim_risk_snr", "sim_variance_bias", "sim_effective_dimension",
+                 "sim_heavy_tails", "sim_batch_size", "sim_noise_levels"):
+        src = os.path.join(FIGS, name + ".pdf")
+        if os.path.exists(src):
+            shutil.copy2(src, os.path.join(PAPER, name + ".pdf"))
+    print("figures regenerated in", os.path.normpath(FIGS),
+          "and mirrored to", os.path.normpath(PAPER))

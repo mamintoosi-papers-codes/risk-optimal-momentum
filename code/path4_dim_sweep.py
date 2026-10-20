@@ -31,6 +31,7 @@ if hasattr(sys.stderr, "reconfigure") and not sys.stderr.isatty():
 import argparse
 import json
 import math
+import shutil
 import time
 from pathlib import Path
 
@@ -49,7 +50,8 @@ HERE = Path(__file__).resolve().parent
 FIGS = HERE.parent / "figs"
 OUT = HERE.parent / "out"
 REPORT_DIR = HERE.parent / "reports" / "REPORT_for_Arashi"
-for p in (FIGS, OUT, REPORT_DIR):
+PAPER = HERE.parent / "paper"
+for p in (FIGS, OUT, REPORT_DIR, PAPER):
     p.mkdir(parents=True, exist_ok=True)
 
 OPTS = ["adamw", "amsgrad", "sradam"]
@@ -265,6 +267,10 @@ def main():
                     help="noise scale of the main quadratic grid (item a8)")
     ap.add_argument("--flip", type=float, default=0.2,
                     help="label-flip rate of the logistic grid (item a8)")
+    ap.add_argument("--tau-vhi", type=float, default=4.0,
+                    help="extra heavy-noise quadratic level (strength column)")
+    ap.add_argument("--flip-hi", type=float, default=0.4,
+                    help="extra heavy label-flip level (strength column)")
     add_tuning_args(ap)
     args = ap.parse_args()
     if args.smoke:
@@ -282,9 +288,10 @@ def main():
     if args.ps:
         ps = [int(x) for x in str(args.ps).split(",")]
     tau_hi, tau_lo, flip = args.tau, 0.1 * args.tau, args.flip
+    tau_vhi, flip_hi = args.tau_vhi, args.flip_hi
 
     # ---- Phase C tuning, fair baselines (item a7) ----------------------
-    cfgs_q, cfgs_l = {}, {}
+    cfgs_q, cfgs_l, cfgs_q_vhi, cfgs_l_hi = {}, {}, {}, {}
     if args.tune:
         QUAD_GRID = {"adamw": [5e-3, 1e-2, 2e-2, 5e-2],
                      "amsgrad": [5e-3, 1e-2, 2e-2, 5e-2],
@@ -303,6 +310,16 @@ def main():
             args, OPTS,
             lambda cfg, seed: pilot_log(cfg, seed, p_tune, flip, ts),
             f"path4_log_f{flip}", default_grids=LG_GRID)
+        # heavy-noise columns are tuned at their own noise level (per-level
+        # tuning, as the diagnostic's "step-size grid per noise level" asks)
+        _, cfgs_q_vhi = run_tuning(
+            args, OPTS,
+            lambda cfg, seed: pilot_quad(cfg, seed, p_tune, tau_vhi, ts),
+            f"path4_quad_t{tau_vhi}", default_grids=QUAD_GRID)
+        _, cfgs_l_hi = run_tuning(
+            args, OPTS,
+            lambda cfg, seed: pilot_log(cfg, seed, p_tune, flip_hi, ts),
+            f"path4_log_f{flip_hi}", default_grids=LG_GRID)
 
     rows = []
     t0 = time.time()
@@ -316,6 +333,14 @@ def main():
         print(f"  p={p:4d}  AdamW={r['adamw']:.4f}  SR={r['sradam']:.4f}  "
               f"Δ={r['paired_diff']:+.4f} (t={r['t_stat']:+.2f})  win={r['win_sradam']}  "
               f"k̄={r['mean_k']}", flush=True)
+
+    print(f"=== quadratic gaussian, tau={tau_vhi} (heavy noise) ===", flush=True)
+    for p in ps:
+        r = run_quadratic(p, tau_vhi, "gaussian", steps, seeds, cfgs=cfgs_q_vhi,
+                          timing=args.timing, gate=args.gate_log)
+        rows.append(r)
+        print(f"  p={p:4d}  AdamW={r['adamw']:.4f}  SR={r['sradam']:.4f}  "
+              f"Δ={r['paired_diff']:+.4f}  win={r['win_sradam']}", flush=True)
 
     print(f"=== quadratic gaussian, tau={tau_lo} (more signal) ===", flush=True)
     for p in ps:
@@ -342,13 +367,25 @@ def main():
         print(f"  p={p:4d}  AdamW={r['adamw']:.4f}  SR={r['sradam']:.4f}  "
               f"Δ={r['paired_diff']:+.4f}  win={r['win_sradam']}", flush=True)
 
+    print(f"=== logistic label flip={flip_hi} (heavy label noise) ===", flush=True)
+    for p in ps:
+        r = run_logistic(p, flip_hi, steps, seeds, cfgs=cfgs_l_hi,
+                         timing=args.timing, gate=args.gate_log,
+                         patience=args.early_stop)
+        rows.append(r)
+        print(f"  p={p:4d}  AdamW={r['adamw']:.4f}  SR={r['sradam']:.4f}  "
+              f"Δ={r['paired_diff']:+.4f}  win={r['win_sradam']}", flush=True)
+
     payload = dict(
         meta=dict(created=time.strftime("%Y-%m-%d %H:%M:%S"),
                   seconds=time.time() - t0, smoke=args.smoke,
                   ps=ps, seeds=list(seeds), steps=steps,
                   tau_hi=tau_hi, tau_lo=tau_lo, flip=flip,
+                  tau_vhi=tau_vhi, flip_hi=flip_hi,
                   tuned_quadratic=(cfgs_q or None),
                   tuned_logistic=(cfgs_l or None),
+                  tuned_quadratic_vhi=(cfgs_q_vhi or None),
+                  tuned_logistic_hi=(cfgs_l_hi or None),
                   timing=args.timing, gate_log=args.gate_log,
                   early_stop=args.early_stop,
                   note="positive paired_diff = SR-Adam better (lower loss)"),
@@ -358,15 +395,19 @@ def main():
     (REPORT_DIR / "path4_dim_sweep.json").write_text(json.dumps(payload, indent=2))
 
     # figure: Δ vs p for each problem/noise
-    fig, axes = plt.subplots(2, 2, figsize=(7.2, 5.0), sharex=True)
+    fig, axes = plt.subplots(2, 3, figsize=(9.8, 5.0), sharex=True)
     axl = [
-        ("quadratic_gaussian", tau_hi, f"Quadratic Gaussian τ={tau_hi:g}",
+        ("quadratic_gaussian", tau_vhi, f"Quadratic Gaussian τ={tau_vhi:g}",
          axes[0, 0]),
-        ("quadratic_gaussian", tau_lo, f"Quadratic Gaussian τ={tau_lo:g}",
+        ("quadratic_gaussian", tau_hi, f"Quadratic Gaussian τ={tau_hi:g}",
          axes[0, 1]),
+        ("quadratic_gaussian", tau_lo, f"Quadratic Gaussian τ={tau_lo:g}",
+         axes[0, 2]),
         ("quadratic_student", tau_hi, f"Quadratic Student-t τ={tau_hi:g}",
          axes[1, 0]),
-        ("logistic_labelnoise", flip, f"Logistic flip={flip:g}", axes[1, 1]),
+        ("logistic_labelnoise", flip_hi, f"Logistic flip={flip_hi:g}",
+         axes[1, 1]),
+        ("logistic_labelnoise", flip, f"Logistic flip={flip:g}", axes[1, 2]),
     ]
     for problem, noise, title, ax in axl:
         series = []
@@ -392,6 +433,14 @@ def main():
             fig.savefig(dest)
         except PermissionError:
             pass
+    # LaTeX includes from paper/ — byte-copy the rendered file so that the
+    # E2b freshness check (fc /b) can pass; a second savefig would embed a
+    # different creation timestamp and never match.
+    try:
+        shutil.copyfile(FIGS / "path4_dim_sweep.pdf",
+                        PAPER / "path4_dim_sweep.pdf")
+    except (PermissionError, FileNotFoundError):
+        pass
     plt.close(fig)
 
     wins = sum(1 for r in rows if r["win_sradam"])
