@@ -55,9 +55,11 @@ echo   OK - no \torerun{...} placeholder in the body
 echo [E2b] figure freshness - figs\*.pdf vs paper\*.pdf
 rem LaTeX \includegraphics resolves relative to paper\, so a figure that the
 rem drivers regenerate into figs\ but is never mirrored keeps the old drawing
-rem in the manuscript.  This happened to sim_noise_levels.pdf and
-rem path4_dim_sweep.pdf after the 18 Oct tuned re-run.
-for %%F in (sim_risk_snr sim_variance_bias sim_effective_dimension sim_heavy_tails sim_noise_levels sim_batch_size path4_dim_sweep) do (
+rem in the manuscript.  This happened to sim_noise_levels.pdf after the
+rem 18 Oct tuned re-run; path4_dim_sweep.pdf left this list on 21 Oct when
+rem the figure was dropped from the manuscript (both step-size protocols
+rem are printed as tables in section 9.3.2).
+for %%F in (sim_risk_snr sim_variance_bias sim_effective_dimension sim_heavy_tails sim_noise_levels sim_batch_size) do (
     if exist "figs\%%F.pdf" if exist "paper\%%F.pdf" (
         fc /b "figs\%%F.pdf" "paper\%%F.pdf" >nul 2>&1
         if errorlevel 1 (

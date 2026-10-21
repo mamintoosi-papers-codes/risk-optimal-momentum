@@ -58,7 +58,7 @@ echo [4] simulation_batch.py  (Table tab:batch)
 "%PY%" simulation_batch.py
 if errorlevel 1 goto fail
 
-echo [5] path4_dim_sweep.py  (tab:dim_sweep + fig; unified config = item a8)
+echo [5] path4_dim_sweep.py  (tab:dim_sweep table; unified config = item a8)
 "%PY%" -u path4_dim_sweep.py %P4% --tune --timing
 if errorlevel 1 goto fail
 

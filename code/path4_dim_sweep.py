@@ -31,7 +31,6 @@ if hasattr(sys.stderr, "reconfigure") and not sys.stderr.isatty():
 import argparse
 import json
 import math
-import shutil
 import time
 from pathlib import Path
 
@@ -50,8 +49,7 @@ HERE = Path(__file__).resolve().parent
 FIGS = HERE.parent / "figs"
 OUT = HERE.parent / "out"
 REPORT_DIR = HERE.parent / "reports" / "REPORT_for_Arashi"
-PAPER = HERE.parent / "paper"
-for p in (FIGS, OUT, REPORT_DIR, PAPER):
+for p in (FIGS, OUT, REPORT_DIR):
     p.mkdir(parents=True, exist_ok=True)
 
 OPTS = ["adamw", "amsgrad", "sradam"]
@@ -404,7 +402,7 @@ def main():
 
     # figure: Δ vs p for each problem/noise
     if args.common_lr:
-        print("[common-lr] figure skipped (the manuscript figure shows the tuned arm)",
+        print("[common-lr] figure skipped (this arm writes no figure)",
               flush=True)
         wins = sum(1 for r in rows if r["win_sradam"])
         print(f"\n{wins}/{len(rows)} settings: SR-Adam better", flush=True)
@@ -448,14 +446,9 @@ def main():
             fig.savefig(dest)
         except PermissionError:
             pass
-    # LaTeX includes from paper/ — byte-copy the rendered file so that the
-    # E2b freshness check (fc /b) can pass; a second savefig would embed a
-    # different creation timestamp and never match.
-    try:
-        shutil.copyfile(FIGS / "path4_dim_sweep.pdf",
-                        PAPER / "path4_dim_sweep.pdf")
-    except (PermissionError, FileNotFoundError):
-        pass
+    # The manuscript no longer includes this figure (removed 21 Oct: both
+    # step-size protocols are printed as tables in section 9.3.2), so only
+    # the figs/ and reports/ copies are written; paper/ gets no copy.
     plt.close(fig)
 
     wins = sum(1 for r in rows if r["win_sradam"])

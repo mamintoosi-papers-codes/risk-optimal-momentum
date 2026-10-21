@@ -233,3 +233,50 @@ Update this file after each completed step. Mark results with PASS/FAIL and exac
   hardcoded "Fig. 7 / Table 7 / Fig. 9" mentions replaced by labels.
 - Verified: phaseE full PHASE E OK — 42 pages, 0 overfull, 0 undefined refs;
   verify_manuscript_numbers / verify_fresh_outputs / verify_tables2 all exit 0.
+
+## 21 Oct (second pass) — حذف `fig:dim_sweep` + ترتیبِ تازهٔ جدول‌های ablation (تصمیم کاربر)
+
+1. **حذف شکل (Fig. 8):** `fig:dim_sweep` از `paper/sn-article.tex` حذف شد — جملهٔ
+   `Figure \ref{fig:dim_sweep} shows the same picture...` از پاراگرافِ تیون‌شده، خودِ float،
+   و خطِ کامنتِ provenance در سربرگِ §9. دلیل: هر دو پروتکل حالا جدول‌اند و زیربخشِ
+   §9.3.2 ذاتاً یک ablation است. grep تأیید کرد هیچ ارجاعی به `fig:dim_sweep` یا
+   `includegraphics{path4_dim_sweep.pdf}` در tex باقی نمانده.
+2. **ترتیبِ جدول‌ها:** `tab:dim_sweep_common` (پروتکلِ مشترک، ۳۸/۴۲) حالا **Table 10** و
+   `tab:dim_sweep` (تیون‌شده، ۱۷/۴۲) **Table 11** — تأیید با `sn-article.aux`
+   (`tab:noise`=9, `fig:regime_win`=8, `fig:dim_sweep` غایب). ترتیبِ متن:
+   پیکربندیِ مسئله + بازوی مشترک → جدولِ مشترک → تحلیلِ تیون‌شده (۱۷/۴۲، ستونِ سنگین،
+   tab:opt_noise، باندِ میانی) → جدولِ تیون‌شده → آشتیِ ۲۱ سلولی. جملهٔ پایانی اصلاح شد:
+   «`tab:dim_sweep` is therefore the **fair comparison and the headline** of this subsection».
+3. **پاکسازی:**
+   - `rm paper/path4_dim_sweep.pdf` (کپیِ جانبی از مقاله حذف شد).
+   - `code/path4_dim_sweep.py`: حذف `import shutil`، حذف `PAPER` از مسیرها، حذفِ بلوکِ
+     `shutil.copyfile(...PAPER...)` — هنوز `figs/` و `reports/` را می‌نویسد؛ پیامِ
+     `--common-lr` شد «this arm writes no figure». `py_compile` سبز (exit 0).
+   - `scripts/phaseE.bat`: `path4_dim_sweep` از لیستِ E2b حذف شد (کامنتِ E2b هم
+     توضیح داد که چرا خارج شد؛ شش `sim_*.pdf` همچنان بررسی می‌شوند).
+   - `scripts/phaseD.bat`: echo مرحلهٔ [5] بدون «+ fig».
+4. **راستی‌آزمایی (exit status مستقیم، نه از دلِ pipeline):**
+   - `cmd /c scripts\phaseE.bat full` → **PHASE E OK** (E1/E2/E2b همه OK)؛
+     PDF **۴۱ صفحه** (قبلاً ۴۲ — حذفِ شکل یک صفحه آزاد کرد)، **۰ Overfull**،
+     **۰ undefined reference**.
+   - `verify_manuscript_numbers.py` → `ALL CHECKS PASS`، **exit 0**.
+   - `verify_fresh_outputs.py` → `ALL FRESH-OUTPUT CHECKS PASS`، **exit 0** (هر دو
+     تیتر و بخش ۵ — یافتنِ جدول‌ها با `\label` است، پس جابه‌جاییِ ترتیب بی‌اثر است).
+   - `verify_tables2.py` بعد از ویرایشِ گزارش → `ALL REPORT CHECKS PASS`، **exit 0**.
+5. **گزارش:** بند **۱۴** (figure reduction + table order) و تصمیم **D10** اضافه شد؛
+   بندِ ۱۰(a) به فهرستِ E2b توضیحِ «فقط شش sim» افزوده شد؛ بندهای ۱۳ (پرانتزِ شکل و
+   شماره‌گیریِ floatها با ارجاع به بند ۱۴) و خلاصهٔ فارسی (بندِ ۳) و دستورِ repro
+   («that arm writes no figure») اصلاح شدند.
+6. هیچ commit جدیدی نزده‌ام؛ کارگاه چند فایلِ تغییریافته دارد (tex، PDF، path4، phaseD/E،
+   گزارش، PROGRESS_NOTES).
+
+7. **کپشنِ دو جدول (درخواست کاربر، بعد از جابه‌جایی):** کپشنِ Table 10
+   (`tab:dim_sweep_common`) حالا مشخصِ کاملِ sweep را خودش می‌گوید (p، سه نویزِ گاوسی،
+   Student-t، flipها، seed/stepهای مشترک) و دیگر نمی‌گوید «the same sweep as Table 11»؛
+   کپشنِ Table 11 (`tab:dim_sweep`) شد «The same sweep as Table 10 … با lrهای tuneشده».
+   **هایلایتِ خانه‌های برنده بررسی و رد شد** (تأیید کاربر برای حالتِ فعلی): علامتِ ± خودش
+   جهت را می‌گوید، شمارش‌ها در کپشن است، و در جدولِ ۱۰ باید ۳۸ خانه از ۴۲ تا هایلایت
+   می‌شد ( تصویرِ پُرnoise )؛ fig:regime_win هم تصویرِ برد را دارد.
+   بازسازی بعد از کپشن‌ها: **PHASE E OK، ۴۱ صفحه، ۰ Overfull، ۰ undefined**،
+   شماره‌ها unchanged (common=10, tuned=11)؛ `verify_manuscript_numbers`=0،
+   `verify_fresh_outputs`=0، `verify_tables2`=0 (همه با exit status مستقیم).

@@ -780,7 +780,6 @@ Every constant asserted in Sections \ref{sec:risk} to \ref{sec:convergence} was 
 %%   tab:dim_sweep             : code/path4_dim_sweep.py -> out/path4_dim_sweep.json
 %%   tab:dim_sweep_common      : code/path4_dim_sweep.py --common-lr
 %%                               -> out/path4_dim_sweep_common.json (protocol ablation)
-%%   fig:dim_sweep             : code/path4_dim_sweep.py -> figs/path4_dim_sweep.pdf
 %%   tab:reg (tab_regression)  : code/paper_tables.py -> paper/tab_regression.tex
 %%                               (datasets: diabetes, california_housing, wine_quality,
 %%                                linnerud, protein, blogfeedback; linear + MLP)
@@ -862,14 +861,36 @@ Table \ref{tab:noise} and Figure \ref{fig:noise_sweep} isolate the effect of cor
 \subsubsection{Dimension and controlled noise}
 %% code: path4_dim_sweep.py  (also phase_diagram.py for the wider grid)
 
-The controlled family isolates the high-dimensional claim of Sections \ref{sec:risk} and \ref{sec:convergence}. On a quadratic with diagonal curvature and additive gradient noise at scale $\tau$, and on multinomial logistic regression with a controlled label-flip rate, the block dimension $p$ runs over $\{10,20,50,100,200,400,500\}$. Table \ref{tab:dim_sweep} reports the paired gap on the terminal objective, AdamW minus SR-Adam, at $\tau\in\{0.1,1,4\}$, under Student-$t$ noise at $\tau=1$, and at label-flip rates $0.2$ and $0.4$.
+The controlled family isolates the high-dimensional claim of Sections \ref{sec:risk} and \ref{sec:convergence}. On a quadratic with diagonal curvature and additive gradient noise at scale $\tau$, and on multinomial logistic regression with a controlled label-flip rate, the block dimension $p$ runs over $\{10,20,50,100,200,400,500\}$. The paired gap on the terminal objective, AdamW minus SR-Adam, is recorded at $\tau\in\{0.1,1,4\}$, under Student-$t$ noise at $\tau=1$, and at label-flip rates $0.2$ and $0.4$. The step-size protocol itself is an ablation factor of this subsection, so the sweep is reported under both protocols, the shared-default one first: the step size the first version of this manuscript used --- $0.02$ on the quadratic problems and $0.03$ on the logistic problem for every optimiser, nothing tuned --- on identical seeds, step count and problem grid. Table \ref{tab:dim_sweep_common} reports that arm. The gap grows with $p$ on every column: the quadratic at $\tau=1$ runs from $+0.010$ at $p=10$ to $+0.621$ at $p=500$, Student-$t$ from $+0.006$ to $+0.400$, and the logistic problem at flip rate $0.2$ from $+0.000$ to $+1.452$, and $38$ of the $42$ settings favour SR-Adam --- the claim made by the earlier draft.
 
-With the step sizes tuned per optimiser, the sign of the gap is set by the noise level and not by the dimension --- exactly the regime statement of the risk analysis. SR-Adam wins at every $p$ at $\tau=0.1$ and at flip rate $0.4$, and at $\tau=4$ the gap turns positive at $p\in\{100,200,500\}$; a tuned AdamW is ahead only in the intermediate band ($\tau=1$, Student-$t$ at $\tau=1$, flip rate $0.2$). Seventeen of the forty-two settings favour SR-Adam, and every one of them sits at an end of the noise axis. The heavy label-noise column is the strongest evidence in the table: the paired gap grows with $p$ from $+0.015$ at $p=10$ to $+4.13$ at $p=500$ --- per coordinate from $7\times10^{-4}$ at $p=20$ to $8\times10^{-3}$ at $p=500$, an order of magnitude --- with $|t|$ between $10.5$ and $47.7$ at every $p\geq 50$. This is the corruption-dominated regime in which the risk-optimal weight departs furthest from any fixed momentum weight, and there the advantage does grow with the block dimension. The sign at this flip rate does not contradict Table \ref{tab:opt_noise}, where a tuned AdamW is a few per cent ahead at flip rates $0.3$ and $0.4$: that study trains on $N=20\,000$ points for $2000$ steps while this sweep trains on $N=4000$ for $800$, so per coordinate the sweep is the far more estimation-limited problem --- the two results place the crossover on the same axis, the variance of the gradient estimate per coordinate, rather than on the flip rate alone. At $\tau=0.1$ the per-coordinate gap stays flat ($3\times10^{-6}$ to $1.2\times10^{-4}$), so the growing component appears only once the noise clearly corrupts the signal. Figure \ref{fig:dim_sweep} shows the same picture for every noise family.
+%% Table tab:dim_sweep_common: code/path4_dim_sweep.py --common-lr -> out/path4_dim_sweep_common.json
+\begin{table}[t]
+\centering
+\caption{Ablation of the step-size protocol: the dimension sweep at the shared default step size that the first version of this manuscript used --- $0.02$ on the quadratic problems and $0.03$ on the logistic problem for every optimiser, nothing tuned. Paired gap on the terminal loss, AdamW minus SR-Adam, for $p\in\{10,20,50,100,200,400,500\}$: quadratic with Gaussian gradient noise at $\tau\in\{0.1,1,4\}$, quadratic with Student-$t$ noise at $\tau=1$, and logistic label noise at flip rates $0.2$ and $0.4$; identical seeds, steps and problem grid in both protocols. Positive values favour SR-Adam; $38$ of the $42$ settings do, the four exceptions being the $\tau=4$ column at $p\in\{10,20,50,400\}$, none of them significant ($|t|\leq 1.34$).}
+\label{tab:dim_sweep_common}
+\footnotesize\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{ccccccc}
+\toprule
+$p$ & \multicolumn{3}{c}{quadratic (Gaussian)} & Student-$t$ & \multicolumn{2}{c}{logistic} \\
+ & $\tau{=}0.1$ & $\tau{=}1$ & $\tau{=}4$ & $\tau{=}1$ & flip $0.2$ & flip $0.4$ \\
+\midrule
+10  & $+0.002$ & $+0.010$ & $-0.016$ & $+0.006$ & $+0.000$ & $+0.002$ \\
+20  & $+0.006$ & $+0.019$ & $-0.082$ & $+0.009$ & $+0.005$ & $+0.001$ \\
+50  & $+0.013$ & $+0.037$ & $-0.143$ & $+0.038$ & $+0.020$ & $+0.018$ \\
+100 & $+0.027$ & $+0.140$ & $+0.219$ & $+0.099$ & $+0.064$ & $+0.059$ \\
+200 & $+0.040$ & $+0.179$ & $+0.147$ & $+0.116$ & $+0.193$ & $+0.154$ \\
+400 & $+0.095$ & $+0.521$ & $-0.395$ & $+0.339$ & $+0.838$ & $+0.588$ \\
+500 & $+0.111$ & $+0.621$ & $+0.383$ & $+0.400$ & $+1.452$ & $+1.049$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table \ref{tab:dim_sweep} repeats the sweep with the step sizes tuned per optimiser (the quadratic grid chosen at $\tau=1$ and reused at $\tau=0.1$ and under Student-$t$ noise, the logistic grid at flip rate $0.2$; the $\tau=4$ and flip-rate-$0.4$ columns are tuned at their own noise level). Under that protocol the sign of the gap is set by the noise level and not by the dimension --- exactly the regime statement of the risk analysis. SR-Adam wins at every $p$ at $\tau=0.1$ and at flip rate $0.4$, and at $\tau=4$ the gap turns positive at $p\in\{100,200,500\}$; a tuned AdamW is ahead only in the intermediate band ($\tau=1$, Student-$t$ at $\tau=1$, flip rate $0.2$). Seventeen of the forty-two settings favour SR-Adam, and every one of them sits at an end of the noise axis. The heavy label-noise column is the strongest evidence in the table: the paired gap grows with $p$ from $+0.015$ at $p=10$ to $+4.13$ at $p=500$ --- per coordinate from $7\times10^{-4}$ at $p=20$ to $8\times10^{-3}$ at $p=500$, an order of magnitude --- with $|t|$ between $10.5$ and $47.7$ at every $p\geq 50$. This is the corruption-dominated regime in which the risk-optimal weight departs furthest from any fixed momentum weight, and there the advantage does grow with the block dimension. The sign at this flip rate does not contradict Table \ref{tab:opt_noise}, where a tuned AdamW is a few per cent ahead at flip rates $0.3$ and $0.4$: that study trains on $N=20\,000$ points for $2000$ steps while this sweep trains on $N=4000$ for $800$, so per coordinate the sweep is the far more estimation-limited problem --- the two results place the crossover on the same axis, the variance of the gradient estimate per coordinate, rather than on the flip rate alone. At $\tau=0.1$ the per-coordinate gap stays flat ($3\times10^{-6}$ to $1.2\times10^{-4}$), so the growing component appears only once the noise clearly corrupts the signal.
 
 %% Table tab:dim_sweep: code/path4_dim_sweep.py -> out/path4_dim_sweep.json
 \begin{table}[t]
 \centering
-\caption{Paired gap on the terminal loss, AdamW minus SR-Adam, under Gaussian gradient noise at three noise scales, under Student-$t$ gradient noise ($\tau=1$), and under logistic label noise at flip rates $0.2$ and $0.4$. Positive values favour SR-Adam. Step sizes are tuned per optimiser: the quadratic grid is chosen at $\tau=1$ and reused at $\tau=0.1$ and under Student-$t$ noise, and the logistic grid at flip rate $0.2$, while the $\tau=4$ and flip-rate-$0.4$ columns are tuned at their own noise level.}
+\caption{The same sweep as Table \ref{tab:dim_sweep_common} --- same problems, noise levels, $p$ grid, seeds, steps and problem grid --- with the step sizes tuned per optimiser: the quadratic grid is chosen at $\tau=1$ and reused at $\tau=0.1$ and under Student-$t$ noise, and the logistic grid at flip rate $0.2$, while the $\tau=4$ and flip-rate-$0.4$ columns are tuned at their own noise level. Paired gap on the terminal loss, AdamW minus SR-Adam; positive values favour SR-Adam.}
 \label{tab:dim_sweep}
 \footnotesize\setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{ccccccc}
@@ -888,37 +909,7 @@ $p$ & \multicolumn{3}{c}{quadratic (Gaussian)} & Student-$t$ & \multicolumn{2}{c
 \end{tabular}
 \end{table}
 
-%% Figure fig:dim_sweep: code/path4_dim_sweep.py -> figs/path4_dim_sweep.pdf
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.98\textwidth]{path4_dim_sweep.pdf}
-\caption{AdamW minus SR-Adam on the terminal loss against block dimension $p$, at per-optimiser tuned step sizes. Positive values favour SR-Adam; the sign of the gap is set by the noise level, not by $p$.}
-\label{fig:dim_sweep}
-\end{figure}
-
-The comparison itself is an ablation factor, so Table \ref{tab:dim_sweep_common} repeats the sweep with the shared default step size that the first version of this manuscript used --- $0.02$ on the quadratic problems and $0.03$ on the logistic problem for every optimiser --- on the identical seeds, step count and problem grid. Under that protocol the gap grows with $p$ on every column: the quadratic at $\tau=1$ runs from $+0.010$ at $p=10$ to $+0.621$ at $p=500$, Student-$t$ from $+0.006$ to $+0.400$, and the logistic problem at flip rate $0.2$ from $+0.000$ to $+1.452$, and $38$ of the $42$ settings favour SR-Adam --- the claim made by the earlier draft. The two tables differ in exactly twenty-one cells, and those cells are precisely the intermediate band ($\tau=1$, Student-$t$ at $\tau=1$, flip rate $0.2$). The mechanism is visible in the chosen values: halving the step size there takes AdamW from $0.02$ to $0.01$ on the quadratic and from $0.03$ to $0.01$ on the logistic problem, while SR-Adam keeps the value the shared default already gave it ($0.02$ and $0.03$) --- the common step size of the earlier draft was in effect SR-Adam's own tuned step size. Both ends of the noise axis give the same outcome under the two protocols (all seven cells at $\tau=0.1$, all seven at flip rate $0.4$, and the same three cells at $\tau=4$), so the regime structure is a property of the problem and not of the comparison, while the size of the deficit at intermediate noise is a property of the baseline. Table \ref{tab:dim_sweep} is therefore the headline and Table \ref{tab:dim_sweep_common} the ablation of the comparison itself.
-
-%% Table tab:dim_sweep_common: code/path4_dim_sweep.py --common-lr -> out/path4_dim_sweep_common.json
-\begin{table}[t]
-\centering
-\caption{Ablation of the step-size protocol: the same sweep as Table \ref{tab:dim_sweep} with the shared default step size for every optimiser ($0.02$ quadratic, $0.03$ logistic, nothing tuned), identical seeds, steps and problem grid. Positive values favour SR-Adam; $38$ of the $42$ settings do, the four exceptions being the $\tau=4$ column at $p\in\{10,20,50,400\}$, none of them significant ($|t|\leq 1.34$).}
-\label{tab:dim_sweep_common}
-\footnotesize\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{ccccccc}
-\toprule
-$p$ & \multicolumn{3}{c}{quadratic (Gaussian)} & Student-$t$ & \multicolumn{2}{c}{logistic} \\
- & $\tau{=}0.1$ & $\tau{=}1$ & $\tau{=}4$ & $\tau{=}1$ & flip $0.2$ & flip $0.4$ \\
-\midrule
-10  & $+0.002$ & $+0.010$ & $-0.016$ & $+0.006$ & $+0.000$ & $+0.002$ \\
-20  & $+0.006$ & $+0.019$ & $-0.082$ & $+0.009$ & $+0.005$ & $+0.001$ \\
-50  & $+0.013$ & $+0.037$ & $-0.143$ & $+0.038$ & $+0.020$ & $+0.018$ \\
-100 & $+0.027$ & $+0.140$ & $+0.219$ & $+0.099$ & $+0.064$ & $+0.059$ \\
-200 & $+0.040$ & $+0.179$ & $+0.147$ & $+0.116$ & $+0.193$ & $+0.154$ \\
-400 & $+0.095$ & $+0.521$ & $-0.395$ & $+0.339$ & $+0.838$ & $+0.588$ \\
-500 & $+0.111$ & $+0.621$ & $+0.383$ & $+0.400$ & $+1.452$ & $+1.049$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+The two protocols differ in exactly twenty-one cells, and those cells are precisely the intermediate band ($\tau=1$, Student-$t$ at $\tau=1$, flip rate $0.2$). The mechanism is visible in the chosen values: halving the step size there takes AdamW from $0.02$ to $0.01$ on the quadratic and from $0.03$ to $0.01$ on the logistic problem, while SR-Adam keeps the value the shared default already gave it ($0.02$ and $0.03$) --- the common step size of the earlier draft was in effect SR-Adam's own tuned step size. Both ends of the noise axis give the same outcome under the two protocols (all seven cells at $\tau=0.1$, all seven at flip rate $0.4$, and the same three cells at $\tau=4$), so the regime structure is a property of the problem and not of the comparison, while the size of the deficit at intermediate noise is a property of the baseline. Table \ref{tab:dim_sweep} is therefore the fair comparison and the headline of this subsection, and Table \ref{tab:dim_sweep_common} the ablation of the comparison itself.
 
 %\clearpage
 %\newpage 
