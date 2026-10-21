@@ -778,6 +778,8 @@ Every constant asserted in Sections \ref{sec:risk} to \ref{sec:convergence} was 
 %% Empirical evaluation — code provenance (not printed)
 %%   sec:experiments intro     : code/sr_adam.py, code/path4_dim_sweep.py, ...
 %%   tab:dim_sweep             : code/path4_dim_sweep.py -> out/path4_dim_sweep.json
+%%   tab:dim_sweep_common      : code/path4_dim_sweep.py --common-lr
+%%                               -> out/path4_dim_sweep_common.json (protocol ablation)
 %%   fig:dim_sweep             : code/path4_dim_sweep.py -> figs/path4_dim_sweep.pdf
 %%   tab:reg (tab_regression)  : code/paper_tables.py -> paper/tab_regression.tex
 %%                               (datasets: diabetes, california_housing, wine_quality,
@@ -788,7 +790,8 @@ Every constant asserted in Sections \ref{sec:risk} to \ref{sec:convergence} was 
 %%   fig:noise_sweep           : code/noise_sweep.py -> paper/fig_noise_sweep.pdf
 %%   fig:gnn_acc               : code/make_paper_barfigs.py (from gnn_pilot_*.json)
 %%   fig:regime_win            : code/make_paper_barfigs.py
-%%   raw JSON                  : out/path4_dim_sweep.json, out/paper_tables.json,
+%%   raw JSON                  : out/path4_dim_sweep.json, out/path4_dim_sweep_common.json,
+%%                               out/paper_tables.json,
 %%                               out/noise_sweep.json, out/gnn_pilot_*.json
 %%   driver scripts            : scripts/run_paper_tables.sh, scripts/run_grouping_grid.sh
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -797,15 +800,69 @@ Every constant asserted in Sections \ref{sec:risk} to \ref{sec:convergence} was 
 
 This section asks where the risk-optimal weight improves on Adam-type methods on problems outside the Monte Carlo designs of Section \ref{sec:simulation}. The code base, the optimiser interfaces, and the seed schedule are held fixed; only the optimiser and the problem change. Baselines are SGD with momentum, AdamW \cite{loshchilov2019}, and AdamW with the AMSGrad preconditioner \cite{reddi2018}. Unless stated otherwise, SR-Adam uses the defaults of Algorithm \ref{alg:sradam} ($\rho=1$, $\omega=0.1$, $\gamma=1$, $\tau=5$) and the comparison is paired by seed on the final test loss or accuracy. Implementations accompany the paper.
 
-Every baseline below is tuned rather than left at a common step size, with one exception noted below. Each optimiser receives its own grid of three to five candidate step sizes spanning one to two orders of magnitude, scored on two tuning seeds --- held-out validation loss on the logistic pilots, terminal loss elsewhere --- and the reported run then uses the study's seed set shared across optimisers. The number of pilots varies: the controlled study of Section \ref{sec:sim_opt} retunes at every noise level, while the dimension sweep and the tabular studies tune once per problem family on a single representative pilot (the quadratic at $\tau=1$ at the smallest $p$) and reuse that choice across the family --- the two exceptions are the $\tau=4$ and flip-rate-$0.4$ columns of Table \ref{tab:dim_sweep}, which are tuned at their own noise level. The full grid tables are stored with the results so that the protocol is auditable. The exception is the graph-network pilots in Table \ref{tab:clf}, where both optimisers use the same fixed step size of $0.01$. Two diagnostics are recorded alongside these runs. The mean per-step wall-clock time was $0.55$\,ms on the $p=400$ quadratic under Gaussian noise ($0.90$\,ms under Student-$t$ noise) and $1.8$\,ms on the $200$-feature logistic problem, averaged over the three optimisers of the sweep, so the three extra reductions of Section \ref{sec:algorithm} are not a visible share of the step. The gate of Remark \ref{rem:gate} is recorded as the fraction of parameter blocks on which it is open at the last step of a run: it was open on every block at the end of every run in Table \ref{tab:opt_noise} and on Digits, while on the remaining tabular problems it ranges from none of the blocks to three quarters, a block of dimension three or less being unable to open it. Where it is closed the block falls back to the Adam weight, so the safeguard does fire on some of these problems.
+Every baseline below is tuned rather than left at a common step size, with one deliberate exception: Table \ref{tab:dim_sweep_common} repeats the dimension sweep under the shared default step size, as an ablation of the comparison itself in the last subsection of this section. Each optimiser receives its own grid of three to five candidate step sizes spanning one to two orders of magnitude, scored on two tuning seeds --- held-out validation loss on the logistic and graph pilots, terminal loss elsewhere --- and the reported run then uses the study's seed set shared across optimisers. The number of pilots varies: the controlled study of Section \ref{sec:sim_opt} retunes at every noise level, while the dimension sweep and the tabular studies tune once per problem family on a single representative pilot (the quadratic at $\tau=1$ at the smallest $p$) and reuse that choice across the family --- the two exceptions are the $\tau=4$ and flip-rate-$0.4$ columns of Table \ref{tab:dim_sweep}, which are tuned at their own noise level. The graph-network pilots in Table \ref{tab:clf} are tuned per dataset on a grid of five step sizes from $10^{-3}$ to $10^{-1}$, identical for both optimisers, scored on validation accuracy at clean labels, and the chosen step size is reused at both label-noise levels. The full grid tables are stored with the results so that the protocol is auditable. Two diagnostics are recorded alongside these runs. The mean per-step wall-clock time was $0.55$\,ms on the $p=400$ quadratic under Gaussian noise ($0.90$\,ms under Student-$t$ noise) and $1.8$\,ms on the $200$-feature logistic problem, averaged over the three optimisers of the sweep, so the three extra reductions of Section \ref{sec:algorithm} are not a visible share of the step. The gate of Remark \ref{rem:gate} is recorded as the fraction of parameter blocks on which it is open at the last step of a run: it was open on every block at the end of every run in Table \ref{tab:opt_noise} and on Digits, while on the remaining tabular problems it ranges from none of the blocks to three quarters, a block of dimension three or less being unable to open it. Where it is closed the block falls back to the Adam weight, so the safeguard does fire on some of these problems.
 
 \paragraph{Data and tasks}
-Three families are used. (i)~\emph{Synthetic controlled noise} (no external dataset): a quadratic with diagonal curvature and additive Gaussian or Student-$t$ gradient noise, and multinomial logistic regression with a controlled label-flip rate. (ii)~\emph{Public tabular regression}: Diabetes, California Housing, Wine Quality, Linnerud, and BlogFeedback (UCI/OpenML or scikit-learn; linear model and a one-hidden-layer MLP; the Protein set is skipped when the OpenML fetch is unavailable). (iii)~\emph{Classification}: handwritten digits, breast cancer, ionosphere, and iris (logistic regression and a small MLP), together with node classification on the Planetoid graphs Cora, CiteSeer, and PubMed (two-layer GCN \cite{kipf2017}), with optional training-label noise. 
+Three families are used. (i)~\emph{Public tabular regression}: Diabetes, California Housing, Wine Quality, Linnerud, and BlogFeedback (UCI/OpenML or scikit-learn; linear model and a one-hidden-layer MLP; the Protein set is skipped when the OpenML fetch is unavailable). (ii)~\emph{Classification}: handwritten digits, breast cancer, ionosphere, and iris (logistic regression and a small MLP), together with node classification on the Planetoid graphs Cora, CiteSeer, and PubMed (two-layer GCN \cite{kipf2017}), with optional training-label noise. (iii)~\emph{Synthetic controlled noise} (no external dataset): a quadratic with diagonal curvature and additive Gaussian or Student-$t$ gradient noise, and multinomial logistic regression with a controlled label-flip rate; the last subsection studies families (ii) and (iii) under label noise, dimension growth and the two step-size protocols. 
 
-\subsection{Dimension and controlled noise}
+\subsection{Real regression}
+%% code: paper_tables.py (loaders in path3_uci.py / path6_year_blog_clf.py)
+
+Table \ref{tab:reg} reports public regression sets. For each dataset we fit (i) a linear model and (ii) a one-hidden-layer multilayer perceptron (MLP) with a nonlinear activation; features and targets are standardised on the training split. The entry is the paired gap in test MSE, AdamW minus SR-Adam (positive favours SR-Adam).
+
+The linear rows all favour SR-Adam: the largest is BlogFeedback ($p=280$) at $+1.21$, and the remaining four lie between $+0.003$ and $+0.025$. The MLP rows are mixed, three of them favouring SR-Adam and two against, with the largest single gain on Diabetes ($+0.47$). That split is expected rather than contradictory. A linear least-squares problem is convex and the search direction is a noisy estimate of a well-defined gradient, which is the setting of Sections \ref{sec:risk} and \ref{sec:variance}. A one-hidden-layer MLP is already non-convex: the Stein weight shrinks the current gradient toward a historical average, which helps when that average is a good proxy for the population gradient and can hurt when the loss landscape forces frequent changes of direction. In addition, the MLP is more parameterised than the linear model on the same $n$ and $p$, so the blockwise variance estimates that drive $k_t$ are noisier. We therefore read the linear rows as the primary regression evidence and the MLP rows as a mild nonlinearity check.
+
+%% Table tab:reg: code/paper_tables.py -> paper/tab_regression.tex (out/paper_tables.json)
+\begin{table}[t]
+\centering
+\caption{Regression on public tabular sets. Gap in test MSE, AdamW minus SR-Adam; bold positive entries favour SR-Adam. \emph{Model} is either a linear regressor or a one-hidden-layer MLP (nonlinear).}
+\label{tab:reg}
+\input{tab_regression}
+\end{table}
+
+\subsection{Classification}
+%% code: paper_tables.py (tabular/digits); gnn_pilot.py, gnn_pilot_planetoid.py (GCN)
+
+Table \ref{tab:clf} covers logistic regression, a small MLP, and a two-layer graph convolutional network \cite{kipf2017} on clean labels. Test accuracy is reported for AdamW and SR-Adam; the better entry is bolded. SR-Adam is ahead on Breast Cancer, Ionosphere and all three graphs, and marginally behind on Digits and Iris. The largest margin is Ionosphere ($+2.3$ points), where the number of features is comparable to the sample size; on the graphs the margins are at most a third of a point at the tuned step sizes, and on PubMed the two agree to four hundredths of a point.
+
+%% Table tab:clf: code/paper_tables.py -> paper/tab_classification.tex
+%%   GCN rows from paper_tables.gnn_rows() at the step sizes chosen by the
+%%   per-dataset grids of gnn_pilot.py / gnn_pilot_planetoid.py (--tune)
+%%   recorded in out/gnn_{cora,citeseer,pubmed}_tune.json
+\begin{table}[t]
+\centering
+\caption{Classification test accuracy (per cent), clean training labels. Models: logistic regression, one-hidden-layer MLP, and GCN \cite{kipf2017}. Bold $=$ higher accuracy.}
+\label{tab:clf}
+\input{tab_classification}
+\end{table}
+
+\subsection{Ablation study}
+This subsection isolates the two factors the method is sensitive to, one problem-side and one method-side: the noise that corrupts the data, and the step-size protocol used to compare against AdamW. Both use the paired protocol of this section.
+\subsubsection{Label noise}
+%% code: noise_sweep.py (classification + target-noise regression)
+
+Table \ref{tab:noise} and Figure \ref{fig:noise_sweep} isolate the effect of corrupting training labels or targets, with the regression block first (matching Tables~\ref{tab:reg}--\ref{tab:clf}). Throughout this section the gap is signed so that positive favours SR-Adam: for classification it is test accuracy of SR-Adam minus AdamW in percentage points, and for regression it is test MSE of AdamW minus SR-Adam. On Digits with multinomial logistic regression the ranking reverses as soon as labels are corrupted: clean labels give a gap of $-1.3$ points, and with label-noise rates from $10$ to $50$ per cent the gap grows from $+3.9$ to $+13.5$ points, increasing with the noise rate. On a well-separated binary problem (Breast Cancer) the gap is modest and positive at every rate, from $+0.2$ to $+3.8$ points. On linear regression the pattern is weaker and not of a consistent sign: Diabetes is positive at every target-noise level ($+0.015$ to $+0.027$), Wine Quality is positive at the two lower levels and tied at the highest ($-0.001$), and California Housing is negative at the two lower levels and positive but imprecise at the highest ($+0.069$, $t=1.3$). This is the noise-dominated regime of Corollary \ref{cor:cases}: shrinkage helps when the mini-batch signal is unreliable, most clearly on the classification side, and adds little when it is not.
+
+%% Table tab:noise: code/noise_sweep.py -> paper/tab_noise.tex (out/noise_sweep.json)
+\begin{table}[t]
+\centering
+\caption{Label (or target) noise. Upper block: linear regression with target noise on $y$ (test MSE). Lower block: classification with training-label noise (test accuracy, per cent). Gap is AdamW minus SR-Adam for MSE and SR-Adam minus AdamW for accuracy (pp); positive favours SR-Adam (bold).}
+\label{tab:noise}
+\input{tab_noise}
+\end{table}
+
+%% Figure fig:noise_sweep: code/noise_sweep.py -> paper/fig_noise_sweep.pdf
+\begin{figure}[t]
+\centering
+\includegraphics[width=1\textwidth]{fig_noise_sweep.pdf}
+\caption{Noise and the Stein weight. Left: MSE gap (AdamW minus SR-Adam) on linear regression against target-noise scale for three tabular sets. Right: classification accuracy gap (SR-Adam minus AdamW) against training label-noise rate. Positive values favour SR-Adam. On Digits the Stein weight is ahead once labels are corrupted, by up to $+13.5$ accuracy points at a $50$ per cent flip rate; on regression the MSE gap is small and not of a consistent sign across the three sets.}
+\label{fig:noise_sweep}
+\end{figure}
+
+\subsubsection{Dimension and controlled noise}
 %% code: path4_dim_sweep.py  (also phase_diagram.py for the wider grid)
 
-The first family isolates the high-dimensional claim of Sections \ref{sec:risk} and \ref{sec:convergence}. On a quadratic with diagonal curvature and additive gradient noise at scale $\tau$, and on multinomial logistic regression with a controlled label-flip rate, the block dimension $p$ runs over $\{10,20,50,100,200,400,500\}$. Table \ref{tab:dim_sweep} reports the paired gap on the terminal objective, AdamW minus SR-Adam, at $\tau\in\{0.1,1,4\}$, under Student-$t$ noise at $\tau=1$, and at label-flip rates $0.2$ and $0.4$.
+The controlled family isolates the high-dimensional claim of Sections \ref{sec:risk} and \ref{sec:convergence}. On a quadratic with diagonal curvature and additive gradient noise at scale $\tau$, and on multinomial logistic regression with a controlled label-flip rate, the block dimension $p$ runs over $\{10,20,50,100,200,400,500\}$. Table \ref{tab:dim_sweep} reports the paired gap on the terminal objective, AdamW minus SR-Adam, at $\tau\in\{0.1,1,4\}$, under Student-$t$ noise at $\tau=1$, and at label-flip rates $0.2$ and $0.4$.
 
 With the step sizes tuned per optimiser, the sign of the gap is set by the noise level and not by the dimension --- exactly the regime statement of the risk analysis. SR-Adam wins at every $p$ at $\tau=0.1$ and at flip rate $0.4$, and at $\tau=4$ the gap turns positive at $p\in\{100,200,500\}$; a tuned AdamW is ahead only in the intermediate band ($\tau=1$, Student-$t$ at $\tau=1$, flip rate $0.2$). Seventeen of the forty-two settings favour SR-Adam, and every one of them sits at an end of the noise axis. The heavy label-noise column is the strongest evidence in the table: the paired gap grows with $p$ from $+0.015$ at $p=10$ to $+4.13$ at $p=500$ --- per coordinate from $7\times10^{-4}$ at $p=20$ to $8\times10^{-3}$ at $p=500$, an order of magnitude --- with $|t|$ between $10.5$ and $47.7$ at every $p\geq 50$. This is the corruption-dominated regime in which the risk-optimal weight departs furthest from any fixed momentum weight, and there the advantage does grow with the block dimension. The sign at this flip rate does not contradict Table \ref{tab:opt_noise}, where a tuned AdamW is a few per cent ahead at flip rates $0.3$ and $0.4$: that study trains on $N=20\,000$ points for $2000$ steps while this sweep trains on $N=4000$ for $800$, so per coordinate the sweep is the far more estimation-limited problem --- the two results place the crossover on the same axis, the variance of the gradient estimate per coordinate, rather than on the flip rate alone. At $\tau=0.1$ the per-coordinate gap stays flat ($3\times10^{-6}$ to $1.2\times10^{-4}$), so the growing component appears only once the noise clearly corrupts the signal. Figure \ref{fig:dim_sweep} shows the same picture for every noise family.
 
@@ -839,58 +896,32 @@ $p$ & \multicolumn{3}{c}{quadratic (Gaussian)} & Student-$t$ & \multicolumn{2}{c
 \label{fig:dim_sweep}
 \end{figure}
 
+The comparison itself is an ablation factor, so Table \ref{tab:dim_sweep_common} repeats the sweep with the shared default step size that the first version of this manuscript used --- $0.02$ on the quadratic problems and $0.03$ on the logistic problem for every optimiser --- on the identical seeds, step count and problem grid. Under that protocol the gap grows with $p$ on every column: the quadratic at $\tau=1$ runs from $+0.010$ at $p=10$ to $+0.621$ at $p=500$, Student-$t$ from $+0.006$ to $+0.400$, and the logistic problem at flip rate $0.2$ from $+0.000$ to $+1.452$, and $38$ of the $42$ settings favour SR-Adam --- the claim made by the earlier draft. The two tables differ in exactly twenty-one cells, and those cells are precisely the intermediate band ($\tau=1$, Student-$t$ at $\tau=1$, flip rate $0.2$). The mechanism is visible in the chosen values: halving the step size there takes AdamW from $0.02$ to $0.01$ on the quadratic and from $0.03$ to $0.01$ on the logistic problem, while SR-Adam keeps the value the shared default already gave it ($0.02$ and $0.03$) --- the common step size of the earlier draft was in effect SR-Adam's own tuned step size. Both ends of the noise axis give the same outcome under the two protocols (all seven cells at $\tau=0.1$, all seven at flip rate $0.4$, and the same three cells at $\tau=4$), so the regime structure is a property of the problem and not of the comparison, while the size of the deficit at intermediate noise is a property of the baseline. Table \ref{tab:dim_sweep} is therefore the headline and Table \ref{tab:dim_sweep_common} the ablation of the comparison itself.
+
+%% Table tab:dim_sweep_common: code/path4_dim_sweep.py --common-lr -> out/path4_dim_sweep_common.json
+\begin{table}[t]
+\centering
+\caption{Ablation of the step-size protocol: the same sweep as Table \ref{tab:dim_sweep} with the shared default step size for every optimiser ($0.02$ quadratic, $0.03$ logistic, nothing tuned), identical seeds, steps and problem grid. Positive values favour SR-Adam; $38$ of the $42$ settings do, the four exceptions being the $\tau=4$ column at $p\in\{10,20,50,400\}$, none of them significant ($|t|\leq 1.34$).}
+\label{tab:dim_sweep_common}
+\footnotesize\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{ccccccc}
+\toprule
+$p$ & \multicolumn{3}{c}{quadratic (Gaussian)} & Student-$t$ & \multicolumn{2}{c}{logistic} \\
+ & $\tau{=}0.1$ & $\tau{=}1$ & $\tau{=}4$ & $\tau{=}1$ & flip $0.2$ & flip $0.4$ \\
+\midrule
+10  & $+0.002$ & $+0.010$ & $-0.016$ & $+0.006$ & $+0.000$ & $+0.002$ \\
+20  & $+0.006$ & $+0.019$ & $-0.082$ & $+0.009$ & $+0.005$ & $+0.001$ \\
+50  & $+0.013$ & $+0.037$ & $-0.143$ & $+0.038$ & $+0.020$ & $+0.018$ \\
+100 & $+0.027$ & $+0.140$ & $+0.219$ & $+0.099$ & $+0.064$ & $+0.059$ \\
+200 & $+0.040$ & $+0.179$ & $+0.147$ & $+0.116$ & $+0.193$ & $+0.154$ \\
+400 & $+0.095$ & $+0.521$ & $-0.395$ & $+0.339$ & $+0.838$ & $+0.588$ \\
+500 & $+0.111$ & $+0.621$ & $+0.383$ & $+0.400$ & $+1.452$ & $+1.049$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 %\clearpage
 %\newpage 
-
-\subsection{Real regression}
-%% code: paper_tables.py (loaders in path3_uci.py / path6_year_blog_clf.py)
-
-Table \ref{tab:reg} reports public regression sets. For each dataset we fit (i) a linear model and (ii) a one-hidden-layer multilayer perceptron (MLP) with a nonlinear activation; features and targets are standardised on the training split. The entry is the paired gap in test MSE, AdamW minus SR-Adam (positive favours SR-Adam).
-
-The linear rows all favour SR-Adam: the largest is BlogFeedback ($p=280$) at $+1.21$, and the remaining four lie between $+0.003$ and $+0.025$. The MLP rows are mixed, three of them favouring SR-Adam and two against, with the largest single gain on Diabetes ($+0.47$). That split is expected rather than contradictory. A linear least-squares problem is convex and the search direction is a noisy estimate of a well-defined gradient, which is the setting of Sections \ref{sec:risk} and \ref{sec:variance}. A one-hidden-layer MLP is already non-convex: the Stein weight shrinks the current gradient toward a historical average, which helps when that average is a good proxy for the population gradient and can hurt when the loss landscape forces frequent changes of direction. In addition, the MLP is more parameterised than the linear model on the same $n$ and $p$, so the blockwise variance estimates that drive $k_t$ are noisier. We therefore read the linear rows as the primary regression evidence and the MLP rows as a mild nonlinearity check.
-
-%% Table tab:reg: code/paper_tables.py -> paper/tab_regression.tex (out/paper_tables.json)
-\begin{table}[t]
-\centering
-\caption{Regression on public tabular sets. Gap in test MSE, AdamW minus SR-Adam; bold positive entries favour SR-Adam. \emph{Model} is either a linear regressor or a one-hidden-layer MLP (nonlinear).}
-\label{tab:reg}
-\input{tab_regression}
-\end{table}
-
-\subsection{Classification}
-%% code: paper_tables.py (tabular/digits); gnn_pilot.py, gnn_pilot_planetoid.py (GCN)
-
-Table \ref{tab:clf} covers logistic regression, a small MLP, and a two-layer graph convolutional network \cite{kipf2017} on clean labels. Test accuracy is reported for AdamW and SR-Adam; the better entry is bolded. SR-Adam is ahead on Breast Cancer, Ionosphere and all three graphs, and marginally behind on Digits and Iris. The margins are largest where the number of features is comparable to or larger than the sample size (Ionosphere, CiteSeer), and on PubMed the two agree to a tenth of a point.
-
-%% Table tab:clf: code/paper_tables.py -> paper/tab_classification.tex
-%%   GCN rows from out/gnn_pilot_cora.json, out/gnn_pilot_planetoid.json
-\begin{table}[t]
-\centering
-\caption{Classification test accuracy (per cent), clean training labels. Models: logistic regression, one-hidden-layer MLP, and GCN \cite{kipf2017}. Bold $=$ higher accuracy.}
-\label{tab:clf}
-\input{tab_classification}
-\end{table}
-
-\subsection{Label noise}
-%% code: noise_sweep.py (classification + target-noise regression)
-
-Table \ref{tab:noise} and Figure \ref{fig:noise_sweep} isolate the effect of corrupting training labels or targets, with the regression block first (matching Tables~\ref{tab:reg}--\ref{tab:clf}). Throughout this section the gap is signed so that positive favours SR-Adam: for classification it is test accuracy of SR-Adam minus AdamW in percentage points, and for regression it is test MSE of AdamW minus SR-Adam. On Digits with multinomial logistic regression the ranking reverses as soon as labels are corrupted: clean labels give a gap of $-1.3$ points, and with label-noise rates from $10$ to $50$ per cent the gap grows from $+3.9$ to $+13.5$ points, increasing with the noise rate. On a well-separated binary problem (Breast Cancer) the gap is modest and positive at every rate, from $+0.2$ to $+3.8$ points. On linear regression the pattern is weaker and not of a consistent sign: Diabetes is positive at every target-noise level ($+0.015$ to $+0.027$), Wine Quality is positive at the two lower levels and tied at the highest ($-0.001$), and California Housing is negative at the two lower levels and positive but imprecise at the highest ($+0.069$, $t=1.3$). This is the noise-dominated regime of Corollary \ref{cor:cases}: shrinkage helps when the mini-batch signal is unreliable, most clearly on the classification side, and adds little when it is not.
-
-%% Table tab:noise: code/noise_sweep.py -> paper/tab_noise.tex (out/noise_sweep.json)
-\begin{table}[t]
-\centering
-\caption{Label (or target) noise. Upper block: linear regression with target noise on $y$ (test MSE). Lower block: classification with training-label noise (test accuracy, per cent). Gap is AdamW minus SR-Adam for MSE and SR-Adam minus AdamW for accuracy (pp); positive favours SR-Adam (bold).}
-\label{tab:noise}
-\input{tab_noise}
-\end{table}
-
-%% Figure fig:noise_sweep: code/noise_sweep.py -> paper/fig_noise_sweep.pdf
-\begin{figure}[t]
-\centering
-\includegraphics[width=1\textwidth]{fig_noise_sweep.pdf}
-\caption{Noise and the Stein weight. Left: MSE gap (AdamW minus SR-Adam) on linear regression against target-noise scale for three tabular sets. Right: classification accuracy gap (SR-Adam minus AdamW) against training label-noise rate. Positive values favour SR-Adam. On Digits the Stein weight is ahead once labels are corrupted, by up to $+13.5$ accuracy points at a $50$ per cent flip rate; on regression the MSE gap is small and not of a consistent sign across the three sets.}
-\label{fig:noise_sweep}
-\end{figure}
 
 \clearpage
 

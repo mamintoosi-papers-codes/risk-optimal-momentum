@@ -313,6 +313,8 @@ def reconcile_counts():
     if not d:
         return ["### A4 — Table 5 vs Table 8: path4_dim_sweep.json missing", ""]
     rows = d["rows"]
+    dc = load("path4_dim_sweep_common.json")
+    crows = (dc or {}).get("rows", [])
     printed = [r for r in rows
                if (r.get("problem") == "quadratic_gaussian"
                    and r.get("tau") in (0.1, 1.0, 4.0))
@@ -334,17 +336,22 @@ def reconcile_counts():
 
     w_all = sum(1 for r in rows if win(r) == "W")
     w_pr = sum(1 for r in printed if win(r) == "W")
-    lines = ["### A4 — cell counts: '23 of 24' vs the printed table", "",
+    w_cc = sum(1 for r in crows if win(r) == "W")
+    lines = ["### A4 — cell counts: '23 of 24' vs the printed tables", "",
              f"| population | cells | wins | ties | losses |",
              f"|---|---|---|---|---|",
-             f"| all settings in path4_dim_sweep.json | {len(rows)} | {w_all} | "
+             f"| tab:dim_sweep, tuned (6 columns x 7 p) | {len(rows)} | {w_all} | "
              f"{sum(1 for r in rows if win(r)=='T')} | "
              f"{sum(1 for r in rows if win(r)=='L')} |",
-             f"| cells printed in tab:dim_sweep (6 columns x 7 p) | {len(printed)} | "
+             f"| tab:dim_sweep_common, shared default step size | {len(crows)} | {w_cc} | "
+             f"{sum(1 for r in crows if win(r)=='T')} | "
+             f"{sum(1 for r in crows if win(r)=='L')} |",
+             f"| cells printed in tab:dim_sweep | {len(printed)} | "
              f"{w_pr} | {sum(1 for r in printed if win(r)=='T')} | "
              f"{sum(1 for r in printed if win(r)=='L')} |", "",
              "Rows NOT shown in the printed table:", ""]
-    lines += [f"  - {desc(r)} ({win(r)})" for r in excluded]
+    lines += ([f"  - {desc(r)} ({win(r)})" for r in excluded]
+              if excluded else ["  (none — every setting of both JSONs is printed)"])
     per_p = {}
     for r in printed:
         per_p.setdefault(r["p"], []).append(r)

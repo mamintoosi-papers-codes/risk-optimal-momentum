@@ -170,3 +170,66 @@ Update this file after each completed step. Mark results with PASS/FAIL and exac
    هنوز نسخه‌های قدیمی قبل از re-run را embed می‌کرد (شکل ۷ با جدول ۷ تناقض مستقیم داشت!)
    چون اسکریپت‌ها در figs/ می‌نویسند ولی LaTeX از paper/ می‌خواند. رفع شد + چک E2b در
    phaseE اضافه شد. PDF دوباره ساخته شد (۴۰ صفحه، ۰ خطا) و هر سه وریفایر سبز است.
+
+## 21 Oct decisions (D7, D8)
+
+- **D7 — no reordering of §9.** User compared the proposal (move "Dimension and
+  controlled noise" to the end of §9 so the reviewer does not open on 17/42) and chose
+  **keep the current order**. Verified in code first: every §9 subsection tunes *both*
+  AdamW and SR-Adam on identical grids and shared tuning seeds (path4_dim_sweep,
+  paper_tables x2, noise_sweep — see out/*_tune.json; e.g. clf adamw 0.05 / sradam 0.01);
+  exceptions remain the GCN rows (fixed 0.01 both) and the never-run beta1 axis (D6).
+- **D8 — no per-noise-level retune of §9.1 for now.** The tau=0.1 and Student-t columns
+  keep reusing the tau=1 grid; disclosed in the §9 intro. If a referee asks for the
+  diagnostic's literal "step-size grid per noise level", the driver change is ~5 min of
+  compute plus a table/figure/verifier refresh.
+- One protocol note kept for honesty: tuning seeds (1, 2) are a subset of the reported
+  seeds (1..5) for both optimisers, so the comparison is symmetric but "held-out" refers
+  to the validation loss, not to disjoint seeds.
+
+## 21 Oct — graph tuning pass (D9, executed)
+
+- Both pilots gained `--tune` (`gnn_pilot.py`, `gnn_pilot_planetoid.py`): identical
+  5-point lr grid 1e-3…1e-1 for adamw and sradam, scored on *validation* accuracy at
+  clean labels on the two tuning seeds, chosen value reused at both noise levels.
+  First run with a 4-point grid selected the 3e-3 boundary for both, so the grid was
+  extended down to 1e-3 (both then chose 0.001 on Cora/CiteSeer, 0.003 on PubMed).
+- New `code/_refresh_gcn_rows.py` replaces only the GCN rows of out/paper_tables.json
+  via paper_tables.gnn_rows() (which reads out/gnn_*_tune.json) and rewrites the two
+  tab files — the full paper_tables driver is NOT re-run.
+- phaseD.bat/.sh steps [8a-8c]: both pilots with --tune (+ PYTHONIOENCODING=utf-8, the
+  Δ print crashed on the Windows console otherwise) then _refresh_gcn_rows.py.
+- Outcome: record unchanged **6 wins / 1 tie / 0 losses** (tie moves from PubMed 0.3
+  to CiteSeer clean in the pilot JSONs), accuracy levels rise (Cora 77.8/78.1 -> 78.6/78.9);
+  tab:clf GCN rows now 78.6/78.9, 64.7/65.0, 76.6/76.6.
+- Manuscript: §9 intro no longer announces the fixed-lr exception (graphs tuned per
+  dataset), §9.3 prose rewritten around the new margins, provenance comment updated.
+- Verifiers: verify_manuscript_numbers must_have "tuned per dataset on a grid of five
+  step sizes" + must_not "same fixed step size"; verify_tables2 must_have "tuned per
+  dataset on a five-point grid" + must_not "keep a common fixed lr".
+- Verified: phaseE full = PHASE E OK, 41 pages, 0 overfull, 0 undefined refs;
+  verify_manuscript_numbers / verify_fresh_outputs / verify_tables2 all exit 0.
+
+## 21 Oct — Ablation Study restructure (user proposal, executed)
+
+- §9 order is now: 9.1 Real regression, 9.2 Classification,
+  9.3 Ablation study (9.3.1 Label noise, 9.3.2 Dimension and controlled noise).
+  Intro family list reordered to match; "the first family" wording fixed.
+- Fusion of the two step-size protocols in 9.3.2:
+  * `tab:dim_sweep` — tuned, 17/42 (headline, unchanged).
+  * `tab:dim_sweep_common` — NEW: shared default step sizes 0.02 quad / 0.03 log,
+    re-run with the SAME ps/seeds/steps (`path4_dim_sweep.py --common-lr`, 471 s,
+    writes out/path4_dim_sweep_common.json, no figure so fig:dim_sweep stays tuned).
+    Result: **38/42**, losses only tau=4 at p=10,20,50,400 (|t| <= 1.34).
+  * The two protocols differ in exactly 21 cells — all the intermediate band
+    (tau=1, Student tau=1, flip 0.2). Mechanism stated in the text: there AdamW's
+    tuned lr is half the shared default (0.01 vs 0.02 / 0.01 vs 0.03) while SR-Adam
+    keeps exactly the default value (0.02 / 0.03) — the old common lr WAS SR-Adam's.
+- The old pre-diagnostic numbers (3 seeds x 500 steps) were NOT copied in; the
+  ablation arm is regenerated under the current protocol so the two tables compare.
+- stats_tests §A4 now prints both populations (42: 17 wins / 42: 38 wins);
+  verify_fresh_outputs gained section 5 (both tables vs JSON, 38/42, 21-cell claim).
+- Report: items 3/5 renumbered to the new subsection numbers, item 13 added, the
+  hardcoded "Fig. 7 / Table 7 / Fig. 9" mentions replaced by labels.
+- Verified: phaseE full PHASE E OK — 42 pages, 0 overfull, 0 undefined refs;
+  verify_manuscript_numbers / verify_fresh_outputs / verify_tables2 all exit 0.

@@ -74,11 +74,16 @@ if "%SKIP_GNN%"=="1" (
     echo [8] gnn pilots SKIPPED by SKIP_GNN=1
     goto skip_gnn
 )
+rem gnn_pilot prints a Greek delta; force UTF-8 so the runs do not die on print
+set PYTHONIOENCODING=utf-8
 echo [8a] gnn_pilot.py
-"%PY%" -u gnn_pilot.py --seeds 5
+"%PY%" -u gnn_pilot.py --seeds 5 --tune
 if errorlevel 1 goto fail
 echo [8b] gnn_pilot_planetoid.py
-"%PY%" -u gnn_pilot_planetoid.py --seeds 3
+"%PY%" -u gnn_pilot_planetoid.py --seeds 3 --tune
+if errorlevel 1 goto fail
+echo [8c] refresh GCN rows of paper_tables.json + tab_classification.tex
+"%PY%" -u _refresh_gcn_rows.py
 if errorlevel 1 goto fail
 :skip_gnn
 

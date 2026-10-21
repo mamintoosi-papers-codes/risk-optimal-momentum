@@ -25,6 +25,7 @@ from torch_geometric.datasets import Planetoid
 from torch_geometric.nn import GCNConv
 
 from sr_adam import SRAdam
+from tune_helper import add_tuning_args, run_tuning
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent / "data" / "Cora"
@@ -54,6 +55,29 @@ def build_opt(name, params, lr):
     if name == "amsgrad":
         return torch.optim.AdamW(params, lr=lr, weight_decay=5e-4, amsgrad=True)
     return SRAdam(params, lr=lr, weight_decay=5e-4, warmup=5)
+
+
+OPTS = ["adamw", "sradam"]
+GRID = {o: [1e-3, 3e-3, 1e-2, 3e-2, 1e-1] for o in OPTS}  # identical, 2 decades
+
+
+def tune_lrs(score, args, tag):
+    """Grid-search the step size per optimiser on the tuning seeds (item a7).
+
+    `score(opt, lr, seed)` must return the *validation* accuracy at clean
+    labels (higher is better); the grid is identical for both optimisers and
+    the choice is then reused for every noise level of the reported run.
+    Returns {opt: lr}; without --tune both fall back to the historical 0.01.
+    """
+    if not getattr(args, "tune", False):
+        return {o: 0.01 for o in OPTS}
+
+    def pilot(cfg, seed):
+        return score(cfg["opt"], cfg["lr"] or 0.01, seed)
+
+    _, chosen = run_tuning(args, OPTS, pilot, tag, lower_is_better=False,
+                           default_grids=GRID)
+    return {o: (chosen.get(o) or {}).get("lr") or 0.01 for o in OPTS}
 
 
 def run_once(data, opt_name, seed, epochs=150, lr=0.01, label_noise=0.0, hid=16):
@@ -96,12 +120,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", type=int, default=5)
     ap.add_argument("--epochs", type=int, default=150)
+    add_tuning_args(ap)
     args = ap.parse_args()
 
     print(f"Loading Cora from {DATA}", flush=True)
     dataset = Planetoid(root=str(DATA), name="Cora")
     data = dataset[0]
     print(data, flush=True)
+
+    lrs = tune_lrs(lambda o, lr, s: run_once(data, o, s, epochs=args.epochs,
+                                             lr=lr)[0],
+                   args, "gnn_cora")
+    print("  [tune] lrs:", lrs, flush=True)
 
     rows = []
     t0 = time.time()
@@ -111,13 +141,15 @@ def main():
         for seed in range(1, args.seeds + 1):
             for o in ("adamw", "sradam"):
                 acc_val, acc_te, pred = run_once(
-                    data, o, seed, epochs=args.epochs, label_noise=noise)
+                    data, o, seed, epochs=args.epochs, label_noise=noise,
+                    lr=lrs[o])
                 per_te[o].append(acc_te)
                 if seed == 1:
                     preds[o] = pred
         rec = paired_summary(per_te)
         rec.update(dataset="Cora", task="node_classification",
-                   epochs=args.epochs, label_noise=noise)
+                   epochs=args.epochs, label_noise=noise,
+                   lr_adamw=lrs["adamw"], lr_sradam=lrs["sradam"])
         rows.append(rec)
         print(f"label_noise={noise:.1f}  AdamW={rec['adamw']:.3f}±{rec['adamw_sd']:.3f}  "
               f"SR-Adam={rec['sradam']:.3f}±{rec['sradam_sd']:.3f}  "
@@ -138,6 +170,7 @@ def main():
 
     payload = dict(meta=dict(created=time.strftime("%Y-%m-%d %H:%M:%S"),
                              seconds=time.time() - t0,
+                             tuned_lrs=lrs,
                              note="positive Δ = higher test acc for SR-Adam"),
                    rows=rows)
     (OUT / "gnn_pilot_cora.json").write_text(json.dumps(payload, indent=2))

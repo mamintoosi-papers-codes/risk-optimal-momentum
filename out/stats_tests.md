@@ -151,13 +151,13 @@ Positive difference favours SR-Adam in every row. Ties use tol = max(1e-9, 1e-6 
 
 | cell | AdamW | SR-Adam | diff | SE | t | p(t) | p(Wilcoxon) | Holm | outcome |
 |---|---|---|---|---|---|---|---|---|---|
-| Cora noise=0.0 | 0.7784 | 0.7806 | +0.0022 | NA | NA | NA | NA | NA | win |
-| Cora noise=0.3 | 0.6286 | 0.6374 | +0.0088 | NA | NA | NA | NA | NA | win |
-| Cora noise=0.5 | 0.5278 | 0.5318 | +0.004 | NA | NA | NA | NA | NA | win |
-| CiteSeer noise=0.0 | 0.6343 | 0.6413 | +0.007 | NA | NA | NA | NA | NA | win |
-| CiteSeer noise=0.3 | 0.4893 | 0.4943 | +0.005 | NA | NA | NA | NA | NA | win |
-| PubMed noise=0.0 | 0.7607 | 0.7627 | +0.002 | NA | NA | NA | NA | NA | win |
-| PubMed noise=0.3 | 0.629 | 0.629 | +1.987e-08 | NA | NA | NA | NA | NA | tie |
+| Cora noise=0.0 | 0.7856 | 0.7894 | +0.0038 | NA | NA | NA | NA | NA | win |
+| Cora noise=0.3 | 0.6866 | 0.6888 | +0.0022 | NA | NA | NA | NA | NA | win |
+| Cora noise=0.5 | 0.6048 | 0.6088 | +0.004 | NA | NA | NA | NA | NA | win |
+| CiteSeer noise=0.0 | 0.656 | 0.656 | +0 | NA | NA | NA | NA | NA | tie |
+| CiteSeer noise=0.3 | 0.5147 | 0.517 | +0.002333 | NA | NA | NA | NA | NA | win |
+| PubMed noise=0.0 | 0.7613 | 0.763 | +0.001667 | NA | NA | NA | NA | NA | win |
+| PubMed noise=0.3 | 0.656 | 0.6563 | +0.0003333 | NA | NA | NA | NA | NA | win |
 
 **win / tie / loss = 6 / 1 / 0** (fraction with wins-only denominator = 85.71%; ties excluded from wins).
 
@@ -177,15 +177,17 @@ Paired t over 5 seeds, df=4, two-sided 5% critical value t = 2.776.
 
 Cells the manuscript must NOT call distinguishable: B=8 (t=+2.70), B=32 (t=+1.89).
 
-### A4 — cell counts: '23 of 24' vs the printed table
+### A4 — cell counts: '23 of 24' vs the printed tables
 
 | population | cells | wins | ties | losses |
 |---|---|---|---|---|
-| all settings in path4_dim_sweep.json | 42 | 17 | 0 | 25 |
-| cells printed in tab:dim_sweep (6 columns x 7 p) | 42 | 17 | 0 | 25 |
+| tab:dim_sweep, tuned (6 columns x 7 p) | 42 | 17 | 0 | 25 |
+| tab:dim_sweep_common, shared default step size | 42 | 38 | 0 | 4 |
+| cells printed in tab:dim_sweep | 42 | 17 | 0 | 25 |
 
 Rows NOT shown in the printed table:
 
+  (none — every setting of both JSONs is printed)
 
 Per-p gaps with the p-normalised gap (diagnostic a8):
 
@@ -199,6 +201,3 @@ Per-p gaps with the p-normalised gap (diagnostic a8):
 | 400 | -0.067 | -0.00017 |
 | 500 | +0.007 | +0.00001 |
 
-
-wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\stats_tests.md
-wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\stats_tests.json

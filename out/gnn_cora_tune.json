@@ -1,0 +1,136 @@
+{
+  "meta": {
+    "tag": "gnn_cora",
+    "created": "2026-10-20 20:17:51",
+    "tune_seeds": [
+      1,
+      2
+    ],
+    "lower_is_better": false,
+    "note": "grid identical across optimisers unless a driver default grid differs (recorded in rows)"
+  },
+  "chosen": {
+    "adamw": {
+      "lr": 0.001,
+      "beta1": null,
+      "wd": null
+    },
+    "sradam": {
+      "lr": 0.001,
+      "beta1": null,
+      "wd": null
+    }
+  },
+  "rows": [
+    {
+      "opt": "adamw",
+      "lr": 0.001,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.7739999890327454,
+        0.777999997138977
+      ],
+      "score": 0.7759999930858612
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.003,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.7699999809265137,
+        0.7739999890327454
+      ],
+      "score": 0.7719999849796295
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.7639999985694885,
+        0.7680000066757202
+      ],
+      "score": 0.7660000026226044
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.03,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.765999972820282,
+        0.765999972820282
+      ],
+      "score": 0.765999972820282
+    },
+    {
+      "opt": "adamw",
+      "lr": 0.1,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.7599999904632568,
+        0.7680000066757202
+      ],
+      "score": 0.7639999985694885
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.001,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.7739999890327454,
+        0.7760000228881836
+      ],
+      "score": 0.7750000059604645
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.003,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.7760000228881836,
+        0.7720000147819519
+      ],
+      "score": 0.7740000188350677
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.01,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.7699999809265137,
+        0.765999972820282
+      ],
+      "score": 0.7679999768733978
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.03,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.7720000147819519,
+        0.765999972820282
+      ],
+      "score": 0.7689999938011169
+    },
+    {
+      "opt": "sradam",
+      "lr": 0.1,
+      "beta1": null,
+      "wd": null,
+      "scores": [
+        0.7459999918937683,
+        0.7540000081062317
+      ],
+      "score": 0.75
+    }
+  ]
+}

@@ -271,8 +271,15 @@ def main():
                     help="extra heavy-noise quadratic level (strength column)")
     ap.add_argument("--flip-hi", type=float, default=0.4,
                     help="extra heavy label-flip level (strength column)")
+    ap.add_argument("--common-lr", action="store_true",
+                    help="ablation arm of the step-size protocol: every optimiser "
+                         "keeps the shared default step size (2e-2 quadratic, "
+                         "3e-2 logistic), nothing is tuned; writes "
+                         "path4_dim_sweep_common.json and skips the figure")
     add_tuning_args(ap)
     args = ap.parse_args()
+    if args.common_lr:
+        args.tune = False     # this arm *is* the untuned protocol (diagnostic a7)
     if args.smoke:
         ps = [10, 50, 200]
         seeds = (1, 2)
@@ -387,14 +394,22 @@ def main():
                   tuned_quadratic_vhi=(cfgs_q_vhi or None),
                   tuned_logistic_hi=(cfgs_l_hi or None),
                   timing=args.timing, gate_log=args.gate_log,
-                  early_stop=args.early_stop,
+                  early_stop=args.early_stop, common_lr=args.common_lr,
                   note="positive paired_diff = SR-Adam better (lower loss)"),
         rows=rows,
     )
-    (OUT / "path4_dim_sweep.json").write_text(json.dumps(payload, indent=2))
-    (REPORT_DIR / "path4_dim_sweep.json").write_text(json.dumps(payload, indent=2))
+    stem = "path4_dim_sweep_common" if args.common_lr else "path4_dim_sweep"
+    (OUT / f"{stem}.json").write_text(json.dumps(payload, indent=2))
+    (REPORT_DIR / f"{stem}.json").write_text(json.dumps(payload, indent=2))
 
     # figure: Δ vs p for each problem/noise
+    if args.common_lr:
+        print("[common-lr] figure skipped (the manuscript figure shows the tuned arm)",
+              flush=True)
+        wins = sum(1 for r in rows if r["win_sradam"])
+        print(f"\n{wins}/{len(rows)} settings: SR-Adam better", flush=True)
+        print(f"elapsed {time.time() - t0:.1f}s", flush=True)
+        return
     fig, axes = plt.subplots(2, 3, figsize=(9.8, 5.0), sharex=True)
     axl = [
         ("quadratic_gaussian", tau_vhi, f"Quadratic Gaussian τ={tau_vhi:g}",

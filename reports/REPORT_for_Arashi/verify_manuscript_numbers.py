@@ -297,7 +297,7 @@ must_have = [
     "$0.90$\\,ms",
     "$1.8$\\,ms",
     "at the last step of a run",
-    "fixed step size of $0.01$",
+    "tuned per dataset on a grid of five step sizes",
     "from $7\\times10^{-4}$ at $p=20$ to $8\\times10^{-3}$",
     "$3\\times10^{-6}$ to $1.2\\times10^{-4}$",
     "Seventeen of the forty-two settings",
@@ -306,6 +306,7 @@ must_have = [
     "the quadratic grid is chosen at $\\tau=1$ and reused",
 ]
 must_not = [
+    "same fixed step size",
     "All twelve paired",
     "$0.27$\\,ms",
     "$1.4$\\,ms",

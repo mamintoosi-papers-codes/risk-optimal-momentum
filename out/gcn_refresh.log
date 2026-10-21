@@ -1,0 +1,8 @@
+fresh GCN rows: 6/6
+  Cora      n=0.0  A=0.7856 S=0.7894 d=+0.0038 win=True lr=(0.001, 0.001)
+  Cora      n=0.3  A=0.6760 S=0.6822 d=+0.0062 win=True lr=(0.001, 0.001)
+  CiteSeer  n=0.0  A=0.6470 S=0.6496 d=+0.0026 win=True lr=(0.001, 0.001)
+  CiteSeer  n=0.3  A=0.5328 S=0.5338 d=+0.0010 win=True lr=(0.001, 0.001)
+  PubMed    n=0.0  A=0.7658 S=0.7662 d=+0.0004 win=True lr=(0.003, 0.003)
+  PubMed    n=0.3  A=0.6840 S=0.6852 d=+0.0012 win=True lr=(0.003, 0.003)
+GCN rows replaced in paper_tables.json; tab_regression / tab_classification rewritten

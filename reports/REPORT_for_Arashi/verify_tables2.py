@@ -244,10 +244,11 @@ must_have = [
     "with no argument is identical to `phaseD.bat full`",
     "The wins sit at *both ends of the noise axis*",
     "42 cells, 20 Oct",
-    "The graph pilots keep a common fixed lr (0.01)",
+    "The graph pilots are tuned per dataset on a five-point grid",
     "the fraction of parameter blocks open at the last step of a run",
 ]
 must_not = [
+    "keep a common fixed lr",
     "11/12",
     "0.27 ms",
     "1.4 ms",

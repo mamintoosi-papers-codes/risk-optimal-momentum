@@ -52,8 +52,11 @@ echo "[7] noise_sweep.py (tab_noise + fig)"
 
 if [[ "${SKIP_GNN:-0}" != "1" ]]; then
   echo "[8] gnn pilots"
-  "$PY" -u gnn_pilot.py --seeds 5
-  "$PY" -u gnn_pilot_planetoid.py --seeds 3
+  export PYTHONIOENCODING=utf-8
+  "$PY" -u gnn_pilot.py --seeds 5 --tune
+  "$PY" -u gnn_pilot_planetoid.py --seeds 3 --tune
+  echo "[8c] refresh GCN rows of paper_tables.json + tab_classification.tex"
+  "$PY" -u _refresh_gcn_rows.py
 else
   echo "[8] gnn pilots SKIPPED (SKIP_GNN=1)"
 fi

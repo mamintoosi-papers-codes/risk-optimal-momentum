@@ -1,52 +1,62 @@
 {
   "meta": {
-    "created": "2026-10-18 17:06:19",
-    "seconds": 74.70854783058167,
+    "created": "2026-10-20 20:19:17",
+    "seconds": 85.92628908157349,
+    "tuned_lrs": {
+      "adamw": 0.001,
+      "sradam": 0.001
+    },
     "note": "positive \u0394 = higher test acc for SR-Adam"
   },
   "rows": [
     {
-      "adamw": 0.7784000158309936,
-      "adamw_sd": 0.007021395033914082,
-      "sradam": 0.7805999875068664,
-      "sradam_sd": 0.007300680304547795,
-      "paired_diff": 0.002199971675872803,
+      "adamw": 0.7856000065803528,
+      "adamw_sd": 0.014028560990788133,
+      "sradam": 0.7893999934196472,
+      "sradam_sd": 0.015126126978812082,
+      "paired_diff": 0.0037999868392944334,
       "win_sradam": true,
       "dataset": "Cora",
       "task": "node_classification",
       "epochs": 150,
       "label_noise": 0.0,
+      "lr_adamw": 0.001,
+      "lr_sradam": 0.001,
       "agreement": {
-        "both_same": 980,
-        "adam_only_correct": 7,
-        "sradam_only_correct": 6,
-        "both_wrong": 7,
+        "both_same": 983,
+        "adam_only_correct": 4,
+        "sradam_only_correct": 12,
+        "both_wrong": 1,
         "n_test": 1000
       }
     },
     {
-      "adamw": 0.628600013256073,
-      "adamw_sd": 0.03341855686475633,
-      "sradam": 0.6373999953269959,
-      "sradam_sd": 0.02842181518868024,
-      "paired_diff": 0.008799982070922852,
+      "adamw": 0.6865999937057495,
+      "adamw_sd": 0.022063562696120073,
+      "sradam": 0.6887999892234802,
+      "sradam_sd": 0.0234883037953427,
+      "paired_diff": 0.002199995517730713,
       "win_sradam": true,
       "dataset": "Cora",
       "task": "node_classification",
       "epochs": 150,
-      "label_noise": 0.3
+      "label_noise": 0.3,
+      "lr_adamw": 0.001,
+      "lr_sradam": 0.001
     },
     {
-      "adamw": 0.5278000056743621,
-      "adamw_sd": 0.04851494738021311,
-      "sradam": 0.5318000018596649,
-      "sradam_sd": 0.04677285576671322,
+      "adamw": 0.604799997806549,
+      "adamw_sd": 0.03553450858239781,
+      "sradam": 0.6087999939918518,
+      "sradam_sd": 0.03634144637531129,
       "paired_diff": 0.0039999961853027345,
       "win_sradam": true,
       "dataset": "Cora",
       "task": "node_classification",
       "epochs": 150,
-      "label_noise": 0.5
+      "label_noise": 0.5,
+      "lr_adamw": 0.001,
+      "lr_sradam": 0.001
     }
   ]
 }

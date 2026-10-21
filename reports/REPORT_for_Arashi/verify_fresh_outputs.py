@@ -33,35 +33,59 @@ stu = cell("quadratic_student", "tau", 1.0)
 log = cell("logistic_labelnoise", "flip", 0.2)
 log4 = cell("logistic_labelnoise", "flip", 0.4)
 
-m = re.search(r"\\begin\{tabular\}\{ccccccc\}(.*?)\\end\{tabular\}", tex, re.S)
-if not m:
-    print("1. *** tab:dim_sweep table (ccccc c) not found in sn-article.tex ***")
-    sys.exit(1)
-tab = m.group(1)
-print("1. MANUSCRIPT tab:dim_sweep vs FRESH out/path4_dim_sweep.json:")
-ok = True
-seen = set()
 row_re = re.compile(r"(\d+)((?:\s*&\s*\$[+-][\d.]+\$)+)")
-for line in tab.split("\\\\"):
-    line = line.strip()
-    mm = row_re.search(line)
-    if not mm:
-        continue
-    p = int(mm.group(1))
-    seen.add(p)
-    vals = [float(x) for x in re.findall(r"\$([+-][\d.]+)\$", mm.group(2))]
-    fresh = [round(gq_lo[p], 3), round(gq_hi[p], 3), round(gq_vhi[p], 3),
-             round(stu[p], 3), round(log[p], 3), round(log4[p], 3)]
-    match = len(vals) == 6 and all(abs(a - b) < 0.00061
-                                   for a, b in zip(vals, fresh))
-    ok &= match
-    print(f"   p={p:>3}  tex={vals}  json={fresh}  {'OK' if match else '*** MISMATCH ***'}")
-if seen != {10, 20, 50, 100, 200, 400, 500}:
-    ok = False
-    print(f"   *** row set is {sorted(seen)}, expected 7 rows ***")
-print("   RESULT:", "ALL MATCH" if ok else "*** MISMATCH ***")
-if not ok:
-    fails.append("section 1: tex table vs JSON")
+
+
+def build_cells(rs):
+    def c(prob, key, val):
+        return {r["p"]: r["paired_diff"] for r in rs
+                if r["problem"] == prob and abs(r[key] - val) < 1e-9}
+    return [c("quadratic_gaussian", "tau", 0.1), c("quadratic_gaussian", "tau", 1.0),
+            c("quadratic_gaussian", "tau", 4.0), c("quadratic_student", "tau", 1.0),
+            c("logistic_labelnoise", "flip", 0.2), c("logistic_labelnoise", "flip", 0.4)]
+
+
+def check_table(title, label, rs, fail_tag):
+    """Compare the first 7-column tabular *after* `label` in the manuscript with `rs`."""
+    if label not in tex:
+        print(f"   *** {label} not found in sn-article.tex ***")
+        fails.append(f"{fail_tag}: {label} missing")
+        return
+    i = tex.index(label)
+    try:
+        j = tex.index(r"\begin{tabular}{ccccccc}", i)
+        k = tex.index(r"\end{tabular}", j)
+    except ValueError:
+        print(f"   *** no 7-column tabular after {label} ***")
+        fails.append(f"{fail_tag}: tabular missing")
+        return
+    tab = tex[j:k]
+    print(title)
+    ok, seen = True, set()
+    cols = build_cells(rs)
+    for line in tab.split("\\\\"):
+        line = line.strip()
+        mm = row_re.search(line)
+        if not mm:
+            continue
+        p = int(mm.group(1))
+        seen.add(p)
+        vals = [float(x) for x in re.findall(r"\$([+-][\d.]+)\$", mm.group(2))]
+        fresh = [round(c[p], 3) for c in cols]
+        match = len(vals) == 6 and all(abs(a - b) < 0.00061
+                                       for a, b in zip(vals, fresh))
+        ok &= match
+        print(f"   p={p:>3}  tex={vals}  json={fresh}  {'OK' if match else '*** MISMATCH ***'}")
+    if seen != {10, 20, 50, 100, 200, 400, 500}:
+        ok = False
+        print(f"   *** row set is {sorted(seen)}, expected 7 rows ***")
+    print("   RESULT:", "ALL MATCH" if ok else "*** MISMATCH ***")
+    if not ok:
+        fails.append(fail_tag)
+
+
+check_table("1. MANUSCRIPT tab:dim_sweep vs FRESH out/path4_dim_sweep.json:",
+            r"\label{tab:dim_sweep}", rows, "section 1: tex table vs JSON")
 
 print("\n2. Timing claim vs fresh ms_per_step (text: 0.55 / 0.90 / 1.8 ms):")
 means = {}
@@ -116,6 +140,35 @@ print(f"   flip 0.4 gap/p: {min(norms_hi):.1e}..{max(norms_hi):.1e} "
       f"(text 7e-4..8e-3)  {'OK' if good_hi else '*** MISMATCH ***'}")
 print(f"   tau=0.1 gap/p: {min(norms_lo):.1e}..{max(norms_lo):.1e} "
       f"(text 3e-6..1.2e-4)  {'OK' if good_lo else '*** MISMATCH ***'}")
+
+print("\n5. Protocol ablation: tab:dim_sweep_common vs out/path4_dim_sweep_common.json:")
+dc = json.loads((ROOT / "out" / "path4_dim_sweep_common.json").read_text(encoding="utf-8"))
+crows = dc["rows"]
+check_table("   shared-default-step-size table:", r"\label{tab:dim_sweep_common}",
+            crows, "section 5: common-lr tex table vs JSON")
+cwins = sum(1 for r in crows if r["win_sradam"])
+good = cwins == 38 and len(crows) == 42
+if not good:
+    fails.append(f"section 5: common-lr wins {cwins}/{len(crows)} vs caption 38/42")
+print(f"   wins = {cwins}/{len(crows)}  (caption: 38/42)  "
+      f"{'OK' if good else '*** MISMATCH ***'}")
+
+
+def cellkey(r):
+    return (r["problem"], round(float(r.get("tau", r.get("flip"))), 6), r["p"])
+
+
+tuned_win = {cellkey(r): r["win_sradam"] for r in rows}
+changed = [cellkey(r) for r in crows if tuned_win.get(cellkey(r)) != r["win_sradam"]]
+intermediate = lambda k: ((k[0] == "quadratic_gaussian" and abs(k[1] - 1.0) < 1e-9)
+                          or k[0] == "quadratic_student"
+                          or (k[0] == "logistic_labelnoise" and abs(k[1] - 0.2) < 1e-9))
+good = len(changed) == 21 and all(intermediate(k) for k in changed)
+if not good:
+    fails.append(f"section 5: {len(changed)} cells differ between the protocols "
+                 f"(text: twenty-one, all in the intermediate band)")
+print(f"   cells differing between protocols = {len(changed)} "
+      f"(text: 21, intermediate band only)  {'OK' if good else '*** MISMATCH ***'}")
 
 print("\n" + "=" * 70)
 if fails:

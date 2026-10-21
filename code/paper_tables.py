@@ -302,7 +302,16 @@ def gnn_rows(seeds, label_noise=(0.0, 0.3)):
     except Exception as e:
         return [dict(status="skipped", error=f"pyg: {e}")]
 
+    def _tuned_lr(tag, opt):
+        """Step size chosen by the pilot's --tune grid (item a7); 0.01 otherwise."""
+        try:
+            d = json.loads((OUT / f"{tag}_tune.json").read_text())
+            return float(d["chosen"][opt]["lr"])
+        except Exception:
+            return 0.01
+
     for name in ("Cora", "CiteSeer", "PubMed"):
+        lrs = {o: _tuned_lr(f"gnn_{name.lower()}", o) for o in ("adamw", "sradam")}
         root = DATA / name
         if not root.exists() and name != "Cora":
             root = DATA / "Cora" if name == "Cora" else root
@@ -323,7 +332,7 @@ def gnn_rows(seeds, label_noise=(0.0, 0.3)):
                 for o, key in (("adamw", "adamw"), ("sradam", "sradam")):
                     torch.manual_seed(seed)
                     model = GCN(data.num_features, 16, int(data.y.max().item() + 1))
-                    opt = build_opt(o, model.parameters(), 0.01)
+                    opt = build_opt(o, model.parameters(), lrs[key])
                     for _ in range(150):
                         model.train()
                         opt.zero_grad()
@@ -346,6 +355,7 @@ def gnn_rows(seeds, label_noise=(0.0, 0.3)):
                 sradam=float(s.mean()), sradam_sd=float(s.std(ddof=1)) if len(s) > 1 else 0.0,
                 paired_diff=float(s.mean() - a.mean()),
                 win_sradam=bool(s.mean() > a.mean()),
+                lr_adamw=lrs["adamw"], lr_sradam=lrs["sradam"],
             ))
     return rows
 

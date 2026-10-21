@@ -316,7 +316,7 @@
         },
         {
           "label": "CiteSeer n=0.0",
-          "outcome": "win"
+          "outcome": "tie"
         },
         {
           "label": "CiteSeer n=0.3",
@@ -328,7 +328,7 @@
         },
         {
           "label": "PubMed n=0.3",
-          "outcome": "tie"
+          "outcome": "win"
         }
       ]
     },

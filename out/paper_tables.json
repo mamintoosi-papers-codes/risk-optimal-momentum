@@ -9,7 +9,8 @@
       4,
       5
     ],
-    "steps": 800
+    "steps": 800,
+    "gcn_refreshed": "2026-10-20 20:39:53"
   },
   "regression": [
     {
@@ -1165,12 +1166,14 @@
       "label_noise": 0.0,
       "status": "ok",
       "metric": "acc_frac",
-      "adamw": 0.7784000158309936,
-      "adamw_sd": 0.007021395033914082,
-      "sradam": 0.7805999875068664,
-      "sradam_sd": 0.007300680304547795,
-      "paired_diff": 0.002199971675872825,
-      "win_sradam": true
+      "adamw": 0.7856000065803528,
+      "adamw_sd": 0.014028560990788133,
+      "sradam": 0.7893999934196472,
+      "sradam_sd": 0.015126126978812082,
+      "paired_diff": 0.003799986839294389,
+      "win_sradam": true,
+      "lr_adamw": 0.001,
+      "lr_sradam": 0.001
     },
     {
       "dataset": "Cora",
@@ -1181,12 +1184,14 @@
       "label_noise": 0.3,
       "status": "ok",
       "metric": "acc_frac",
-      "adamw": 0.619599986076355,
-      "adamw_sd": 0.03161169622990446,
-      "sradam": 0.6236000061035156,
-      "sradam_sd": 0.026538649983048484,
-      "paired_diff": 0.0040000200271606,
-      "win_sradam": true
+      "adamw": 0.6759999871253968,
+      "adamw_sd": 0.01795828197572674,
+      "sradam": 0.682200014591217,
+      "sradam_sd": 0.014822280103260789,
+      "paired_diff": 0.006200027465820268,
+      "win_sradam": true,
+      "lr_adamw": 0.001,
+      "lr_sradam": 0.001
     },
     {
       "dataset": "CiteSeer",
@@ -1197,12 +1202,14 @@
       "label_noise": 0.0,
       "status": "ok",
       "metric": "acc_frac",
-      "adamw": 0.6248000025749206,
-      "adamw_sd": 0.02381596099652862,
-      "sradam": 0.6317999839782715,
-      "sradam_sd": 0.02400417087592356,
-      "paired_diff": 0.006999981403350897,
-      "win_sradam": true
+      "adamw": 0.647000002861023,
+      "adamw_sd": 0.02336664369206749,
+      "sradam": 0.6495999932289124,
+      "sradam_sd": 0.022356212239269254,
+      "paired_diff": 0.002599990367889382,
+      "win_sradam": true,
+      "lr_adamw": 0.001,
+      "lr_sradam": 0.001
     },
     {
       "dataset": "CiteSeer",
@@ -1213,12 +1220,14 @@
       "label_noise": 0.3,
       "status": "ok",
       "metric": "acc_frac",
-      "adamw": 0.5089999914169312,
-      "adamw_sd": 0.05661271451786204,
-      "sradam": 0.5162000119686126,
-      "sradam_sd": 0.054774086393409714,
-      "paired_diff": 0.007200020551681452,
-      "win_sradam": true
+      "adamw": 0.5328000068664551,
+      "adamw_sd": 0.05330760326056746,
+      "sradam": 0.5337999999523163,
+      "sradam_sd": 0.05335448482150213,
+      "paired_diff": 0.0009999930858611839,
+      "win_sradam": true,
+      "lr_adamw": 0.001,
+      "lr_sradam": 0.001
     },
     {
       "dataset": "PubMed",
@@ -1229,12 +1238,14 @@
       "label_noise": 0.0,
       "status": "ok",
       "metric": "acc_frac",
-      "adamw": 0.7621999979019165,
-      "adamw_sd": 0.003962321931504344,
-      "sradam": 0.7627999901771545,
-      "sradam_sd": 0.0026833003388290265,
-      "paired_diff": 0.0005999922752379927,
-      "win_sradam": true
+      "adamw": 0.7657999873161316,
+      "adamw_sd": 0.0034205310290104174,
+      "sradam": 0.7661999940872193,
+      "sradam_sd": 0.0044384634342283695,
+      "paired_diff": 0.0004000067710876465,
+      "win_sradam": true,
+      "lr_adamw": 0.003,
+      "lr_sradam": 0.003
     },
     {
       "dataset": "PubMed",
@@ -1245,12 +1256,14 @@
       "label_noise": 0.3,
       "status": "ok",
       "metric": "acc_frac",
-      "adamw": 0.6629999995231628,
-      "adamw_sd": 0.06721978520971392,
-      "sradam": 0.6615999937057495,
-      "sradam_sd": 0.06537048319827674,
-      "paired_diff": -0.0014000058174132857,
-      "win_sradam": false
+      "adamw": 0.6840000033378602,
+      "adamw_sd": 0.06265381082557786,
+      "sradam": 0.6852000117301941,
+      "sradam_sd": 0.06389601610910407,
+      "paired_diff": 0.0012000083923339178,
+      "win_sradam": true,
+      "lr_adamw": 0.003,
+      "lr_sradam": 0.003
     }
   ]
 }
