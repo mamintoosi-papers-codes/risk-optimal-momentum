@@ -155,6 +155,21 @@ class SRAdam(Optimizer):
         The default, True, is the variant the convergence theorem covers.
     track_stats : bool
         Record per-block diagnostics for the most recent step.
+    var_window : {"beta1", "matched"}
+        Which exponential window feeds the variance statistic
+        `s2 = [vhat - m^2]^+ / (1 - phi_t)`.
+
+        * "beta1" (default): the paper's Theorem 7 exactly as written.  The
+          subtracted moment uses the first-moment recursion (beta1, about 10
+          steps of memory) while `vhat` uses beta2 (about 1000 steps), so the
+          two terms average over very different horizons and a drifting
+          gradient mean inflates the statistic (diagnostic item a5).
+        * "matched": maintain a separate first moment for the variance
+          statistic that uses **beta2** as well, so both terms remember the
+          same horizon; the debiasing factor becomes `1 - phi_t(beta2)`.
+          The search direction still uses the beta1 moment, so only the
+          variance estimate changes.  This is the "matched windows" variant
+          a5 asks for; it costs one extra buffer per parameter.
 
     Notes
     -----
@@ -179,6 +194,7 @@ class SRAdam(Optimizer):
         track_stats: bool = False,
         grouping: str = "block",
         k_min: float = 0.0,
+        var_window: str = "beta1",
     ):
         if lr <= 0.0:
             raise ValueError(f"lr must be positive, got {lr}")
@@ -196,6 +212,8 @@ class SRAdam(Optimizer):
             raise ValueError(f"grouping must be block|filter|channel, got {grouping}")
         if not 0.0 <= k_min <= 1.0:
             raise ValueError(f"k_min must lie in [0,1], got {k_min}")
+        if var_window not in ("beta1", "matched"):
+            raise ValueError(f"var_window must be 'beta1' or 'matched', got {var_window}")
         defaults = dict(
             lr=lr,
             betas=betas,
@@ -209,6 +227,7 @@ class SRAdam(Optimizer):
             amsgrad=amsgrad,
             grouping=grouping,
             k_min=k_min,
+            var_window=var_window,
         )
         super().__init__(params, defaults)
         self.shrink_filter = shrink_filter
@@ -239,6 +258,7 @@ class SRAdam(Optimizer):
             amsgrad = group["amsgrad"]
             grouping = group.get("grouping", "block")
             k_min = group.get("k_min", 0.0)
+            var_window = group.get("var_window", "beta1")
 
             for p in group["params"]:
                 if p.grad is None:
@@ -254,6 +274,9 @@ class SRAdam(Optimizer):
                     state["vbar"] = torch.zeros_like(p)
                     if amsgrad:
                         state["vmax"] = torch.zeros_like(p)
+                    if group.get("var_window", "beta1") == "matched":
+                        # first moment on the beta2 horizon, variance statistic only
+                        state["mbar_var"] = torch.zeros_like(p)
 
                 mbar, vbar = state["mbar"], state["vbar"]
                 s = state["step"]          # completed updates, equal to t-1
@@ -286,8 +309,15 @@ class SRAdam(Optimizer):
 
                     use_stein = (s >= warmup) and self._eligible(p)
                     if use_stein:
-                        corr = ema_variance_correction(s, beta1)
-                        s2 = (v_prev - m_prev * m_prev).clamp(min=0.0).div_(corr)
+                        if var_window == "matched":
+                            # both terms over the beta2 horizon (diagnostic a5)
+                            bc2m = 1.0 - beta2 ** s
+                            m_var = state["mbar_var"] / bc2m
+                            corr = ema_variance_correction(s, beta2)
+                            s2 = (v_prev - m_var * m_var).clamp(min=0.0).div_(corr)
+                        else:
+                            corr = ema_variance_correction(s, beta1)
+                            s2 = (v_prev - m_prev * m_prev).clamp(min=0.0).div_(corr)
                         if omega > 0.0:
                             pooled = s2.mean() * omega
                             s2.mul_(1.0 - omega).add_(pooled)
@@ -327,6 +357,8 @@ class SRAdam(Optimizer):
                 # ---- raw-moment updates ----------------------------------------------
                 mbar.mul_(beta1).add_(g, alpha=1.0 - beta1)
                 vbar.mul_(beta2).addcmul_(g, g, value=1.0 - beta2)
+                if "mbar_var" in state:
+                    state["mbar_var"].mul_(beta2).add_(g, alpha=1.0 - beta2)
                 state["step"] = t
 
                 # ---- preconditioner ---------------------------------------------------

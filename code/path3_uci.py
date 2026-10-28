@@ -55,14 +55,25 @@ OPTS = ["sgdm", "adamw", "amsgrad", "sradam"]
 LABEL = {"sgdm": "SGD-M", "adamw": "AdamW", "amsgrad": "AMSGrad", "sradam": "SR-Adam"}
 
 
-def build(name, params, lr):
+def build(name, params, lr, wd=0.0, beta1=None, track_stats=False):
+    """Build the optimiser.
+
+    wd          weight decay applied to every arm (Phase C control, default 0
+                reproduces the previous behaviour exactly);
+    beta1       first-moment decay for SR-Adam (`betas=(beta1, 0.999)`), None
+                keeps the default 0.9;
+    track_stats record per-block gate/weight diagnostics for SR-Adam.
+    """
     if name == "sgdm":
-        return torch.optim.SGD(params, lr=lr, momentum=0.9)
+        return torch.optim.SGD(params, lr=lr, momentum=0.9, weight_decay=wd)
     if name == "adamw":
-        return torch.optim.AdamW(params, lr=lr, weight_decay=0.0)
+        return torch.optim.AdamW(params, lr=lr, weight_decay=wd)
     if name == "amsgrad":
-        return torch.optim.AdamW(params, lr=lr, weight_decay=0.0, amsgrad=True)
-    return SRAdam(params, lr=lr, warmup=5)
+        return torch.optim.AdamW(params, lr=lr, weight_decay=wd, amsgrad=True)
+    kw = dict(warmup=5, weight_decay=wd, track_stats=track_stats)
+    if beta1 is not None:
+        kw["betas"] = (beta1, 0.999)
+    return SRAdam(params, lr=lr, **kw)
 
 
 def load_xy(name: str):

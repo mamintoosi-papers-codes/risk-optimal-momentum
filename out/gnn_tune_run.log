@@ -1,0 +1,40 @@
+Loading Cora from C:\git\mamintoosi-papers-codes\risk-optimal-momentum\data\Cora
+Data(x=[2708, 1433], edge_index=[2, 10556], y=[2708], train_mask=[2708], val_mask=[2708], test_mask=[2708])
+  [tune] adamw    -> {'lr': 0.001, 'beta1': None, 'wd': None}  score=0.7759999930858612
+  [tune] sradam   -> {'lr': 0.001, 'beta1': None, 'wd': None}  score=0.7750000059604645
+  [tune] wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\gnn_cora_tune.json
+  [tune] lrs: {'adamw': 0.001, 'sradam': 0.001}
+label_noise=0.0  AdamW=0.786±0.014  SR-Adam=0.789±0.015  Δ=+0.004  win=True
+  test agreement (seed1): {'both_same': 983, 'adam_only_correct': 4, 'sradam_only_correct': 12, 'both_wrong': 1, 'n_test': 1000}
+label_noise=0.3  AdamW=0.687±0.022  SR-Adam=0.689±0.023  Δ=+0.002  win=True
+label_noise=0.5  AdamW=0.605±0.036  SR-Adam=0.609±0.036  Δ=+0.004  win=True
+
+3/3 label-noise settings: SR-Adam higher test acc
+wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\gnn_pilot_cora.json
+elapsed 85.9s
+COR A_EXIT=0
+
+=== CiteSeer ===
+Data(x=[3327, 3703], edge_index=[2, 9104], y=[3327], train_mask=[3327], val_mask=[3327], test_mask=[3327])
+  [tune] adamw    -> {'lr': 0.001, 'beta1': None, 'wd': None}  score=0.6500000059604645
+  [tune] sradam   -> {'lr': 0.001, 'beta1': None, 'wd': None}  score=0.6450000107288361
+  [tune] wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\gnn_citeseer_tune.json
+  [tune] lrs: {'adamw': 0.001, 'sradam': 0.001}
+noise=0.0  AdamW=0.656±0.009  SR=0.656±0.014  Δ=-0.000  win=False
+  agreement: {'both_same': 982, 'adam_only_correct': 8, 'sradam_only_correct': 7, 'n_test': 1000}
+noise=0.3  AdamW=0.515±0.055  SR=0.517±0.050  Δ=+0.002  win=True
+
+=== PubMed ===
+Data(x=[19717, 500], edge_index=[2, 88648], y=[19717], train_mask=[19717], val_mask=[19717], test_mask=[19717])
+  [tune] adamw    -> {'lr': 0.003, 'beta1': None, 'wd': None}  score=0.7720000147819519
+  [tune] sradam   -> {'lr': 0.003, 'beta1': None, 'wd': None}  score=0.7740000188350677
+  [tune] wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\gnn_pubmed_tune.json
+  [tune] lrs: {'adamw': 0.003, 'sradam': 0.003}
+noise=0.0  AdamW=0.761±0.001  SR=0.763±0.002  Δ=+0.002  win=True
+  agreement: {'both_same': 991, 'adam_only_correct': 3, 'sradam_only_correct': 6, 'n_test': 1000}
+noise=0.3  AdamW=0.656±0.033  SR=0.656±0.035  Δ=+0.000  win=True
+
+3/4 cells: SR-Adam higher test acc
+wrote C:\git\mamintoosi-papers-codes\risk-optimal-momentum\out\gnn_pilot_planetoid.json
+elapsed 356.0s
+PLANET_EXIT=0

@@ -1,0 +1,106 @@
+@echo off
+setlocal
+rem =====================================================================
+rem Phase E - manuscript-facing checks (TODO section E)
+rem   E1  tables are generated, never hand-edited (checks provenance comments)
+rem   E2  torerun audit - must find only the comment (line 43) and the
+rem       \newcommand definition (line 47); any hit in the body fails
+rem   E3  full PDF build: pdflatex + bibtex + pdflatex x2
+rem
+rem Usage:
+rem   scripts\phaseE.bat                 all checks + build
+rem   scripts\phaseE.bat check           checks only (no LaTeX)
+rem   scripts\phaseE.bat full "C:\path\to\python.exe"
+rem
+rem pdflatex/bibtex come from your TeX distribution; if they are not on PATH
+rem the build step is reported as SKIPPED (install MiKTeX/TeX Live or run it
+rem from your LaTeX shell).
+rem =====================================================================
+set PY=C:\programs\anaconda3\envs\pth\python.exe
+set MODE=%1
+if "%MODE%"=="" set MODE=full
+if not "%~2"=="" set PY=%~2
+
+pushd "%~dp0.."
+
+echo [E1] tab_*.tex provenance
+for %%F in (tab_regression tab_classification tab_noise) do (
+    if not exist "paper\%%F.tex" (
+        echo   MISSING paper\%%F.tex  - run scripts\phaseD.bat first
+        goto fail
+    )
+    findstr /b /c:"%% Auto-generated" "paper\%%F.tex" >nul 2>&1
+    if errorlevel 1 (
+        echo   WARNING paper\%%F.tex does not carry the auto-generated header
+    ) else (
+        echo   OK paper\%%F.tex is generated
+    )
+)
+
+echo [E2] torerun audit in paper\sn-article.tex
+set FOUND=0
+for /f "tokens=1,* delims=:" %%A in ('findstr /n "torerun" "paper\sn-article.tex"') do (
+    echo   line %%A: %%B
+    set FOUND=1
+)
+rem Only lines 43 (comment) and 47 (definition) are acceptable.  Body usage
+rem would appear as a line containing \torerun{ that is neither of them.
+findstr "\\torerun{" "paper\sn-article.tex" >nul 2>&1
+if not errorlevel 1 (
+    echo   FAIL - \torerun{...} placeholder found in the body; remove it or fill it
+    goto fail
+)
+echo   OK - no \torerun{...} placeholder in the body
+
+echo [E2b] figure freshness - figs\*.pdf vs paper\*.pdf
+rem LaTeX \includegraphics resolves relative to paper\, so a figure that the
+rem drivers regenerate into figs\ but is never mirrored keeps the old drawing
+rem in the manuscript.  This happened to sim_noise_levels.pdf after the
+rem 18 Oct tuned re-run; path4_dim_sweep.pdf left this list on 21 Oct when
+rem the figure was dropped from the manuscript (both step-size protocols
+rem are printed as tables in section 9.3.2).
+for %%F in (sim_risk_snr sim_variance_bias sim_effective_dimension sim_heavy_tails sim_noise_levels sim_batch_size) do (
+    if exist "figs\%%F.pdf" if exist "paper\%%F.pdf" (
+        fc /b "figs\%%F.pdf" "paper\%%F.pdf" >nul 2>&1
+        if errorlevel 1 (
+            echo   FAIL paper\%%F.pdf is stale - copy figs\%%F.pdf over it
+            goto fail
+        )
+    )
+)
+echo   OK - figures in paper\ match figs\
+
+if /i "%MODE%"=="check" goto checked
+
+echo [E3] PDF build
+where pdflatex >nul 2>&1
+if errorlevel 1 (
+    echo   SKIPPED - pdflatex not on PATH
+    goto checked
+)
+pushd paper
+pdflatex -interaction=nonstopmode sn-article.tex > pdflatex1.log 2>&1
+if errorlevel 1 goto failtex
+bibtex sn-article > bibtex.log 2>&1
+pdflatex -interaction=nonstopmode sn-article.tex > pdflatex2.log 2>&1
+pdflatex -interaction=nonstopmode sn-article.tex > pdflatex3.log 2>&1
+if errorlevel 1 goto failtex
+popd
+echo   built paper\sn-article.pdf
+
+:checked
+popd
+echo.
+echo PHASE E OK
+exit /b 0
+
+:failtex
+echo   LaTeX FAILED - see paper\pdflatex1.log / bibtex.log
+popd
+goto fail2
+:fail
+set ERR=1
+:fail2
+popd
+echo PHASE E FAILED
+exit /b 1

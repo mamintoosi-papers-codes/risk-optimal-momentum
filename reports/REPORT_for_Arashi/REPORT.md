@@ -1,6 +1,8 @@
 # Empirical report and manuscript alignment notes
 ## For Prof. M. Arashi — SR-Adam revision
 
+> **Superseded (18 Oct 2026).** The counts and claims in this report date from 22 Sep 2026, before the tuned re-run of phases C and D. Headline figures such as “23/24”, “16/19” and “advantage grows with p” no longer match `out/*.json`. The current status report is [`REPORT_diagnostic_response_2026-10-18.md`](./REPORT_diagnostic_response_2026-10-18.md); this file is kept only as historical context.
+
 **To:** Prof. M. Arashi  
 **From:** Experimental review (with M. Amintoosi)  
 **Date:** 22 September 2026  

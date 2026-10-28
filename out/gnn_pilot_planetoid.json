@@ -1,71 +1,89 @@
 {
   "meta": {
-    "created": "2026-09-22 13:35:55",
-    "seconds": 229.89274859428406,
+    "created": "2026-10-20 20:25:21",
+    "seconds": 356.0099561214447,
     "seeds": 3,
     "epochs": 120,
+    "tuned_lrs": {
+      "CiteSeer": {
+        "adamw": 0.001,
+        "sradam": 0.001
+      },
+      "PubMed": {
+        "adamw": 0.003,
+        "sradam": 0.003
+      }
+    },
     "note": "positive \u0394 = higher test acc for SR-Adam"
   },
   "rows": [
     {
-      "adamw": 0.6343333522478739,
-      "adamw_sd": 0.010116001180376828,
-      "sradam": 0.6413333415985107,
-      "sradam_sd": 0.011150466067881478,
-      "paired_diff": 0.0069999893506368,
-      "win_sradam": true,
+      "adamw": 0.655999998251597,
+      "adamw_sd": 0.008544015828117726,
+      "sradam": 0.655999998251597,
+      "sradam_sd": 0.013892436747198998,
+      "paired_diff": -0.0,
+      "win_sradam": false,
       "dataset": "CiteSeer",
       "task": "node_classification",
       "epochs": 120,
       "label_noise": 0.0,
+      "lr_adamw": 0.001,
+      "lr_sradam": 0.001,
       "agreement": {
-        "both_same": 956,
-        "adam_only_correct": 10,
-        "sradam_only_correct": 18,
+        "both_same": 982,
+        "adam_only_correct": 8,
+        "sradam_only_correct": 7,
         "n_test": 1000
       }
     },
     {
-      "adamw": 0.4893333315849304,
-      "adamw_sd": 0.050718179147594404,
-      "sradam": 0.49433334668477374,
-      "sradam_sd": 0.05635897530742927,
-      "paired_diff": 0.005000015099843343,
+      "adamw": 0.5146666665871938,
+      "adamw_sd": 0.05518454380261369,
+      "sradam": 0.5170000096162161,
+      "sradam_sd": 0.05020957563876502,
+      "paired_diff": 0.002333343029022217,
       "win_sradam": true,
       "dataset": "CiteSeer",
       "task": "node_classification",
       "epochs": 120,
-      "label_noise": 0.3
+      "label_noise": 0.3,
+      "lr_adamw": 0.001,
+      "lr_sradam": 0.001
     },
     {
-      "adamw": 0.7606666684150696,
-      "adamw_sd": 0.008020793425903417,
-      "sradam": 0.762666662534078,
-      "sradam_sd": 0.0107857776809791,
-      "paired_diff": 0.0019999941190083823,
+      "adamw": 0.7613333463668823,
+      "adamw_sd": 0.0011547200848256286,
+      "sradam": 0.7629999915758768,
+      "sradam_sd": 0.0020000040531898593,
+      "paired_diff": 0.0016666452089945476,
       "win_sradam": true,
       "dataset": "PubMed",
       "task": "node_classification",
       "epochs": 120,
       "label_noise": 0.0,
+      "lr_adamw": 0.003,
+      "lr_sradam": 0.003,
       "agreement": {
-        "both_same": 992,
+        "both_same": 991,
         "adam_only_correct": 3,
-        "sradam_only_correct": 5,
+        "sradam_only_correct": 6,
         "n_test": 1000
       }
     },
     {
-      "adamw": 0.6289999882380167,
-      "adamw_sd": 0.05574943269347079,
-      "sradam": 0.6290000081062317,
-      "sradam_sd": 0.05505451226724337,
-      "paired_diff": 1.9868214925130207e-08,
+      "adamw": 0.655999998251597,
+      "adamw_sd": 0.032695583853745915,
+      "sradam": 0.656333347161611,
+      "sradam_sd": 0.034674661880496095,
+      "paired_diff": 0.00033334891001383465,
       "win_sradam": true,
       "dataset": "PubMed",
       "task": "node_classification",
       "epochs": 120,
-      "label_noise": 0.3
+      "label_noise": 0.3,
+      "lr_adamw": 0.003,
+      "lr_sradam": 0.003
     }
   ]
 }

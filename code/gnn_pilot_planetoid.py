@@ -20,7 +20,8 @@ import numpy as np
 import torch
 from torch_geometric.datasets import Planetoid
 
-from gnn_pilot import GCN, build_opt, paired_summary
+from gnn_pilot import GCN, build_opt, paired_summary, tune_lrs
+from tune_helper import add_tuning_args
 
 HERE = Path(__file__).resolve().parent
 DATA_ROOT = HERE.parent / "data"
@@ -48,8 +49,9 @@ def run_once(data, opt_name, seed, epochs=120, lr=0.01, label_noise=0.0, hid=16)
     model.eval()
     with torch.no_grad():
         pred = model(data).argmax(1)
+        acc_val = (pred[data.val_mask] == data.y[data.val_mask]).float().mean().item()
         acc_te = (pred[data.test_mask] == data.y[data.test_mask]).float().mean().item()
-    return acc_te, pred
+    return acc_val, acc_te, pred
 
 
 def main():
@@ -57,9 +59,11 @@ def main():
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--epochs", type=int, default=120)
     ap.add_argument("--names", nargs="+", default=["CiteSeer", "PubMed"])
+    add_tuning_args(ap)
     args = ap.parse_args()
 
     rows = []
+    tuned = {}
     t0 = time.time()
     for name in args.names:
         print(f"\n=== {name} ===", flush=True)
@@ -68,19 +72,27 @@ def main():
         data = dataset[0]
         print(data, flush=True)
 
+        lrs = tune_lrs(lambda o, lr, s: run_once(data, o, s, epochs=args.epochs,
+                                                 lr=lr)[0],
+                       args, f"gnn_{name.lower()}")
+        tuned[name] = lrs
+        print("  [tune] lrs:", lrs, flush=True)
+
         for noise in (0.0, 0.3):
             per_te = {"adamw": [], "sradam": []}
             preds = {}
             for seed in range(1, args.seeds + 1):
                 for o in ("adamw", "sradam"):
-                    acc_te, pred = run_once(
-                        data, o, seed, epochs=args.epochs, label_noise=noise)
+                    acc_val, acc_te, pred = run_once(
+                        data, o, seed, epochs=args.epochs, label_noise=noise,
+                        lr=lrs[o])
                     per_te[o].append(acc_te)
                     if seed == 1:
                         preds[o] = pred
             rec = paired_summary(per_te)
             rec.update(dataset=name, task="node_classification",
-                       epochs=args.epochs, label_noise=noise)
+                       epochs=args.epochs, label_noise=noise,
+                       lr_adamw=lrs["adamw"], lr_sradam=lrs["sradam"])
             rows.append(rec)
             print(f"noise={noise:.1f}  AdamW={rec['adamw']:.3f}±{rec['adamw_sd']:.3f}  "
                   f"SR={rec['sradam']:.3f}±{rec['sradam_sd']:.3f}  "
@@ -99,6 +111,7 @@ def main():
     payload = dict(
         meta=dict(created=time.strftime("%Y-%m-%d %H:%M:%S"),
                   seconds=time.time() - t0, seeds=args.seeds, epochs=args.epochs,
+                  tuned_lrs=tuned,
                   note="positive Δ = higher test acc for SR-Adam"),
         rows=rows,
     )
