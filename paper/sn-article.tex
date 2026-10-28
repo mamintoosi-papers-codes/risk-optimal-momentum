@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Risk-Optimal Momentum Weights for Stochastic Gradient Estimation  %%
-%% in High Dimensions   -- revised 24 Oct 2026, changes in blue      %%
+%% in High Dimensions   -- revision 28 Oct 2026                     %%
 %%                                                                   %%
 %% Springer Nature LaTeX template, sn-jnl.cls                        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -37,12 +37,11 @@
 \newtheorem{definition}{Definition}%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% REVISION MARKUP.  \rev{...} and the revblock environment print     %%
-%% revised text in blue.  For the submission version, redefine both   %%
-%% to do nothing:  \renewcommand{\rev}[1]{#1} and an empty revblock.  %%
+%% REVISION MARKUP. The wrappers are intentionally inactive in this
+%% working/submission version so all manuscript text prints in black.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newcommand{\rev}[1]{#1} %{{\color{blue}#1}}
-\newenvironment{revblock}{\color{blue}}{}
+\newcommand{\rev}[1]{#1}
+\newenvironment{revblock}{}{}
 
 \newcommand{\peff}{p_{\mathrm{eff}}}
 \newcommand{\peffq}[1]{p_{\mathrm{eff}}(#1)}
