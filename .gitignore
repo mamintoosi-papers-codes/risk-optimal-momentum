@@ -31,6 +31,8 @@ paper/*.blg
 els-paper/*.aux
 els-paper/*.log
 els-paper/*.out
+els-paper/*.abs
+els-paper/*.loa
 els-paper/*.synctex.gz
 els-paper/*.fls
 els-paper/*.fdb_latexmk

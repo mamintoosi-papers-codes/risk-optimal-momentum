@@ -2,16 +2,17 @@
 %% Risk-Optimal Momentum Weights for Stochastic Gradient Estimation  %%
 %% in High Dimensions   -- converted to the Elsevier CAS template   %%
 %%                                                                   %%
-%% Elsevier CAS bundle v2.4, single-column class: cas-sc.cls         %%
+%% Elsevier CAS bundle v2.4, double-column class: cas-dc.cls
+%% (Neural Networks: "Double-column formatting is only permitted for
+%%  LaTeX submissions."  For a one-column layout use cas-sc.cls instead.)         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\documentclass[a4paper,fleqn]{cas-sc}
+\documentclass[a4paper,fleqn]{cas-dc}
 
-%% Numbered references (as in the previous version of the manuscript).
-%% To switch to author-year, use:
-%%   \usepackage[authoryear]{natbib}
-%%   \bibliographystyle{cas-model2-names}
-\usepackage[numbers]{natbib}
+%% Neural Networks follows the APA referencing style, i.e. author-year.
+%% (For numbered references use: \usepackage[numbers]{natbib} together with
+%%  \bibliographystyle{cas-model2-names}.)
+\usepackage[authoryear,longnamesfirst]{natbib}
 
 \usepackage{amsthm}
 \usepackage{mathrsfs}
@@ -20,6 +21,9 @@
 \usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
+\floatstyle{ruled}
+\newfloat{algorithm*}{tbp}{loa}
+\floatname{algorithm*}{Algorithm}
 \usepackage{bm}
 
 \theoremstyle{plain}
@@ -64,8 +68,12 @@
 \author[1]{Mohammad Arashi}
 \cormark[1]
 \ead{arashi@um.ac.ir}
-% \credit{Conceptualization; Methodology; Software; Writing - original draft}
-%        %% fill in the CRediT terms before submission; uncomment \printcredits below
+%% CRediT authorship contribution statement (required at submission).
+%% Pick from: Conceptualization; Methodology; Software; Validation; Formal analysis;
+%% Investigation; Resources; Data curation; Writing - original draft;
+%% Writing - review and editing; Visualization; Supervision; Project administration;
+%% Funding acquisition.  Then uncomment \printcredits below.
+% \credit{Conceptualization; Methodology; Software; Formal analysis; Investigation; Writing - original draft}
 
 \affiliation[1]{organization={Department of Statistics, Faculty of Mathematical Sciences},
             addressline={P.O. Box 1159},
@@ -75,7 +83,7 @@
 
 \author[2]{Mahmood Amintoosi}
 \ead{m.amintoosi@um.ac.ir}
-% \credit{Supervision; Writing - review and editing}
+% \credit{Conceptualization; Supervision; Writing - review and editing; Project administration}
 
 \affiliation[2]{organization={Department of Computer Science, Faculty of Mathematical Sciences},
             addressline={P.O. Box 1159},
@@ -110,9 +118,9 @@ Stein-rule estimation \sep Stochastic gradient methods \sep Shrinkage \sep Decis
 \section{Introduction}
 \label{sec:introduction}
 
-The inadmissibility of the sample mean in three or more dimensions is one of the organising results of statistical decision theory. Stein \cite{stein1956} and James and Stein \cite{james1961} showed that the usual estimator of a multivariate normal mean is dominated under quadratic loss once the dimension reaches three, and the estimators that dominate it trade a small bias for a larger reduction in variance. Sixty years of subsequent work has mapped the boundaries of that phenomenon, from the minimax families of Baranchik \cite{baranchik1970} and Bock \cite{bock1975} through the unbiased risk estimate of Stein \cite{stein1981} to the spherically symmetric theory of Strawderman \cite{strawderman1974}, Brandwein and Strawderman \cite{brandwein1990, brandwein2012} and Cellier and Fourdrinier \cite{cellier1995, cellier1995b}, and the modern accounts of Berger \cite{berger1985}, Lehmann and Casella \cite{lehmann1998}, Fourdrinier, Strawderman and Wells \cite{fourdrinier2018} and Saleh \cite{saleh2006}. The empirical Bayes reading of the phenomenon due to Efron and Morris \cite{efronmorris1973, efronmorris1976, efron2012} is the one closest in spirit to what follows, since the weight the rule selects is an estimate of a posterior shrinkage factor. Related ideas drive thresholding in sparse settings \cite{donoho1994}, covariance regularisation \cite{ledoit2004} and penalised regression \cite{saleh2019}.
+The inadmissibility of the sample mean in three or more dimensions is one of the organising results of statistical decision theory. \citet{stein1956} and \citet{james1961} showed that the usual estimator of a multivariate normal mean is dominated under quadratic loss once the dimension reaches three, and the estimators that dominate it trade a small bias for a larger reduction in variance. Sixty years of subsequent work has mapped the boundaries of that phenomenon, from the minimax families of \citet{baranchik1970} and \citet{bock1975} through the unbiased risk estimate of \citet{stein1981} to the spherically symmetric theory of \citet{strawderman1974}, \citet{brandwein1990,brandwein2012} and \citet{cellier1995,cellier1995b}, and the modern accounts of \citet{berger1985}, \citet{lehmann1998}, \citet{fourdrinier2018} and \citet{saleh2006}. The empirical Bayes reading of the phenomenon due to \citet{efronmorris1973,efronmorris1976,efron2012} is the one closest in spirit to what follows, since the weight the rule selects is an estimate of a posterior shrinkage factor. Related ideas drive thresholding in sparse settings \citep{donoho1994}, covariance regularisation \citep{ledoit2004} and penalised regression \citep{saleh2019}.
 
-Training a modern neural network is a high-dimensional estimation problem of exactly this shape, repeated many times. At each iteration the optimiser observes a mini-batch gradient, treats it as a noisy reading of the population gradient, and forms a search direction. The dominant methods build that direction by exponential averaging. Momentum \cite{polyak1964, sutskever2013} averages past gradients; AdaGrad \cite{duchi2011}, RMSProp \cite{tieleman2012} and Adam \cite{kingma2015} add a coordinatewise rescaling driven by a second moment. These constructions are justified by optimisation arguments rather than by statistical risk, and the averaging weight is a hyperparameter chosen once and held fixed for the whole run.
+Training a modern neural network is a high-dimensional estimation problem of exactly this shape, repeated many times. At each iteration the optimiser observes a mini-batch gradient, treats it as a noisy reading of the population gradient, and forms a search direction. The dominant methods build that direction by exponential averaging. Momentum \citep{polyak1964, sutskever2013} averages past gradients; AdaGrad \citep{duchi2011}, RMSProp \citep{tieleman2012} and Adam \citep{kingma2015} add a coordinatewise rescaling driven by a second moment. These constructions are justified by optimisation arguments rather than by statistical risk, and the averaging weight is a hyperparameter chosen once and held fixed for the whole run.
 
 That last point is the opening this paper works through. Writing $\hat{\bm m}_t$ for the bias-corrected first moment that Adam maintains, an elementary identity, recorded as Lemma \ref{lem:adam_identity} below, gives
 \begin{equation}
@@ -132,7 +140,7 @@ The highlights of our contribution are as follows.
 
 \item The search direction of an adaptive gradient method is a shrinkage estimator whose weight is fixed by a hyperparameter, and we replace that weight by the one minimising conditional quadratic risk.
 
-\item One dominance theorem covers heteroscedastic noise, a scale matrix estimated from the past and an arbitrary diagonal loss weighting together\rev{, stated conditionally on the past; it is the diagonal case of the general-covariance, general-quadratic-loss dominance results of Bock \cite{bock1975} and Berger \cite{berger1976jmva}, put in the form the optimiser needs.}
+\item One dominance theorem covers heteroscedastic noise, a scale matrix estimated from the past and an arbitrary diagonal loss weighting together\rev{, stated conditionally on the past; it is the diagonal case of the general-covariance, general-quadratic-loss dominance results of \citet{bock1975} and \citet{berger1976jmva}, put in the form the optimiser needs.}
 
 \item The loss weighting, not the covariance, decides which dimension bounds the admissible shrinkage constant, the nominal parameter count under the standardised loss and a smaller effective dimension otherwise\rev{, including under the metric induced by the optimiser's own preconditioner, for which we give the window in closed form.}
 
@@ -148,13 +156,13 @@ Every constant claimed above is confirmed numerically in Section \ref{sec:simula
 
 \subsection{Relation to earlier work}
 
-Stochastic approximation begins with Robbins and Monro \cite{robbins1951}, and the modern non-convex theory is set out by Nemirovski and coauthors \cite{nemirovski2009}, Ghadimi and Lan \cite{ghadimi2013} and Bottou, Curtis and Nocedal \cite{bottou2018}, with the dynamical-systems treatment of Borkar \cite{borkar2008} and Kushner and Yin \cite{kushner2003} supplying the almost sure route. Variance reduction in stochastic optimisation is usually pursued through control variates that exploit finite-sum structure, as in the methods of Johnson and Zhang \cite{johnson2013} and Defazio, Bach and Lacoste-Julien \cite{defazio2014}. Those methods reduce variance without introducing bias and require periodic full-gradient evaluations. The route taken here is different in kind, since it accepts bias in exchange for a larger variance reduction and needs nothing beyond the moments an adaptive optimiser already stores.
+Stochastic approximation begins with \citet{robbins1951}, and the modern non-convex theory is set out by \citet{nemirovski2009}, \citet{ghadimi2013} and \citet{bottou2018}, with the dynamical-systems treatment of \citet{borkar2008} and \citet{kushner2003} supplying the almost sure route. Variance reduction in stochastic optimisation is usually pursued through control variates that exploit finite-sum structure, as in the methods of \citet{johnson2013} and \citet{defazio2014}. Those methods reduce variance without introducing bias and require periodic full-gradient evaluations. The route taken here is different in kind, since it accepts bias in exchange for a larger variance reduction and needs nothing beyond the moments an adaptive optimiser already stores.
 
-On the analysis side, convergence guarantees for Adam-type methods have been established under bounded-gradient conditions by Reddi, Kale and Kumar \cite{reddi2018}, Chen, Liu, Sun and Hong \cite{chen2019}, Zaheer and coauthors \cite{zaheer2018}, Barakat and Bianchi \cite{barakat2021}, and D\'efossez and coauthors \cite{defossez2022}. These analyses use assumptions and update structures that differ from the deliberately biased direction studied here, so their arguments do not transfer directly; Section \ref{sec:convergence} supplies a biased-stochastic-approximation analysis instead.
+On the analysis side, convergence guarantees for Adam-type methods have been established under bounded-gradient conditions by \citet{reddi2018}, \citet*{chen2019}, \citet{zaheer2018}, \citet{barakat2021}, and \citet{defossez2022}. These analyses use assumptions and update structures that differ from the deliberately biased direction studied here, so their arguments do not transfer directly; Section \ref{sec:convergence} supplies a biased-stochastic-approximation analysis instead.
 
-Recent papers in neural networks study neighbouring optimizer-design questions from complementary perspectives. Liang, Liu and Xu establish convergence rates for stochastic heavy-ball and Nesterov methods under a Polyak--Łojasiewicz condition without bounded-gradient assumptions \cite{liang2023momentum}. Sun et al. analyse AdaSAM, which combines sharpness-aware perturbations with adaptive learning rates and momentum \cite{sun2024adasam}; Zhou, Zhang and Chen develop an adaptive preconditioned gradient method with momentum and a hybrid transition to SGD \cite{zhou2026adapgradm}. These works primarily develop momentum schemes and their optimisation guarantees. Our focus is different: we treat the direction itself as a shrinkage estimator, derive conditional quadratic-risk dominance under explicit loss and noise assumptions, and analyse the variance estimate required to implement the rule. The empirical evidence below is deliberately qualified: improved estimation risk does not imply uniform optimisation gains, and the tested tasks do not establish performance on large-scale deep-network training.
+Recent papers in neural networks study neighbouring optimizer-design questions from complementary perspectives. Liang, Liu and Xu establish convergence rates for stochastic heavy-ball and Nesterov methods under a Polyak--Łojasiewicz condition without bounded-gradient assumptions \citep{liang2023momentum}. Sun et al. analyse AdaSAM, which combines sharpness-aware perturbations with adaptive learning rates and momentum \citep{sun2024adasam}; Zhou, Zhang and Chen develop an adaptive preconditioned gradient method with momentum and a hybrid transition to SGD \citep{zhou2026adapgradm}. These works primarily develop momentum schemes and their optimisation guarantees. Our focus is different: we treat the direction itself as a shrinkage estimator, derive conditional quadratic-risk dominance under explicit loss and noise assumptions, and analyse the variance estimate required to implement the rule. The empirical evidence below is deliberately qualified: improved estimation risk does not imply uniform optimisation gains, and the tested tasks do not establish performance on large-scale deep-network training.
 
-On the noise side, the Gaussian working model for mini-batch gradients goes back to the diffusion approximations of Mandt, Hoffman and Blei \cite{mandt2017}. Evidence that the noise is heavier tailed than Gaussian has been assembled by Simsekli, Sagun and Gurbuzbalaban \cite{simsekli2019}, Panigrahi and coauthors \cite{panigrahi2019}, Zhang and coauthors \cite{zhang2020attention}, and Gurbuzbalaban, Simsekli and Zhu \cite{gurbuzbalaban2021}, and it is the same evidence that motivates gradient clipping \cite{zhang2020clipping}. Section \ref{sec:elliptical} responds to that evidence by replacing the Gaussian assumption with an elliptical one and tracking what the replacement costs.
+On the noise side, the Gaussian working model for mini-batch gradients goes back to the diffusion approximations of \citet{mandt2017}. Evidence that the noise is heavier tailed than Gaussian has been assembled by \citet{simsekli2019}, \citet{panigrahi2019}, \citet{zhang2020attention}, and \citet{gurbuzbalaban2021}, and it is the same evidence that motivates gradient clipping \citep{zhang2020clipping}. Section \ref{sec:elliptical} responds to that evidence by replacing the Gaussian assumption with an elliptical one and tracking what the replacement costs.
 
 \subsection{Organisation}
 
@@ -184,7 +192,7 @@ The standing assumptions are the following.
 \item[(A5)] Over the window on which the variance estimator of Section \ref{sec:variance} is formed, each coordinate process $\{g_{t,j}\}$ is strictly stationary with finite fourth moment and serially uncorrelated, and the coordinatewise variance estimates satisfy $\sum_{k=1}^{p}\bigl|\Cov(\hat s^2_{t,j},\hat s^2_{t,k})\bigr|\le C$ uniformly in $j$ and $t$.
 \end{itemize}
 
-Assumption (A3) is the working model of the diffusion approximation literature \cite{mandt2017} and is the one under which the classical shrinkage results are stated. It is not a description of deep learning gradient noise, which is heavier tailed \cite{simsekli2019, gurbuzbalaban2021}, and Section \ref{sec:elliptical} is devoted to measuring the gap. Assumption (A4) is the bounded-gradient condition used throughout the convergence analysis of adaptive methods \cite{reddi2018, chen2019, defossez2022}. Assumption (A5) concerns only the sampling behaviour of the variance estimator, and Remark \ref{rem:a5} records what happens when the serial-uncorrelatedness part fails\rev{, while Proposition \ref{prop:drift} records what happens when the stationarity part fails because the gradient mean drifts during training.}
+Assumption (A3) is the working model of the diffusion approximation literature \citep{mandt2017} and is the one under which the classical shrinkage results are stated. It is not a description of deep learning gradient noise, which is heavier tailed \citep{simsekli2019, gurbuzbalaban2021}, and Section \ref{sec:elliptical} is devoted to measuring the gap. Assumption (A4) is the bounded-gradient condition used throughout the convergence analysis of adaptive methods \citep{reddi2018, chen2019, defossez2022}. Assumption (A5) concerns only the sampling behaviour of the variance estimator, and Remark \ref{rem:a5} records what happens when the serial-uncorrelatedness part fails\rev{, while Proposition \ref{prop:drift} records what happens when the stationarity part fails because the gradient mean drifts during training.}
 
 %\begin{revblock}
 Assumptions (A3) and (A4) are not used together. A normal or elliptical noise vector is unbounded, so (A3) and (A3$'$) are incompatible with (A4). The risk theory of Sections \ref{sec:risk} to \ref{sec:variance} uses (A3) or (A3$'$) and never (A4); the convergence analysis of Section \ref{sec:convergence} uses (A4) and never (A3). In particular the convergence guarantee does not cover the Gaussian and Student noise models of the controlled studies in Section \ref{sec:simulation}, which satisfy (A3) or (A3$'$) but not (A4).
@@ -271,7 +279,7 @@ and consequently $\hat{\bm\mu}_c$ dominates $\bm Y$ under $\|\cdot\|^2_{\bm D}$ 
 The right-hand side of \eqref{eq:master_window} is positive if and only if $\tr(\bm D\bm\Sigma)>2\max_{j}d_j\sigma^2_j$.
 \end{theorem}
 
-The identity \eqref{eq:master_identity} is exact and the window \eqref{eq:master_window} is sufficient rather than necessary, a distinction Section \ref{sec:simulation} makes visible by locating the empirical sign change of the risk difference. \rev{Theorem \ref{thm:master} is not new as a dominance result. Bock \cite{bock1975} and Berger \cite{berger1976jmva} treat a general covariance and a general quadratic loss together, and the ratio $\tr(\bm D\bm\Sigma)/\lambda_{\max}(\bm D\bm\Sigma)$ that governs \eqref{eq:master_window} when $\bm A=\bm\Sigma$ is theirs. What the statement adds is the form the optimiser needs: a diagonal scale matrix $\bm A$ that differs from $\bm\Sigma$ and is fixed by conditioning on the past, which is the device that lets an estimated scale enter a risk calculation.} \rev{Five} specialisations carry the argument of the paper.
+The identity \eqref{eq:master_identity} is exact and the window \eqref{eq:master_window} is sufficient rather than necessary, a distinction Section \ref{sec:simulation} makes visible by locating the empirical sign change of the risk difference. \rev{Theorem \ref{thm:master} is not new as a dominance result. \citet{bock1975} and \citet{berger1976jmva} treat a general covariance and a general quadratic loss together, and the ratio $\tr(\bm D\bm\Sigma)/\lambda_{\max}(\bm D\bm\Sigma)$ that governs \eqref{eq:master_window} when $\bm A=\bm\Sigma$ is theirs. What the statement adds is the form the optimiser needs: a diagonal scale matrix $\bm A$ that differs from $\bm\Sigma$ and is fixed by conditioning on the past, which is the device that lets an estimated scale enter a risk calculation.} \rev{Five} specialisations carry the argument of the paper.
 
 \begin{corollary}
 \label{cor:cases}
@@ -299,7 +307,7 @@ The map $q\mapsto\peffq{q}$ is nondecreasing, with $\peffq{0}=\peff$ as in (ii) 
 \end{enumerate}
 \end{corollary}
 
-Part (ii) recovers the effective dimension of Bock \cite{bock1975}, and parts (iii) and (iv) are the operative statements for an adaptive optimiser\rev{ under the standardised loss in which its weight is calibrated, while part (v) describes the metric its preconditioner induces}. Three consequences deserve to be stated plainly.
+Part (ii) recovers the effective dimension of \citet{bock1975}, and parts (iii) and (iv) are the operative statements for an adaptive optimiser\rev{ under the standardised loss in which its weight is calibrated, while part (v) describes the metric its preconditioner induces}. Three consequences deserve to be stated plainly.
 
 First, the loss weighting, not the covariance, decides which dimension governs. Under the unweighted Euclidean loss a block whose gradient noise concentrates in a handful of coordinates has a small effective dimension however many parameters it holds, and the admissible constant collapses with it. Under the loss standardised by the noise scale the nominal dimension returns, because standardising makes the problem spherical.
 
@@ -348,7 +356,7 @@ Let $\bm A=\bm\Sigma$ and let the loss be the standardised one, $\bm D=\bm\Sigma
 with strict inequality whenever $\mathbb P(Q<c)>0$. The same conclusion holds when the normal law of $\bm Y$ is replaced by any scale mixture of normal laws with the same location and scale structure.
 \end{theorem}
 
-Theorem \ref{thm:positive_part} is the classical positive-part improvement \cite{baranchik1970, lehmann1998}, stated in the standardised metric in which the present problem is spherical and extended to scale mixtures, which is what Section \ref{sec:elliptical} needs. The positive-part estimator is itself inadmissible \cite{shao1994}, so no claim of admissibility is made anywhere in this paper. \rev{Theorem \ref{thm:positive_part} is stated for the true scale matrix, $\bm A=\bm\Sigma$. The algorithm uses the plug-in $\bm A=\widehat{\bm\Sigma}_t$, for which the whitening of the proof is only approximate and the problem is no longer exactly spherical, so the theorem does not cover the implemented rule; the truncation is nonetheless retained, since it can only remove a sign reversal of $\bm Y$.}
+Theorem \ref{thm:positive_part} is the classical positive-part improvement \citep{baranchik1970, lehmann1998}, stated in the standardised metric in which the present problem is spherical and extended to scale mixtures, which is what Section \ref{sec:elliptical} needs. The positive-part estimator is itself inadmissible \citep{shao1994}, so no claim of admissibility is made anywhere in this paper. \rev{Theorem \ref{thm:positive_part} is stated for the true scale matrix, $\bm A=\bm\Sigma$. The algorithm uses the plug-in $\bm A=\widehat{\bm\Sigma}_t$, for which the whitening of the proof is only approximate and the problem is no longer exactly spherical, so the theorem does not cover the implemented rule; the truncation is nonetheless retained, since it can only remove a sign reversal of $\bm Y$.}
 
 \subsection{The weight the rule induces}
 
@@ -367,7 +375,7 @@ with a safety factor $\rho\in(0,1]$. The reason this deserves to be called a plu
 \approx
 \frac{\|\bm\delta_t\|^2_{\bm\Sigma_t^{-1}}}{p+\|\bm\delta_t\|^2_{\bm\Sigma_t^{-1}}},
 \end{equation}
-which is \eqref{eq:oracle_weight} with $\bm D=\bm\Sigma_t^{-1}$. The Stein rule estimates the oracle momentum weight from the single observation available at the current step. Read through the empirical Bayes correspondence of Efron and Morris \cite{efronmorris1973, efron2012}, the oracle weight \eqref{eq:oracle_weight} is the posterior shrinkage factor of a normal prior on $\bm\delta_t$, and $k_t$ is its estimate from the data at hand.
+which is \eqref{eq:oracle_weight} with $\bm D=\bm\Sigma_t^{-1}$. The Stein rule estimates the oracle momentum weight from the single observation available at the current step. Read through the empirical Bayes correspondence of \citet{efronmorris1973,efron2012}, the oracle weight \eqref{eq:oracle_weight} is the posterior shrinkage factor of a normal prior on $\bm\delta_t$, and $k_t$ is its estimate from the data at hand.
 
 %\begin{revblock}
 \begin{remark}
@@ -390,13 +398,13 @@ The effective dimension $\peff$ retains a role even though part (iii) of Corolla
 \section{Elliptical gradient noise}
 \label{sec:elliptical}
 
-Assumption (A3) is the weakest link in the argument, since the empirical evidence points to gradient noise with tails heavier than normal \cite{simsekli2019, panigrahi2019, gurbuzbalaban2021}. This section replaces it by
+Assumption (A3) is the weakest link in the argument, since the empirical evidence points to gradient noise with tails heavier than normal \citep{simsekli2019, panigrahi2019, gurbuzbalaban2021}. This section replaces it by
 
 \begin{itemize}
 \item[(A3$'$)] Conditionally on $\mathcal F_{t-1}$ there is a positive random variable $W$, independent of the normal component, with $\bm\varepsilon_t\mid(\mathcal F_{t-1},W)\sim\mathcal N_p(\bm 0,W\bm\Sigma_t)$ and $\E[W]<\infty$.
 \end{itemize}
 
-Assumption (A3$'$) is the scale-mixture representation of the elliptically contoured family \cite{fang1990} and covers the multivariate Student law, which is the standard heavy-tailed model in this context. Shrinkage under spherical symmetry has a substantial literature of its own \cite{strawderman1974, brandwein1990, cellier1995, cellier1995b, brandwein2012}; what is added below is the explicit constant by which the window contracts when the rule is calibrated to the marginal rather than the conditional scale. Under it the conditional covariance of $\bm\varepsilon_t$ is $\E[W]\bm\Sigma_t$, so $\bm\Sigma_t$ is a conditional scale rather than the marginal covariance, and the distinction matters for the statement below.
+Assumption (A3$'$) is the scale-mixture representation of the elliptically contoured family \citep{fang1990} and covers the multivariate Student law, which is the standard heavy-tailed model in this context. Shrinkage under spherical symmetry has a substantial literature of its own \citep{strawderman1974, brandwein1990, cellier1995, cellier1995b, brandwein2012}; what is added below is the explicit constant by which the window contracts when the rule is calibrated to the marginal rather than the conditional scale. Under it the conditional covariance of $\bm\varepsilon_t$ is $\E[W]\bm\Sigma_t$, so $\bm\Sigma_t$ is a conditional scale rather than the marginal covariance, and the distinction matters for the statement below.
 
 \begin{theorem}
 \label{thm:elliptical}
@@ -429,7 +437,7 @@ Let $\bm\varepsilon_t$ follow a multivariate Student law with $\nu>2$ degrees of
 Corollary \ref{cor:student} is the price of heavy tails in a single number. If the rule is calibrated to the marginal variance, as any estimator built from observed gradients necessarily is, then the admissible window contracts by the factor $(\nu-2)/\nu$. The choice $c_t=\rho(p-2)$ therefore remains inside the window provided $\rho<2(\nu-2)/\nu$, which for $\rho=1$ requires $\nu>4$. Section \ref{sec:simulation} shows that the requirement is conservative, since in the settings examined the rule with $\rho=1$ reduces risk down to $\nu=3$.
 
 \begin{remark}
-The bound \eqref{eq:elliptical_window} is stated in terms of $\bar W_{\bm A}$, a weighted mean of the mixing variable with weights proportional to $1/Q$. The closed form at $\bm\mu=\bm 0$ is exact, and $\bm\mu=\bm 0$ is precisely the noise-dominated regime the method targets, where the historical average already tracks the population gradient and what remains is noise. \rev{We do not have a closed form for $\bar W_{\bm A}$ at general $\bm\mu$, but none is needed for the window: by \eqref{eq:harmonic_lower} the value at $\bm\mu=\bm 0$ is the smallest value $\bar W_{\bm A}$ takes, so the window at $\bm\mu=\bm 0$ is the worst case. The proof uses Anderson's theorem \cite{anderson1955} to show that $\E[1/Q\mid W=w]$, rescaled by $w$, is nondecreasing in $w$, and Chebyshev's covariance inequality to compare the two weighted means. For homoscedastic scale mixtures, related bounds appear in the minimax literature \cite{strawderman1974, fourdrinier2018}, and we do not claim that case as new.}
+The bound \eqref{eq:elliptical_window} is stated in terms of $\bar W_{\bm A}$, a weighted mean of the mixing variable with weights proportional to $1/Q$. The closed form at $\bm\mu=\bm 0$ is exact, and $\bm\mu=\bm 0$ is precisely the noise-dominated regime the method targets, where the historical average already tracks the population gradient and what remains is noise. \rev{We do not have a closed form for $\bar W_{\bm A}$ at general $\bm\mu$, but none is needed for the window: by \eqref{eq:harmonic_lower} the value at $\bm\mu=\bm 0$ is the smallest value $\bar W_{\bm A}$ takes, so the window at $\bm\mu=\bm 0$ is the worst case. The proof uses Anderson's theorem \citep{anderson1955} to show that $\E[1/Q\mid W=w]$, rescaled by $w$, is nondecreasing in $w$, and Chebyshev's covariance inequality to compare the two weighted means. For homoscedastic scale mixtures, related bounds appear in the minimax literature \citep{strawderman1974, fourdrinier2018}, and we do not claim that case as new.}
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -492,7 +500,7 @@ so the debiased estimator \eqref{eq:debiased} has bias $\Delta_t/\{1-\phi_t(\bet
 
 The term $\Delta_t$ compares a long average of the squared mean, with window of order $(1-\beta_2)^{-1}$, against the square of a short average, with window of order $(1-\beta_1)^{-1}$. When the mean was larger in magnitude earlier in the long window than it is now, which is the typical profile early in training, $\Delta_t$ is positive, and by Corollary \ref{cor:twofold} the debiased estimate leaves the dominance margin once $\Delta_t$ exceeds $\{1-\phi_t(\beta_1)\}s^2$, that is, once the change in the mean over the $\beta_2$ window is of the order of the noise standard deviation. An oscillating mean can make $\Delta_t$ negative, which errs toward less shrinkage. The default $\beta_2=0.999$ makes the long window of order a thousand steps, so the drift term is not negligible in general.
 
-An estimator whose bias does not depend on the level of the mean is obtained from successive differences \cite{vonneumann1941}, which remove the mean up to one step of drift. Define, for $t\ge2$,
+An estimator whose bias does not depend on the level of the mean is obtained from successive differences \citep{vonneumann1941}, which remove the mean up to one step of drift. Define, for $t\ge2$,
 \begin{equation}
 \label{eq:diff_estimator}
 \tilde s^2_{t,j}=\frac{1-\beta_2}{1-\beta_2^{t-1}}\sum_{k=2}^{t}\beta_2^{t-k}\,\tfrac12\bigl(g_{k,j}-g_{k-1,j}\bigr)^2 ,
@@ -548,7 +556,7 @@ Individual coordinatewise estimates carry an effective sample size of roughly $(
 \qquad
 \bar{\hat s}^2_t=\frac1p\sum_{k=1}^{p}\hat s^2_{t,k},
 \end{equation}
-with a small $\omega$, in the manner of the covariance shrinkage of Ledoit and Wolf \cite{ledoit2004}. Pooling leaves the mean unchanged and reduces the spread of the ratios $r_j$ that Corollary \ref{cor:cases}(iv) shows the dominance window to depend on. These pooled quantities are the ones written $\hat\sigma^2_{t,j}$ in \eqref{eq:stein_weight}, and they are collected into $\widehat{\bm\Sigma}_t=\diag(\hat\sigma^2_{t,1}+\epsilon,\dots,\hat\sigma^2_{t,p}+\epsilon)$ in what follows, the ridge being carried inside the matrix so that it is positive definite by construction.
+with a small $\omega$, in the manner of the covariance shrinkage of \citet{ledoit2004}. Pooling leaves the mean unchanged and reduces the spread of the ratios $r_j$ that Corollary \ref{cor:cases}(iv) shows the dominance window to depend on. These pooled quantities are the ones written $\hat\sigma^2_{t,j}$ in \eqref{eq:stein_weight}, and they are collected into $\widehat{\bm\Sigma}_t=\diag(\hat\sigma^2_{t,1}+\epsilon,\dots,\hat\sigma^2_{t,p}+\epsilon)$ in what follows, the ridge being carried inside the matrix so that it is positive definite by construction.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -557,7 +565,7 @@ with a small $\omega$, in the manner of the covariance shrinkage of Ledoit and W
 
 Algorithm \ref{alg:sradam} assembles the pieces. Apart from the current gradient itself, every quantity entering the weight $k_t$ is a function of $\bm g_1,\dots,\bm g_{t-1}$. In particular the shrinkage target $\hat{\bm m}_{t-1}$, the scale matrix $\widehat{\bm\Sigma}_t$, the effective dimension $\hat\peff$ and the constant $c_t$ are all fixed once the past is given, which is what makes the conditional risk calculation of Section \ref{sec:risk} apply verbatim at each step.
 
-\begin{algorithm}[t]
+\begin{algorithm*}[t]
 \caption{SR-Adam, applied blockwise}
 \label{alg:sradam}
 \begin{algorithmic}[1]
@@ -590,13 +598,13 @@ Algorithm \ref{alg:sradam} assembles the pieces. Apart from the current gradient
   \State $\bm\theta_{t+1}\gets(1-\alpha\lambda)\bm\theta_t-\alpha\,\bm P_t\bm d_t$
 \EndFor
 \end{algorithmic}
-\end{algorithm}
+\end{algorithm*}
 
 Four features of Algorithm \ref{alg:sradam} are worth drawing out.
 
 The moments are formed from the raw gradients, not from the shrunk direction. This is what makes $\hat{\bm m}_{t-1}$ and $\hat{\bm\sigma}^2$ measurable with respect to the past and unbiased for the quantities they estimate, and it removes the discrepancy between the analysed estimator and the implemented one that arises if the moments are instead formed from the shrunk direction.
 
-The preconditioner uses the running maximum of the bias-corrected second moment, as in AMSGrad \cite{reddi2018}. The maximum makes $\bm P_t$ monotone, which Section \ref{sec:convergence} uses to control the drift of the preconditioner across steps.
+The preconditioner uses the running maximum of the bias-corrected second moment, as in AMSGrad \citep{reddi2018}. The maximum makes $\bm P_t$ monotone, which Section \ref{sec:convergence} uses to control the drift of the preconditioner across steps.
 
 When the gate is closed the algorithm coincides with AMSGrad-flavoured AdamW step for step, because the weight reverts to $w_t$ and Lemma \ref{lem:adam_identity} makes $\bm d_t=\hat{\bm m}_t$. The accompanying implementation is tested against a direct implementation of that method and agrees to machine precision.
 
@@ -606,7 +614,7 @@ The cost is three extra reductions over each gradient block per step, for $\math
 \section{Convergence}
 \label{sec:convergence}
 
-The direction $\bm d_t$ is a biased estimate of $\nabla J(\bm\theta_t)$ by construction, so the martingale-difference argument that carries the classical stochastic approximation theory \cite{robbins1951, borkar2008, kushner2003} and its non-convex descendants \cite{ghadimi2013, bottou2018} does not apply. What replaces it is a deterministic bound on how far the shrinkage can move the gradient.
+The direction $\bm d_t$ is a biased estimate of $\nabla J(\bm\theta_t)$ by construction, so the martingale-difference argument that carries the classical stochastic approximation theory \citep{robbins1951, borkar2008, kushner2003} and its non-convex descendants \citep{ghadimi2013, bottou2018} does not apply. What replaces it is a deterministic bound on how far the shrinkage can move the gradient.
 
 \begin{lemma}
 \label{lem:displacement}
@@ -658,7 +666,7 @@ The constants in \eqref{eq:conv_bound} are worst-case constants. Because $p_{\ma
 %\end{revblock}
 
 \begin{remark}
-With a decreasing step size satisfying $\sum_t\alpha_t=\infty$ and $\sum_t\alpha^2_t<\infty$, and a shrinkage schedule for which $\sum_t\alpha_t\E[B^2_t]<\infty$, the same decomposition together with the almost supermartingale convergence theorem of Robbins and Siegmund \cite{robbins1971} upgrades \eqref{eq:conv_bound} to $\liminf_{t\to\infty}\|\nabla J(\bm\theta_t)\|=0$ almost surely. The summability condition is what such an upgrade costs, and the algorithm as implemented does not impose it, so we state the bound \eqref{eq:conv_bound} as the operative result and the almost sure statement as what an annealed variant would deliver.
+With a decreasing step size satisfying $\sum_t\alpha_t=\infty$ and $\sum_t\alpha^2_t<\infty$, and a shrinkage schedule for which $\sum_t\alpha_t\E[B^2_t]<\infty$, the same decomposition together with the almost supermartingale convergence theorem of \citet{robbins1971} upgrades \eqref{eq:conv_bound} to $\liminf_{t\to\infty}\|\nabla J(\bm\theta_t)\|=0$ almost surely. The summability condition is what such an upgrade costs, and the algorithm as implemented does not impose it, so we state the bound \eqref{eq:conv_bound} as the operative result and the almost sure statement as what an annealed variant would deliver.
 \end{remark}
 
 The floor is not an artefact of the proof. A biased direction cannot be expected to drive the gradient to zero, and the size of the floor is exactly the quantity Lemma \ref{lem:displacement} bounds. What makes the statement useful is that the floor is computable from quantities the algorithm already forms, and that its dependence on the batch size is explicit.
@@ -672,10 +680,10 @@ B^2_t=c_t\lambda_{\max}(\bm\Sigma_t)=\frac{c_t\lambda_{\max}\bigl(\bm\Sigma^{(1)
 exactly, since $c_t=\rho(p-2)$ does not depend on $B$. The floor in \eqref{eq:conv_bound} therefore halves when the batch size doubles. With the plug-in scale matrix \rev{only a lower bound is available: $\E[\lambda_{\max}(\widehat{\bm\Sigma}_t)]\ge\lambda_{\max}(\bm\Sigma_t)$ holds by Jensen's inequality and Theorem \ref{thm:variance_bias}, so $\E[B^2_t]$ is at least of order $B^{-1}$, but no matching upper bound is claimed.}
 \end{proposition}
 
-Proposition \ref{prop:batch} makes a prediction that Section \ref{sec:simulation} tests directly, and it locates a regime boundary. The batch size at which gradient noise stops dominating has been studied empirically at scale \cite{keskar2017, smith2018, shallue2019}, and the floor above is a statistical counterpart of the plateau those studies report. At small batch sizes the floor is large and the theory promises little, while at large batch sizes the floor is small and the guarantee approaches the one available for an unbiased direction. Any benefit that depends on the guarantee should therefore be regime-dependent in the batch size.
+Proposition \ref{prop:batch} makes a prediction that Section \ref{sec:simulation} tests directly, and it locates a regime boundary. The batch size at which gradient noise stops dominating has been studied empirically at scale \citep{keskar2017, smith2018, shallue2019}, and the floor above is a statistical counterpart of the plateau those studies report. At small batch sizes the floor is large and the theory promises little, while at large batch sizes the floor is small and the guarantee approaches the one available for an unbiased direction. Any benefit that depends on the guarantee should therefore be regime-dependent in the batch size.
 
 \begin{remark}
-Theorem \ref{thm:convergence} covers the blocks on which the shrinkage weight is used. On a block whose gate is closed the update coincides with AMSGrad-flavoured AdamW, for which the applicable guarantees are those of Reddi, Kale and Kumar \cite{reddi2018} and Chen and coauthors \cite{chen2019}; the bound \eqref{eq:conv_bound} still applies with $B_t$ replaced by $(1-w_t)\|\bm Y_t\|\le 2G$, which is a weaker but still finite constant.
+Theorem \ref{thm:convergence} covers the blocks on which the shrinkage weight is used. On a block whose gate is closed the update coincides with AMSGrad-flavoured AdamW, for which the applicable guarantees are those of \citet{reddi2018} and \citet{chen2019}; the bound \eqref{eq:conv_bound} still applies with $B_t$ replaced by $(1-w_t)\|\bm Y_t\|\le 2G$, which is a weaker but still finite constant.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -691,14 +699,14 @@ Fix $p=500$, $\sigma^2=1$ and a target $\bm\delta$ with $\|\bm\delta\|^2=\mathrm
 
 Figure \ref{fig:risk_snr} shows the outcome and Table \ref{tab:risk_snr} gives representative rows. The Stein weight is never worse than the raw gradient, as Corollary \ref{cor:cases}(i) requires. Its risk lies within one per cent of the oracle risk once the signal-to-noise ratio exceeds one half, within four per cent above one tenth, and within twenty-two per cent at the smallest ratio examined, where the raw gradient is itself a hundredfold worse than the oracle. The plug-in version is indistinguishable from the known-variance version, which is the practical content of Corollary \ref{cor:twofold}. The fixed Adam weight is close to the oracle only in a narrow band around $\mathrm{snr}\approx0.1$, which is where $\beta_1=0.9$ happens to be well calibrated, and its risk relative to the raw gradient reaches $25.6$ at $\mathrm{snr}=31.6$. The right panel explains why. The oracle weight rises from near zero to near one as the signal grows, the Stein weight tracks it almost exactly, and the fixed weight cannot.
 
-\begin{figure}% CAS uses key-value options here (default pos=t)
+\begin{figure*}% spans both columns; CAS uses key-value options here
 \centering
 \includegraphics[width=0.92\textwidth]{sim_risk_snr.pdf}
 \caption{Conditional risk relative to the raw mini-batch gradient, left, and the direction weight, right, against the signal-to-noise ratio $\|\bm\delta\|^2/(p\sigma^2)$ for $p=500$.}
 \label{fig:risk_snr}
-\end{figure}
+\end{figure*}
 
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
 \caption{Conditional risk relative to the raw mini-batch gradient, and direction weights, at selected signal-to-noise ratios. Each entry is an average over $2\times10^{5}$ replicates.}
 \label{tab:risk_snr}
@@ -717,20 +725,20 @@ $\|\bm\delta\|^2/(p\sigma^2)$ & fixed $1-\beta_1$ & Stein & oracle & oracle & St
 31.623 & 25.623 & 0.970 & 0.969 & 0.969 & 0.969 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{The variance estimator}
 
 Fix $p=2048$ coordinates with variances drawn uniformly on $[0.5,2]$, run the moment recursions \eqref{eq:moments} with $\beta_1=0.9$ and $\beta_2=0.999$ over $400$ independent replicates, and compare the uncorrected statistic with the corrected one \eqref{eq:debiased}. Figure \ref{fig:variance} plots both, divided by the truth. The uncorrected statistic starts at half the truth at $t=2$ and settles at $2\beta_1/(1+\beta_1)=0.9474$, matching the closed form of Theorem \ref{thm:variance_bias} to four decimal places at every iteration, and the corrected statistic sits on one throughout. Table \ref{tab:variance} gives the numbers alongside the closed form of Theorem \ref{thm:variance_bias}.
 
-\begin{figure}% CAS uses key-value options here (default pos=t)
+\begin{figure*}% spans both columns; CAS uses key-value options here
 \centering
 \includegraphics[width=0.48\textwidth]{sim_variance_bias.pdf}
 \caption{Moment-based variance estimates divided by the true average variance, against iteration, for $p=2048$ coordinates and $400$ replicates.}
 \label{fig:variance}
-\end{figure}
+\end{figure*}
 
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
 \caption{Moment-based variance estimates divided by the true average variance, averaged over $400$ replicates with $p=2048$ coordinates. The last column is the closed form $1-\phi_t(\beta_1)$ of Theorem \ref{thm:variance_bias}. The algorithm additionally clips the statistic at zero, which raises the uncorrected value slightly at larger $t$, to $0.9492$ at $t=40$ and $0.9523$ at $t=60$.}
 \label{tab:variance}
@@ -748,7 +756,7 @@ $t$ & uncorrected & corrected & $1-\phi_t(0.9)$ \\
 $\infty$ & 0.9474 & 1.0000 & 0.9474 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{Heteroscedasticity and the loss weighting}
 
@@ -756,14 +764,14 @@ This study makes Corollary \ref{cor:cases} visible. Set $p=400$ and $\sigma^2_j\
 
 Figure \ref{fig:effdim} reports the result and Table \ref{tab:effdim} gives the extremes. The coordinatewise rule with $c=p-2$ reduces risk uniformly, at every effective dimension and every signal level, which is Corollary \ref{cor:cases}(iii). The pooled rule is competitive when the signal is weak but fails when it is not, reaching a relative risk of $2.56$ at $\peff=1.41$ and $\|\bm\delta\|^2_{\bm\Sigma^{-1}}/p=4$. The conservative constant is safe everywhere but forfeits most of the available reduction once $\peff$ falls below about ten. The practical reading is that coordinatewise whitening, rather than any restriction of the shrinkage constant, is what neutralises heteroscedasticity.
 
-\begin{figure}% CAS uses key-value options here (default pos=t)
+\begin{figure*}% spans both columns; CAS uses key-value options here
 \centering
 \includegraphics[width=0.98\textwidth]{sim_effective_dimension.pdf}
 \caption{Risk under the standardised loss, relative to the raw gradient, against the effective dimension, for three shrinkage rules and three signal levels, with $p=400$.}
 \label{fig:effdim}
-\end{figure}
+\end{figure*}
 
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
 \caption{Risk under the standardised loss relative to the raw gradient, at the two ends of the heteroscedasticity range, for $p=400$ and $\|\bm\delta\|^2_{\bm\Sigma^{-1}}/p=4$.}
 \label{tab:effdim}
@@ -779,20 +787,20 @@ $\peff$ & pooled scalar, $c=p-2$ & coordinatewise, $c=p-2$ & coordinatewise, $c=
 1.20  & 2.144 & 0.802 & 1.000 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{Heavy-tailed gradient noise}
 
 Draw $\bm Y$ from a multivariate Student law with $\nu$ degrees of freedom in $p=300$ dimensions, calibrate the rule to the marginal variance as Corollary \ref{cor:student} describes, and evaluate the risk for three values of the safety factor $\rho$. Figure \ref{fig:heavy} and Table \ref{tab:heavy} report the outcome. The rule with $\rho=1$ reduces risk at every $\nu$ examined, down to $\nu=3$, so the requirement $\nu>4$ that Corollary \ref{cor:student} imposes is sufficient rather than necessary, as one expects from a bound derived through a worst-case inequality. Reducing $\rho$ buys margin at a cost in risk reduction, and there is no setting in this study in which it pays.
 
-\begin{figure}% CAS uses key-value options here (default pos=t)
+\begin{figure*}% spans both columns; CAS uses key-value options here
 \centering
 \includegraphics[width=0.48\textwidth]{sim_heavy_tails.pdf}
 \caption{Risk relative to the raw gradient under multivariate Student gradient noise, against the degrees of freedom, for three safety factors, with $p=300$.}
 \label{fig:heavy}
-\end{figure}
+\end{figure*}
 
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
 \caption{Risk relative to the raw gradient under multivariate Student gradient noise with $p=300$.}
 \label{tab:heavy}
@@ -808,7 +816,7 @@ $\nu$ & $\rho=1.00$ & $\rho=0.75$ & $\rho=0.50$ \\
 50 & 0.138 & 0.195 & 0.349 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{Optimisation under controlled noise}
 \label{sec:sim_opt}
@@ -819,14 +827,14 @@ The first is a quadratic objective in $p=400$ dimensions with diagonal curvature
 
 Table \ref{tab:opt_noise} and Figure \ref{fig:noise} give the results. With the step sizes tuned, the ranking on the quadratic is set by the noise scale rather than being uniform. SR-Adam's terminal objective is $32$ and $9$ per cent below AdamW's at $\tau=0.1$ and $\tau=0.25$, and $27$ and $24$ per cent below at $\tau=2$ and $\tau=4$, but it is $11$ and $30$ per cent above at $\tau=0.5$ and $\tau=1$. On the logistic problem it is between $4$ and $5$ per cent below AdamW up to a flip rate of $0.2$ and \rev{about} $5$ per cent above at flip rates $0.3$ and $0.4$, where the tuned AdamW step size is three times smaller than at the lower flip rates. All eleven paired differences are significant at conventional levels, with $|t|$ between $4.0$ and $27.6$, so the reversal is not sampling noise. Tuning also changes the position of plain momentum SGD: it is competitive on the clean logistic problem ($0.233$ against AdamW's $0.244$) and remains far behind on the ill-conditioned quadratic, as expected.
 
-\begin{figure}% CAS uses key-value options here (default pos=t)
+\begin{figure*}% spans both columns; CAS uses key-value options here
 \centering
 \includegraphics[width=0.92\textwidth]{sim_noise_levels.pdf}
 \caption{Terminal objective on the noisy quadratic, left, and test log-loss on the logistic problem with label noise, right.}
 \label{fig:noise}
-\end{figure}
+\end{figure*}
 
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
 \caption{Optimisation under controlled noise at per-optimiser tuned step sizes. The quadratic panel reports the terminal objective over five seeds and $3000$ steps, the logistic panel the test log-loss over three seeds and $2000$ steps. The last column is the paired difference between AdamW and SR-Adam with its $t$ statistic.}
 \label{tab:opt_noise}
@@ -851,7 +859,7 @@ $\tau=4.00$ & 305.443 & 8.319 & 8.277 & 6.361 & $+1.958$ $(20.2)$ \\
 0.4 & 1.222 & 1.127 & 1.127 & 1.185 & $-0.058$ $(-9.4)$ \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{The bias floor and the batch size}
 
@@ -859,14 +867,14 @@ Proposition \ref{prop:batch} predicts that the floor in \eqref{eq:conv_bound} is
 
 That last finding should be read carefully. At $B=8$ and at $B=32$ the difference is not statistically significant, with $|t|$ of $2.7$ and $1.9$ below the two-sided $5$ per cent critical value of $2.78$ on four degrees of freedom; at $B=16$ it is significant, but the margin is only $0.0032$ in training loss. At the four largest batch sizes the difference is significant but very small, from $0.0012$ to $0.0080$ in training loss, and it favours AdamW. The sign of the difference reverses around a batch size of $32$. In particular it gives no support to a large-batch advantage for the method, and none is claimed.
 
-\begin{figure}% CAS uses key-value options here (default pos=t)
+\begin{figure*}% spans both columns; CAS uses key-value options here
 \centering
 \includegraphics[width=0.98\textwidth]{sim_batch_size.pdf}
 \caption{Terminal training loss, left, realised gradient-noise trace, centre, and realised direction weight, right, against mini-batch size, over five seeds.}
 \label{fig:batch}
-\end{figure}
+\end{figure*}
 
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
 \caption{Batch-size study over five seeds. Losses are means with standard deviations across seeds; the paired difference is AdamW minus SR-Adam with its $t$ statistic.}
 \label{tab:batch}
@@ -883,7 +891,7 @@ $B$ & AdamW (AMSGrad) & SR-Adam & paired diff ($t$) & $\tr\widehat{\bm\Sigma}_t$
 512 & $1.2035\pm0.0689$ & $1.2115\pm0.0692$ & $-0.0080$ $(-18.7)$  & 0.151 & 0.146 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{Verification of the analytical constants}
 
@@ -912,12 +920,12 @@ Every constant asserted in Sections \ref{sec:risk} to \ref{sec:convergence} was 
 \section{Empirical evaluation}
 \label{sec:experiments}
 
-This section asks where the risk-optimal weight improves on Adam-type methods on problems outside the Monte Carlo designs of Section \ref{sec:simulation}. The code base, the optimiser interfaces, and the seed schedule are held fixed; only the optimiser and the problem change. Baselines are SGD with momentum, AdamW \cite{loshchilov2019}, and AdamW with the AMSGrad preconditioner \cite{reddi2018}. Unless stated otherwise, SR-Adam uses the defaults of Algorithm \ref{alg:sradam} ($\rho=1$, $\omega=0.1$, $\gamma=1$, $\tau=5$) and the comparison is paired by seed on the final test loss or accuracy. Implementations accompany the paper.
+This section asks where the risk-optimal weight improves on Adam-type methods on problems outside the Monte Carlo designs of Section \ref{sec:simulation}. The code base, the optimiser interfaces, and the seed schedule are held fixed; only the optimiser and the problem change. Baselines are SGD with momentum, AdamW \citep{loshchilov2019}, and AdamW with the AMSGrad preconditioner \citep{reddi2018}. Unless stated otherwise, SR-Adam uses the defaults of Algorithm \ref{alg:sradam} ($\rho=1$, $\omega=0.1$, $\gamma=1$, $\tau=5$) and the comparison is paired by seed on the final test loss or accuracy. Implementations accompany the paper.
 
 Every baseline below is tuned rather than left at a common step size, with one deliberate exception: Table \ref{tab:dim_sweep_common} repeats the dimension sweep under the shared default step size, as an ablation of the comparison itself in the last subsection of this section. Each optimiser receives its own grid of three to five candidate step sizes spanning one to two orders of magnitude, scored on two tuning seeds --- held-out validation loss on the logistic and graph pilots, terminal loss elsewhere --- and the reported run then uses the study's seed set shared across optimisers. The number of pilots varies: the controlled study of Section \ref{sec:sim_opt} retunes at every noise level, while the dimension sweep and the tabular studies tune once per problem family on a single representative pilot (the quadratic at $\tau=1$ at the smallest $p$) and reuse that choice across the family --- the two exceptions are the $\tau=4$ and flip-rate-$0.4$ columns of Table \ref{tab:dim_sweep}, which are tuned at their own noise level. The graph-network pilots in Table \ref{tab:clf} are tuned per dataset on a grid of five step sizes from $10^{-3}$ to $10^{-1}$, identical for both optimisers, scored on validation accuracy at clean labels, and the chosen step size is reused at both label-noise levels. The full grid tables are stored with the results so that the protocol is auditable. Two diagnostics are recorded alongside these runs. The mean per-step wall-clock time was $0.55$\,ms on the $p=400$ quadratic under Gaussian noise ($0.90$\,ms under Student-$t$ noise) and $1.8$\,ms on the $200$-feature logistic problem, averaged over the three optimisers of the sweep, so the three extra reductions of Section \ref{sec:algorithm} are not a visible share of the step. The gate of Remark \ref{rem:gate} is recorded as the fraction of parameter blocks on which it is open at the last step of a run: it was open on every block at the end of every run in Table \ref{tab:opt_noise} and on Digits, while on the remaining tabular problems it ranges from none of the blocks to three quarters, a block of dimension three or less being unable to open it. Where it is closed the block falls back to the Adam weight, so the safeguard does fire on some of these problems.
 
 \paragraph{Data and tasks}
-Three families are used. (i)~\emph{Public tabular regression}: Diabetes, California Housing, Wine Quality, Linnerud, and BlogFeedback (UCI/OpenML or scikit-learn; linear model and a one-hidden-layer MLP). (ii)~\emph{Classification}: handwritten digits, breast cancer, ionosphere, and iris (logistic regression and a small MLP), together with node classification on the Planetoid graphs Cora, CiteSeer, and PubMed (two-layer GCN \cite{kipf2017}), with optional training-label noise. (iii)~\emph{Synthetic controlled noise} (no external dataset): a quadratic with diagonal curvature and additive Gaussian or Student-$t$ gradient noise, and multinomial logistic regression with a controlled label-flip rate; the last subsection studies families (ii) and (iii) under label noise, dimension growth and the two step-size protocols. 
+Three families are used. (i)~\emph{Public tabular regression}: Diabetes, California Housing, Wine Quality, Linnerud, and BlogFeedback (UCI/OpenML or scikit-learn; linear model and a one-hidden-layer MLP). (ii)~\emph{Classification}: handwritten digits, breast cancer, ionosphere, and iris (logistic regression and a small MLP), together with node classification on the Planetoid graphs Cora, CiteSeer, and PubMed (two-layer GCN \citep{kipf2017}), with optional training-label noise. (iii)~\emph{Synthetic controlled noise} (no external dataset): a quadratic with diagonal curvature and additive Gaussian or Student-$t$ gradient noise, and multinomial logistic regression with a controlled label-flip rate; the last subsection studies families (ii) and (iii) under label noise, dimension growth and the two step-size protocols. 
 
 \subsection{Real regression}
 %% code: paper_tables.py (loaders in path3_uci.py / path6_year_blog_clf.py)
@@ -927,28 +935,28 @@ Table \ref{tab:reg} reports public regression sets. For each dataset we fit (i) 
 The linear rows all favour SR-Adam: the largest is BlogFeedback ($p=280$) at $+1.21$, and the remaining four lie between $+0.003$ and $+0.025$. The MLP rows are mixed, three of them favouring SR-Adam and two against, with the largest single gain on Diabetes ($+0.47$). That split is expected rather than contradictory. A linear least-squares problem is convex and the search direction is a noisy estimate of a well-defined gradient, which is the setting of Sections \ref{sec:risk} and \ref{sec:variance}. A one-hidden-layer MLP is already non-convex: the Stein weight shrinks the current gradient toward a historical average, which helps when that average is a good proxy for the population gradient and can hurt when the loss landscape forces frequent changes of direction. In addition, the MLP is more parameterised than the linear model on the same $n$ and $p$, so the blockwise variance estimates that drive $k_t$ are noisier. We therefore read the linear rows as the primary regression evidence and the MLP rows as a mild nonlinearity check.
 
 %% Table tab:reg: code/paper_tables.py -> paper/tab_regression.tex (out/paper_tables.json)
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
 \caption{Regression on public tabular sets. Gap in test MSE, AdamW minus SR-Adam; bold positive entries favour SR-Adam. \emph{Model} is either a linear regressor or a one-hidden-layer MLP (nonlinear).}
 \label{tab:reg}
 \input{tab_regression}
-\end{table}
+\end{table*}
 
 \subsection{Classification}
 %% code: paper_tables.py (tabular/digits); gnn_pilot.py, gnn_pilot_planetoid.py (GCN)
 
-Table \ref{tab:clf} covers logistic regression, a small MLP, and a two-layer graph convolutional network \cite{kipf2017} on clean labels. Test accuracy is reported for AdamW and SR-Adam; the better entry is bolded. SR-Adam is ahead on Breast Cancer, Ionosphere and all three graphs, and marginally behind on Digits and Iris. The largest margin is Ionosphere ($+2.3$ points), where the number of features is comparable to the sample size; on the graphs the margins are at most a third of a point at the tuned step sizes, and on PubMed the two agree to four hundredths of a point.
+Table \ref{tab:clf} covers logistic regression, a small MLP, and a two-layer graph convolutional network \citep{kipf2017} on clean labels. Test accuracy is reported for AdamW and SR-Adam; the better entry is bolded. SR-Adam is ahead on Breast Cancer, Ionosphere and all three graphs, and marginally behind on Digits and Iris. The largest margin is Ionosphere ($+2.3$ points), where the number of features is comparable to the sample size; on the graphs the margins are at most a third of a point at the tuned step sizes, and on PubMed the two agree to four hundredths of a point.
 
 %% Table tab:clf: code/paper_tables.py -> paper/tab_classification.tex
 %%   GCN rows from paper_tables.gnn_rows() at the step sizes chosen by the
 %%   per-dataset grids of gnn_pilot.py / gnn_pilot_planetoid.py (--tune)
 %%   recorded in out/gnn_{cora,citeseer,pubmed}_tune.json
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
-\caption{Classification test accuracy (per cent), clean training labels. Models: logistic regression, one-hidden-layer MLP, and GCN \cite{kipf2017}. Bold $=$ higher accuracy.}
+\caption{Classification test accuracy (per cent), clean training labels. Models: logistic regression, one-hidden-layer MLP, and GCN \citep{kipf2017}. Bold $=$ higher accuracy.}
 \label{tab:clf}
 \input{tab_classification}
-\end{table}
+\end{table*}
 
 \subsection{Ablation study}
 This subsection isolates the two factors the method is sensitive to, one problem-side and one method-side: the noise that corrupts the data, and the step-size protocol used to compare against AdamW. Both use the paired protocol of this section.
@@ -958,20 +966,20 @@ This subsection isolates the two factors the method is sensitive to, one problem
 Table \ref{tab:noise} and Figure \ref{fig:noise_sweep} isolate the effect of corrupting training labels or targets, with the regression block first (matching Tables~\ref{tab:reg}--\ref{tab:clf}). Throughout this section the gap is signed so that positive favours SR-Adam: for classification it is test accuracy of SR-Adam minus AdamW in percentage points, and for regression it is test MSE of AdamW minus SR-Adam. On Digits with multinomial logistic regression the ranking reverses as soon as labels are corrupted: clean labels give a gap of $-1.3$ points, and with label-noise rates from $10$ to $50$ per cent the gap grows from $+3.9$ to $+13.5$ points, increasing with the noise rate. On a well-separated binary problem (Breast Cancer) the gap is modest and positive at every rate, from $+0.2$ to $+3.8$ points. On linear regression the pattern is weaker and not of a consistent sign: Diabetes is positive at every target-noise level ($+0.015$ to $+0.027$), Wine Quality is positive at the two lower levels and tied at the highest ($-0.001$), and California Housing is negative at the two lower levels and positive but imprecise at the highest ($+0.069$, $t=1.3$). This is the noise-dominated regime of Corollary \ref{cor:cases}: shrinkage helps when the mini-batch signal is unreliable, most clearly on the classification side, and adds little when it is not.
 
 %% Table tab:noise: code/noise_sweep.py -> paper/tab_noise.tex (out/noise_sweep.json)
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
 \caption{Label (or target) noise. Upper block: linear regression with target noise on $y$ (test MSE). Lower block: classification with training-label noise (test accuracy, per cent). Gap is AdamW minus SR-Adam for MSE and SR-Adam minus AdamW for accuracy (pp); positive favours SR-Adam (bold).}
 \label{tab:noise}
 \input{tab_noise}
-\end{table}
+\end{table*}
 
 %% Figure fig:noise_sweep: code/noise_sweep.py -> paper/fig_noise_sweep.pdf
-\begin{figure}% CAS uses key-value options here (default pos=t)
+\begin{figure*}% spans both columns; CAS uses key-value options here
 \centering
 \includegraphics[width=1\textwidth]{fig_noise_sweep.pdf}
 \caption{Noise and the Stein weight. Left: MSE gap (AdamW minus SR-Adam) on linear regression against target-noise scale for three tabular sets. Right: classification accuracy gap (SR-Adam minus AdamW) against training label-noise rate. Positive values favour SR-Adam. On Digits the Stein weight is ahead once labels are corrupted, by up to $+13.5$ accuracy points at a $50$ per cent flip rate; on regression the MSE gap is small and not of a consistent sign across the three sets.}
 \label{fig:noise_sweep}
-\end{figure}
+\end{figure*}
 
 \subsubsection{Dimension and controlled noise}
 %% code: path4_dim_sweep.py  (also phase_diagram.py for the wider grid)
@@ -979,7 +987,7 @@ Table \ref{tab:noise} and Figure \ref{fig:noise_sweep} isolate the effect of cor
 The controlled family isolates the high-dimensional claim of Sections \ref{sec:risk} and \ref{sec:convergence}. On a quadratic with diagonal curvature and additive gradient noise at scale $\tau$, and on multinomial logistic regression with a controlled label-flip rate, the block dimension $p$ runs over $\{10,20,50,100,200,400,500\}$. The paired gap on the terminal objective, AdamW minus SR-Adam, is recorded at $\tau\in\{0.1,1,4\}$, under Student-$t$ noise at $\tau=1$, and at label-flip rates $0.2$ and $0.4$. The step-size protocol itself is an ablation factor of this subsection, so the sweep is reported under both protocols, the shared-default one first: the step size the first version of this manuscript used --- $0.02$ on the quadratic problems and $0.03$ on the logistic problem for every optimiser, nothing tuned --- on identical seeds, step count and problem grid. Table \ref{tab:dim_sweep_common} reports that arm. The gap grows with $p$ on every column: the quadratic at $\tau=1$ runs from $+0.010$ at $p=10$ to $+0.621$ at $p=500$, Student-$t$ from $+0.006$ to $+0.400$, and the logistic problem at flip rate $0.2$ from $+0.000$ to $+1.452$, and $38$ of the $42$ settings favour SR-Adam --- the claim made by the earlier draft.
 
 %% Table tab:dim_sweep_common: code/path4_dim_sweep.py --common-lr -> out/path4_dim_sweep_common.json
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
 \caption{Ablation of the step-size protocol: the dimension sweep at the shared default step size that the first version of this manuscript used --- $0.02$ on the quadratic problems and $0.03$ on the logistic problem for every optimiser, nothing tuned. Paired gap on the terminal loss, AdamW minus SR-Adam, for $p\in\{10,20,50,100,200,400,500\}$: quadratic with Gaussian gradient noise at $\tau\in\{0.1,1,4\}$, quadratic with Student-$t$ noise at $\tau=1$, and logistic label noise at flip rates $0.2$ and $0.4$; identical seeds, steps and problem grid in both protocols. Positive values favour SR-Adam; $38$ of the $42$ settings do, the four exceptions being the $\tau=4$ column at $p\in\{10,20,50,400\}$, none of them significant ($|t|\leq 1.34$).}
 \label{tab:dim_sweep_common}
@@ -998,12 +1006,12 @@ $p$ & \multicolumn{3}{c}{quadratic (Gaussian)} & Student-$t$ & \multicolumn{2}{c
 500 & $+0.111$ & $+0.621$ & $+0.383$ & $+0.400$ & $+1.452$ & $+1.049$ \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 Table \ref{tab:dim_sweep} repeats the sweep with the step sizes tuned per optimiser (the quadratic grid chosen at $\tau=1$ and reused at $\tau=0.1$ and under Student-$t$ noise, the logistic grid at flip rate $0.2$; the $\tau=4$ and flip-rate-$0.4$ columns are tuned at their own noise level). Under that protocol the sign of the gap is set by the noise level and not by the dimension --- exactly the regime statement of the risk analysis. SR-Adam wins at every $p$ at $\tau=0.1$ and at flip rate $0.4$, and at $\tau=4$ the gap turns positive at $p\in\{100,200,500\}$; a tuned AdamW is ahead only in the intermediate band ($\tau=1$, Student-$t$ at $\tau=1$, flip rate $0.2$). Seventeen of the forty-two settings favour SR-Adam, and every one of them sits at an end of the noise axis. The heavy label-noise column is the strongest evidence in the table: the paired gap grows with $p$ from $+0.015$ at $p=10$ to $+4.13$ at $p=500$ --- per coordinate from $7\times10^{-4}$ at $p=20$ to $8\times10^{-3}$ at $p=500$, an order of magnitude --- with $|t|$ between $10.5$ and $47.7$ at every $p\geq 50$. This is the corruption-dominated regime in which the risk-optimal weight departs furthest from any fixed momentum weight, and there the advantage does grow with the block dimension. The sign at this flip rate does not contradict Table \ref{tab:opt_noise}, where a tuned AdamW is a few per cent ahead at flip rates $0.3$ and $0.4$: that study trains on $N=20\,000$ points for $2000$ steps while this sweep trains on $N=4000$ for $800$, so per coordinate the sweep is the far more estimation-limited problem --- the two results place the crossover on the same axis, the variance of the gradient estimate per coordinate, rather than on the flip rate alone. At $\tau=0.1$ the per-coordinate gap stays flat ($3\times10^{-6}$ to $1.2\times10^{-4}$), so the growing component appears only once the noise clearly corrupts the signal.
 
 %% Table tab:dim_sweep: code/path4_dim_sweep.py -> out/path4_dim_sweep.json
-\begin{table}% CAS uses key-value options here (default pos=t)
+\begin{table*}% spans both columns; CAS uses key-value options here
 \centering
 \caption{The same sweep as Table \ref{tab:dim_sweep_common} --- same problems, noise levels, $p$ grid, seeds, steps and problem grid --- with the step sizes tuned per optimiser: the quadratic grid is chosen at $\tau=1$ and reused at $\tau=0.1$ and under Student-$t$ noise, and the logistic grid at flip rate $0.2$, while the $\tau=4$ and flip-rate-$0.4$ columns are tuned at their own noise level. Paired gap on the terminal loss, AdamW minus SR-Adam; positive values favour SR-Adam.}
 \label{tab:dim_sweep}
@@ -1022,7 +1030,7 @@ $p$ & \multicolumn{3}{c}{quadratic (Gaussian)} & Student-$t$ & \multicolumn{2}{c
 500 & $+0.007$ & $-0.216$ & $+0.383$ & $-0.075$ & $-0.919$ & $+4.132$ \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 The two protocols differ in exactly twenty-one cells, and those cells are precisely the intermediate band ($\tau=1$, Student-$t$ at $\tau=1$, flip rate $0.2$). The mechanism is visible in the chosen values: halving the step size there takes AdamW from $0.02$ to $0.01$ on the quadratic and from $0.03$ to $0.01$ on the logistic problem, while SR-Adam keeps the value the shared default already gave it ($0.02$ and $0.03$) --- the common step size of the earlier draft was in effect SR-Adam's own tuned step size. Both ends of the noise axis give the same outcome under the two protocols (all seven cells at $\tau=0.1$, all seven at flip rate $0.4$, and the same three cells at $\tau=4$\rev{; the $\tau=4$ column is in fact identical in the two tables, because tuning at that noise level returned the shared default step size for both optimisers}), so the regime structure is a property of the problem and not of the comparison, while the size of the deficit at intermediate noise is a property of the baseline. Table \ref{tab:dim_sweep} is therefore the fair comparison and the headline of this subsection, and Table \ref{tab:dim_sweep_common} the ablation of the comparison itself.
 
@@ -1032,12 +1040,12 @@ The two protocols differ in exactly twenty-one cells, and those cells are precis
 \clearpage
 
 %% Figure fig:regime_win: code/make_paper_barfigs.py (fractions from out/*.json)
-\begin{figure}% CAS uses key-value options here (default pos=t)
+\begin{figure*}% spans both columns; CAS uses key-value options here
 \centering
 \includegraphics[width=0.9\textwidth]{regime_winrate.pdf}
 \caption{Fraction of settings in which SR-Adam beats AdamW, ties excluded, by problem family, at the per-optimiser tuned step sizes: dimension sweep ($17/42$\rev{, the cell printed as $+0.000$ in Table \ref{tab:dim_sweep} being positive before rounding}), real linear regression ($5/5$), label and target noise ($15/19$), graph node classification ($6/7$, one tie), and clean tabular classification ($3/5$).}
 \label{fig:regime_win}
-\end{figure}
+\end{figure*}
 
 
 
@@ -1047,13 +1055,13 @@ Across these families the risk-optimal weight helps when the problem is estimati
 \section{Discussion}
 \label{sec:conclusion}
 
-The search direction of an adaptive gradient method is a shrinkage estimator of the population gradient whose weight is set by a hyperparameter. Replacing that weight by the one a decision-theoretic analysis selects \rev{takes the direction weight out of $\beta_1$'s hands, at the price of four fixed constants $\rho$, $\omega$, $\gamma$ and $\tau$ that were not tuned}, reproduces the oracle weight closely except at the very lowest signal-to-noise ratios, and leaves a method whose cost and memory match AMSGrad. The theory needed to justify the substitution is not the classical James--Stein theorem applied unchanged. It requires a dominance statement that simultaneously accommodates heteroscedastic noise, a scale matrix estimated from the past, and \rev{an arbitrary diagonal loss weighting, and Theorem \ref{thm:master}, a conditional form of the general-loss results of Bock \cite{bock1975} and Berger \cite{berger1976jmva}, supplies one; Corollary \ref{cor:cases}(v) then shows that the guarantee for $c=p-2$ is a guarantee under the standardised loss and not under the metric of the preconditioner.} It requires an honest account of the variance estimate the optimiser can form for itself, and Theorem \ref{thm:variance_bias} supplies one, including the exact bias of the obvious candidate\rev{, with Propositions \ref{prop:drift} and \ref{prop:diff} covering a drifting mean}. It requires a convergence statement for a deliberately biased direction, and Theorem \ref{thm:convergence} supplies one, with a floor that is computable from quantities the algorithm already forms and that scales inversely with the batch size\rev{ when the scale matrix is known}.
+The search direction of an adaptive gradient method is a shrinkage estimator of the population gradient whose weight is set by a hyperparameter. Replacing that weight by the one a decision-theoretic analysis selects \rev{takes the direction weight out of $\beta_1$'s hands, at the price of four fixed constants $\rho$, $\omega$, $\gamma$ and $\tau$ that were not tuned}, reproduces the oracle weight closely except at the very lowest signal-to-noise ratios, and leaves a method whose cost and memory match AMSGrad. The theory needed to justify the substitution is not the classical James--Stein theorem applied unchanged. It requires a dominance statement that simultaneously accommodates heteroscedastic noise, a scale matrix estimated from the past, and \rev{an arbitrary diagonal loss weighting, and Theorem \ref{thm:master}, a conditional form of the general-loss results of \citet{bock1975} and \citet{berger1976jmva}, supplies one; Corollary \ref{cor:cases}(v) then shows that the guarantee for $c=p-2$ is a guarantee under the standardised loss and not under the metric of the preconditioner.} It requires an honest account of the variance estimate the optimiser can form for itself, and Theorem \ref{thm:variance_bias} supplies one, including the exact bias of the obvious candidate\rev{, with Propositions \ref{prop:drift} and \ref{prop:diff} covering a drifting mean}. It requires a convergence statement for a deliberately biased direction, and Theorem \ref{thm:convergence} supplies one, with a floor that is computable from quantities the algorithm already forms and that scales inversely with the batch size\rev{ when the scale matrix is known}.
 
-Three findings run against expectation and are worth recording, since they are the kind of thing that is easy to assume in the other direction. First, the effective dimension of Bock \cite{bock1975} does not govern the admissible shrinkage constant once the loss is standardised by the noise scale; the nominal dimension returns, and coordinatewise whitening rather than a restricted constant is what handles heteroscedasticity\rev{. Under the metric of the preconditioner, however, an effective dimension returns in the form $\peffq{1/2}$, so the choice of loss in which the dominance is stated is a substantive choice}. Second, the parameter count of a block is a poor guide to whether shrinkage helps it, since what the admissible window responds to is the loss weighting and the noise profile rather than the raw count (Corollary \ref{cor:cases}). Third, the improvement in gradient-estimation risk is large and reliable, while its translation into optimisation progress is regime-dependent and, on the synthetic network of Section \ref{sec:simulation}, close to neutral.
+Three findings run against expectation and are worth recording, since they are the kind of thing that is easy to assume in the other direction. First, the effective dimension of \citet{bock1975} does not govern the admissible shrinkage constant once the loss is standardised by the noise scale; the nominal dimension returns, and coordinatewise whitening rather than a restricted constant is what handles heteroscedasticity\rev{. Under the metric of the preconditioner, however, an effective dimension returns in the form $\peffq{1/2}$, so the choice of loss in which the dominance is stated is a substantive choice}. Second, the parameter count of a block is a poor guide to whether shrinkage helps it, since what the admissible window responds to is the loss weighting and the noise profile rather than the raw count (Corollary \ref{cor:cases}). Third, the improvement in gradient-estimation risk is large and reliable, while its translation into optimisation progress is regime-dependent and, on the synthetic network of Section \ref{sec:simulation}, close to neutral.
 
 \paragraph{Limitations}
 
-The risk theory rests on a conditional normal model for gradient noise, weakened in Section \ref{sec:elliptical} to an elliptical one but not further. Genuinely non-elliptical or infinite-variance noise, for which there is some evidence \cite{simsekli2019, gurbuzbalaban2021}, is outside the scope of every statement here.
+The risk theory rests on a conditional normal model for gradient noise, weakened in Section \ref{sec:elliptical} to an elliptical one but not further. Genuinely non-elliptical or infinite-variance noise, for which there is some evidence \citep{simsekli2019, gurbuzbalaban2021}, is outside the scope of every statement here.
 
 Assumption (A2) takes the conditional covariance of the gradient noise to be diagonal. Whitening by the coordinatewise variances is what makes that model natural, and it is the model under which every adaptive method is already implicitly operating, but gradient noise in a network is correlated across coordinates and the diagonal model does not describe it. Theorem \ref{thm:master} extends to a general $\bm\Sigma$ at the cost of replacing the coordinatewise maxima by matrix norms, which is straightforward, and at the cost of estimating a full covariance, which is not.
 
@@ -1063,11 +1071,11 @@ The convergence theorem produces a floor rather than convergence to stationarity
 
 The dominance results concern the risk of the gradient estimate. A lower estimation risk is neither necessary nor sufficient for faster optimisation or better generalisation, and Section \ref{sec:simulation} shows a setting in which the two come apart.
 
-The empirical study covers tabular regression and classification sets, three citation graphs and synthetic controlled-noise problems, the largest model being a two-layer graph convolutional network. Nothing here establishes behaviour on residual networks \cite{he2016}, transformers \cite{vaswani2017} or any large-scale training regime.
+The empirical study covers tabular regression and classification sets, three citation graphs and synthetic controlled-noise problems, the largest model being a two-layer graph convolutional network. Nothing here establishes behaviour on residual networks \citep{he2016}, transformers \citep{vaswani2017} or any large-scale training regime.
 
 \paragraph{Directions}
 
-The most direct extension is to replace the scalar weight $k_t$ by a block-diagonal or low-rank shrinkage matrix, which Theorem \ref{thm:master} already accommodates through the choice of $\bm A$. A second is an annealing schedule for $\rho$ chosen to satisfy the summability condition that removes the floor in Theorem \ref{thm:convergence} while retaining most of the risk reduction. A third is a preliminary-test formulation \cite{saleh2006, judge1978}, in which the weight is chosen by an explicit test of the hypothesis that the current gradient agrees with the historical average, which would replace the smooth Stein weight by a thresholded one and may suit the regime where gradients change abruptly. A fourth is to estimate the degrees of freedom of the elliptical model online and set $\rho$ from Corollary \ref{cor:student} rather than fixing it.
+The most direct extension is to replace the scalar weight $k_t$ by a block-diagonal or low-rank shrinkage matrix, which Theorem \ref{thm:master} already accommodates through the choice of $\bm A$. A second is an annealing schedule for $\rho$ chosen to satisfy the summability condition that removes the floor in Theorem \ref{thm:convergence} while retaining most of the risk reduction. A third is a preliminary-test formulation \citep{saleh2006, judge1978}, in which the weight is chosen by an explicit test of the hypothesis that the current gradient agrees with the historical average, which would replace the smooth Stein weight by a thresholded one and may suit the regime where gradients change abruptly. A fourth is to estimate the degrees of freedom of the elliptical model online and set $\rho$ from Corollary \ref{cor:student} rather than fixing it.
 
 
 
@@ -1075,7 +1083,22 @@ The most direct extension is to replace the scalar weight $k_t$ by a block-diago
 
 \section*{Declarations}
 
-\rev{\textbf{Competing interests.}} The authors declare no competing interests. \rev{\textbf{Code availability.}} The code that reproduces every number and figure in this paper is available at \url{https://github.com/mamintoosi-papers-codes/risk-optimal-momentum}. \rev{\textbf{Data availability.} The tabular regression and classification sets and the Planetoid citation graphs used in Section \ref{sec:experiments} are publicly available from the UCI repository, OpenML, scikit-learn and the Planetoid benchmark; all other data are synthetic and are generated by the code above.}
+\textbf{Declaration of competing interest.} The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\textbf{Funding.} This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
+
+\rev{\textbf{Data availability.} The tabular regression and classification sets and the Planetoid citation graphs used in Section \ref{sec:experiments} are publicly available from the UCI repository, OpenML, scikit-learn and the Planetoid benchmark; all other data are synthetic and are generated by the code above.}
+
+\rev{\textbf{Code availability.}} The code that reproduces every number and figure in this paper is available at \url{https://github.com/mamintoosi-papers-codes/risk-optimal-momentum}.
+
+%% Declaration of generative AI and AI-assisted technologies in the writing process.
+%% Uncomment ONLY if a generative AI tool was used substantively in preparing the
+%% manuscript -- basic grammar, spelling and punctuation checks are exempt:
+%% \textbf{Declaration of generative AI and AI-assisted technologies in the writing
+%% process.} During the preparation of this work the author(s) used [TOOL/SERVICE]
+%% in order to [REASON]. After using this tool/service, the author(s) reviewed and
+%% edited the content as needed and take(s) full responsibility for the content of
+%% the published article.
 
 \begin{appendices}
 
@@ -1119,7 +1142,7 @@ Write $\bm h(\bm y)=-c\,\bm y/Q(\bm y)$ with $Q(\bm y)=\bm y'\bm A^{-1}\bm y$, s
 +\E\bigl[\bm h(\bm Y)'\bm D\bm h(\bm Y)\bigr].
 \end{equation}
 
-We first record the integrability needed. Since $\bm A$ is positive definite and diagonal, $Q(\bm y)\ge\|\bm y\|^2/\lambda_{\max}(\bm A)$, so $|h_i(\bm y)|\le c\lambda_{\max}(\bm A)|y_i|/\|\bm y\|^2\le c\lambda_{\max}(\bm A)/\|\bm y\|$. For a nondegenerate normal law on $\Real^p$ the density is bounded, so in polar coordinates $\E\|\bm Y\|^{-2}<\infty$ reduces to the convergence of $\int_0^{1}r^{-2}r^{p-1}\,dr=\int_0^{1}r^{p-3}\,dr$, which holds exactly when $p>2$, that is when $p\ge3$. Every term appearing below is $O(\|\bm y\|^{-2})$ near the origin, as the display \eqref{eq:pf_stein_sum} makes explicit, so no integrand of order $\|\bm y\|^{-4}$ arises and $p\ge3$ suffices throughout. In particular $\E[Q^{-1}]\le\lambda_{\max}(\bm A)\E\|\bm Y\|^{-2}<\infty$, and $\bm h$ is bounded outside any neighbourhood of the origin and is weakly differentiable on $\Real^p\setminus\{\bm 0\}$, a set of full Lebesgue measure. These are the conditions under which Stein's identity for a normal vector with covariance $\bm\Sigma$ applies \cite{stein1981, fourdrinier2018}, namely
+We first record the integrability needed. Since $\bm A$ is positive definite and diagonal, $Q(\bm y)\ge\|\bm y\|^2/\lambda_{\max}(\bm A)$, so $|h_i(\bm y)|\le c\lambda_{\max}(\bm A)|y_i|/\|\bm y\|^2\le c\lambda_{\max}(\bm A)/\|\bm y\|$. For a nondegenerate normal law on $\Real^p$ the density is bounded, so in polar coordinates $\E\|\bm Y\|^{-2}<\infty$ reduces to the convergence of $\int_0^{1}r^{-2}r^{p-1}\,dr=\int_0^{1}r^{p-3}\,dr$, which holds exactly when $p>2$, that is when $p\ge3$. Every term appearing below is $O(\|\bm y\|^{-2})$ near the origin, as the display \eqref{eq:pf_stein_sum} makes explicit, so no integrand of order $\|\bm y\|^{-4}$ arises and $p\ge3$ suffices throughout. In particular $\E[Q^{-1}]\le\lambda_{\max}(\bm A)\E\|\bm Y\|^{-2}<\infty$, and $\bm h$ is bounded outside any neighbourhood of the origin and is weakly differentiable on $\Real^p\setminus\{\bm 0\}$, a set of full Lebesgue measure. These are the conditions under which Stein's identity for a normal vector with covariance $\bm\Sigma$ applies \citep{stein1981, fourdrinier2018}, namely
 \begin{equation}
 \label{eq:pf_stein}
 \E\bigl[(Y_i-\mu_i)f(\bm Y)\bigr]
@@ -1339,7 +1362,7 @@ so that, with $h(w)=\E\bigl[1/q(w^{-1/2})\bigr]$,
 \qquad
 \E\left[\frac{1}{Q}\right]=\E\left[\frac{h(W)}{W}\right].
 \end{equation}
-For each $u>0$ the set $K_u=\{\bm x:\bm x'\bm A^{-1}\bm x\le u\}$ is convex and symmetric about the origin, and the density of $\bm X$ is symmetric and unimodal in the sense of Anderson \cite{anderson1955}, its superlevel sets being ellipsoids centred at the origin. Anderson's theorem gives that $r\mapsto\mathbb P(\bm X+r\bm\mu\in K_u)$ is nonincreasing on $[0,\infty)$, so $q(r)$ is stochastically nondecreasing in $r$, and therefore $r\mapsto\E[1/q(r)]$ is nonincreasing. Since $w\mapsto w^{-1/2}$ is decreasing, $h$ is nondecreasing on $(0,\infty)$. It is also bounded, $0<h(w)\le\E[1/q(0)]<\infty$, the last because $q(0)=\bm X'\bm A^{-1}\bm X$ has $\E[q(0)^{-1}]<\infty$ for $p\ge3$ by the argument in the proof of Theorem \ref{thm:master}.
+For each $u>0$ the set $K_u=\{\bm x:\bm x'\bm A^{-1}\bm x\le u\}$ is convex and symmetric about the origin, and the density of $\bm X$ is symmetric and unimodal in the sense of \citet{anderson1955}, its superlevel sets being ellipsoids centred at the origin. Anderson's theorem gives that $r\mapsto\mathbb P(\bm X+r\bm\mu\in K_u)$ is nonincreasing on $[0,\infty)$, so $q(r)$ is stochastically nondecreasing in $r$, and therefore $r\mapsto\E[1/q(r)]$ is nonincreasing. Since $w\mapsto w^{-1/2}$ is decreasing, $h$ is nondecreasing on $(0,\infty)$. It is also bounded, $0<h(w)\le\E[1/q(0)]<\infty$, the last because $q(0)=\bm X'\bm A^{-1}\bm X$ has $\E[q(0)^{-1}]<\infty$ for $p\ge3$ by the argument in the proof of Theorem \ref{thm:master}.
 
 If $\E[W^{-1}]=\infty$, \eqref{eq:harmonic_lower} is trivial. Otherwise $h(W)$ is a bounded nondecreasing function and $W^{-1}$ an integrable nonincreasing function of the same random variable, so Chebyshev's covariance inequality gives $\E[h(W)W^{-1}]\le\E[h(W)]\,\E[W^{-1}]$. Dividing,
 \begin{equation}
@@ -1572,7 +1595,7 @@ so the floor is at least of order $B^{-1}$. An equality statement in the other d
 % \printcredits
 
 %% Loading bibliography style file
-\bibliographystyle{elsarticle-num}
+\bibliographystyle{cas-model2-names}
 
 %% Loading bibliography database
 \bibliography{sample}
