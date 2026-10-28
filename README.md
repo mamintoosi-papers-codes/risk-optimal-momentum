@@ -67,7 +67,7 @@ scripts\phaseE.bat
 
 The full experiment pipeline is orchestrated by `scripts\phaseD.bat`. It reruns theory checks, simulations, tuned baseline comparisons, tabular tasks, graph pilots, figure/table generation, and statistical tests. It can be computationally expensive; use it when intentionally regenerating experiment outputs, not merely to compile the current manuscript.
 
-The LaTeX source uses the Springer Nature `sn-jnl` class included in `paper/`. The manuscript has no unresolved experimental placeholders in its body; do not follow older instructions that describe the former CIFAR grid or ask for new CIFAR runs.
+The LaTeX source uses the Springer Nature `sn-jnl` class included in `paper/`. The manuscript has no unresolved experimental placeholders in its body. Use the current experiment outputs and phase-D pipeline when intentionally regenerating results.
 
 ## Reproducibility notes
 
