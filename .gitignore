@@ -28,6 +28,16 @@ paper/*.toc
 paper/*.bbl
 paper/*.blg
 
+els-paper/*.aux
+els-paper/*.log
+els-paper/*.out
+els-paper/*.synctex.gz
+els-paper/*.fls
+els-paper/*.fdb_latexmk
+els-paper/*.toc
+els-paper/*.bbl
+els-paper/*.blg
+
 # OS / editor
 .DS_Store
 Thumbs.db
