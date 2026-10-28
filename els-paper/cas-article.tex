@@ -54,6 +54,9 @@
 \newcommand{\diag}{\mathrm{diag}}
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\Real}{\mathbb{R}}
+\makeatletter
+\algnewcommand{\LineComment}[1]{\Statex \hskip\ALG@thistlm \(\triangleright\) #1}
+\makeatother
 
 \begin{document}
 \let\WriteBookmarks\relax
@@ -65,7 +68,7 @@
 
 \title[mode = title]{Risk-Optimal Momentum Weights for Stochastic Gradient Estimation in High Dimensions}
 
-\author[1]{Mohammad Arashi}
+\author[1]{Mohammad Arashi}[orcid=0000-0002-5881-9241]
 \cormark[1]
 \ead{arashi@um.ac.ir}
 %% CRediT authorship contribution statement (required at submission).
@@ -75,24 +78,27 @@
 %% Funding acquisition.  Then uncomment \printcredits below.
 % \credit{Conceptualization; Methodology; Software; Formal analysis; Investigation; Writing - original draft}
 
-\affiliation[1]{organization={Department of Statistics, Faculty of Mathematical Sciences},
+\affiliation[1]{organization={Department of Statistics, Faculty of Mathematical Sciences,  Ferdowsi University of Mashhad},
             addressline={P.O. Box 1159},
             city={Mashhad},
             postcode={91775},
-            country={Iran}}
+            country={Iran}
+            }
 
-\author[2]{Mahmood Amintoosi}
+\author[2]{Mahmood Amintoosi}[orcid=0000-0001-9640-6475]
 \ead{m.amintoosi@um.ac.ir}
 % \credit{Conceptualization; Supervision; Writing - review and editing; Project administration}
 
-\affiliation[2]{organization={Department of Computer Science, Faculty of Mathematical Sciences},
+\affiliation[2]{organization={Department of Computer Science, Faculty of Mathematical Sciences, Ferdowsi University of Mashhad},
             addressline={P.O. Box 1159},
             city={Mashhad},
             postcode={91775},
-            country={Iran}}
+            country={Iran}
+            }
+\ead[url]{mamintoosi.github.io}
 
 \cortext[1]{Corresponding author}
-\nonumnote{The first two authors contributed equally to this work.}
+\nonumnote{The two authors contributed equally to this work.}
 
 \begin{abstract}
 Adaptive stochastic gradient methods form their search direction by averaging the current mini-batch gradient with a running average of past gradients, using a weight fixed in advance by a decay hyperparameter. We show that this direction is exactly a shrinkage estimator of the population gradient, with a deterministic weight, and we ask what weight minimises its conditional quadratic risk. The answer is a positive-part Stein rule whose constant is set by the dimension of the parameter block and whose statistic is the current gradient standardised by the coordinatewise gradient-noise variance. We give a dominance theorem that covers heteroscedastic noise, an estimated scale matrix and an arbitrary diagonal loss weighting in one statement, and we show that the loss weighting decides whether the nominal dimension or an effective dimension governs the admissible constant. Because the rule needs a variance estimate, we analyse the natural candidate built from the moments an adaptive optimiser already maintains, and we prove that it is biased by a factor we compute in closed form for every iteration, which yields an exactly unbiased correction. Under elliptically contoured gradient noise the dominance window contracts by an explicitly computable factor, equal to one minus twice the reciprocal degrees of freedom for the multivariate Student law. The resulting algorithm, SR-Adam, is analysed as a biased stochastic approximation and converges at the usual non-convex rate up to a floor set by the largest coordinatewise gradient-noise variance of the block, \rev{which is inversely proportional to the batch size when the scale matrix is known and is bounded below at that rate when it is estimated.} Monte Carlo studies confirm every constant. Controlled optimisation experiments, in which every baseline is given its own tuned step size, show that the resulting method is regime-dependent: it improves on AdamW where the gradient noise is small relative to the curvature or very large, and is behind it in the intermediate band and under heavy label noise.
@@ -260,17 +266,16 @@ Risk is measured by $\|\cdot\|^2_{\bm D}$ for a diagonal positive definite $\bm 
 \begin{theorem}
 \label{thm:master}
 Let $p\ge3$ and let $\bm\Sigma$, $\bm A$ and $\bm D$ be diagonal and positive definite. Then $\E[Q^{-1}]<\infty$, the risk of $\hat{\bm\mu}_c$ satisfies the identity
-\begin{equation}
+\begin{flalign}
 \label{eq:master_identity}
-\E\bigl\|\hat{\bm\mu}_c(\bm Y)-\bm\mu\bigr\|^2_{\bm D}
--\tr(\bm D\bm\Sigma)
-=
-\E\left[
+&\E\bigl\|\hat{\bm\mu}_c(\bm Y)-\bm\mu\bigr\|^2_{\bm D}
+-\tr(\bm D\bm\Sigma) \\
+&= \E\left[
 -\frac{2c\,\tr(\bm D\bm\Sigma)}{Q}
 +\frac{4c\,\bm Y'\bm D\bm\Sigma\bm A^{-1}\bm Y}{Q^{2}}
 +\frac{c^{2}\,\bm Y'\bm D\bm Y}{Q^{2}}
-\right],
-\end{equation}
+\right]\nonumber
+\end{flalign}
 and consequently $\hat{\bm\mu}_c$ dominates $\bm Y$ under $\|\cdot\|^2_{\bm D}$ whenever
 \begin{equation}
 \label{eq:master_window}
@@ -364,9 +369,9 @@ Combining \eqref{eq:direction_family} with \eqref{eq:positive_part}, the directi
 \begin{equation}
 \label{eq:stein_weight}
 k_t=\Bigl[1-\frac{c_t}{Q_t}\Bigr]^{+},
-\qquad
+%\qquad
 Q_t=\sum_{j=1}^{p}\frac{\bigl(g_{t,j}-\hat m_{t-1,j}\bigr)^2}{\hat\sigma^2_{t,j}+\epsilon},
-\qquad
+%\qquad
 c_t=\rho\,(p-2),
 \end{equation}
 with a safety factor $\rho\in(0,1]$. The reason this deserves to be called a plug-in for the oracle weight \eqref{eq:oracle_weight} is arithmetic. Under (A2) and (A3), $\E[Q_t\mid\mathcal F_{t-1}]=p+\|\bm\delta_t\|^2_{\bm\Sigma_t^{-1}}$ when the variance estimates are exact, so replacing $Q_t$ by its conditional mean in \eqref{eq:stein_weight} gives
@@ -448,8 +453,8 @@ The rule \eqref{eq:stein_weight} needs $\hat\sigma^2_{t,j}$. An adaptive optimis
 \begin{equation}
 \label{eq:moments}
 \bar m_{t,j}=\beta_1\bar m_{t-1,j}+(1-\beta_1)g_{t,j},
-\qquad
-\bar v_{t,j}=\beta_2\bar v_{t-1,j}+(1-\beta_2)g^2_{t,j},
+\,
+\bar v_{t,j}=\beta_2\bar v_{t-1,j}+(1-\beta_2)g^2_{t,j}
 \end{equation}
 started at zero, with bias-corrected versions $\hat m_{t,j}=\bar m_{t,j}/(1-\beta_1^{t})$ and $\hat v_{t,j}=\bar v_{t,j}/(1-\beta_2^{t})$. The natural candidate is $\hat v_{t,j}-\hat m^2_{t,j}$. It is biased, and the bias is available in closed form.
 
@@ -489,24 +494,24 @@ Fix a coordinate and drop the index $j$. Let $g_k=\mu_k+\varepsilon_k$ for $k=1,
 \qquad k=1,\dots,t,\quad i=1,2,
 \end{equation}
 for the weights of $\hat m_t$ and $\hat v_t$. Then
-\begin{equation}
+\begin{flalign}
 \label{eq:drift_bias}
 \E\bigl[\hat v_t-\hat m^2_t\bigr]=\bigl(1-\phi_t(\beta_1)\bigr)s^2+\Delta_t,
-\qquad
-\Delta_t=\sum_{k=1}^{t}\omega^{(2)}_k\mu^2_k-\Bigl(\sum_{k=1}^{t}\omega^{(1)}_k\mu_k\Bigr)^{2},
-\end{equation}
+\\ 
+\Delta_t=\sum_{k=1}^{t}\omega^{(2)}_k\mu^2_k-\Bigl(\sum_{k=1}^{t}\omega^{(1)}_k\mu_k\Bigr)^{2},\nonumber
+\end{flalign}
 so the debiased estimator \eqref{eq:debiased} has bias $\Delta_t/\{1-\phi_t(\beta_1)\}$. If $\beta_1=\beta_2$, then $\Delta_t$ is the $\omega^{(1)}$-weighted variance of the mean path and is nonnegative.
 \end{proposition}
 
 The term $\Delta_t$ compares a long average of the squared mean, with window of order $(1-\beta_2)^{-1}$, against the square of a short average, with window of order $(1-\beta_1)^{-1}$. When the mean was larger in magnitude earlier in the long window than it is now, which is the typical profile early in training, $\Delta_t$ is positive, and by Corollary \ref{cor:twofold} the debiased estimate leaves the dominance margin once $\Delta_t$ exceeds $\{1-\phi_t(\beta_1)\}s^2$, that is, once the change in the mean over the $\beta_2$ window is of the order of the noise standard deviation. An oscillating mean can make $\Delta_t$ negative, which errs toward less shrinkage. The default $\beta_2=0.999$ makes the long window of order a thousand steps, so the drift term is not negligible in general.
 
 An estimator whose bias does not depend on the level of the mean is obtained from successive differences \citep{vonneumann1941}, which remove the mean up to one step of drift. Define, for $t\ge2$,
-\begin{equation}
+\begin{flalign}
 \label{eq:diff_estimator}
-\tilde s^2_{t,j}=\frac{1-\beta_2}{1-\beta_2^{t-1}}\sum_{k=2}^{t}\beta_2^{t-k}\,\tfrac12\bigl(g_{k,j}-g_{k-1,j}\bigr)^2 ,
-\qquad
-\tilde\sigma^2_t=\frac1p\sum_{j=1}^{p}\tilde s^2_{t,j},
-\end{equation}
+&\tilde s^2_{t,j}=\frac{1-\beta_2}{1-\beta_2^{t-1}}\sum_{k=2}^{t}\beta_2^{t-k}\,\tfrac12\bigl(g_{k,j}-g_{k-1,j}\bigr)^2 ,\nonumber
+\\
+&\tilde\sigma^2_t=\frac1p\sum_{j=1}^{p}\tilde s^2_{t,j},
+\end{flalign}
 which uses one extra buffer, the previous gradient, and no extra reduction.
 
 \begin{proposition}
@@ -580,8 +585,9 @@ Algorithm \ref{alg:sradam} assembles the pieces. Apart from the current gradient
     \State $\hat{\bm m}_{t-1}\gets\bar{\bm m}_{t-1}/(1-\beta_1^{t-1})$, \quad $\hat{\bm v}_{t-1}\gets\bar{\bm v}_{t-1}/(1-\beta_2^{t-1})$
     \State $\bm Y_t\gets\bm g_t-\hat{\bm m}_{t-1}$
     \If{$t-1\ge\tau$}
-      \State $\hat{\bm s}^2\gets\bigl[\hat{\bm v}_{t-1}-\hat{\bm m}_{t-1}^{2}\bigr]^{+}\big/\bigl(1-\phi_{t-1}(\beta_1)\bigr)$ \Comment{Theorem \ref{thm:variance_bias}}
-      \State $\hat{\bm\sigma}^2\gets(1-\omega)\hat{\bm s}^2+\omega\,\mathrm{mean}(\hat{\bm s}^2)$ \Comment{equation \eqref{eq:pooled}}
+      \State $\hat{\bm s}^2\gets\bigl[\hat{\bm v}_{t-1}-\hat{\bm m}_{t-1}^{2}\bigr]^{+}\big/\bigl(1-\phi_{t-1}(\beta_1)\bigr)$ 
+      \LineComment{Theorem \ref{thm:variance_bias}}
+      \State $\hat{\bm\sigma}^2\gets(1-\omega)\hat{\bm s}^2+\omega\,\mathrm{mean}(\hat{\bm s}^2)$ \LineComment{equation \eqref{eq:pooled}}
       \State $\hat\peff\gets\mathrm{sum}(\hat{\bm\sigma}^2)\big/\max(\hat{\bm\sigma}^2)$
       \State $Q_t\gets\sum_{j}Y^2_{t,j}/(\hat\sigma^2_{j}+\epsilon)$, \quad $c_t\gets\rho\,(p-2)$
       \State $k_t\gets\bigl[1-c_t/Q_t\bigr]^{+}$ \textbf{if} $\hat\peff>2+\gamma$ \textbf{else} $w_t$
@@ -593,7 +599,7 @@ Algorithm \ref{alg:sradam} assembles the pieces. Apart from the current gradient
     \State $\bm d_t\gets\bm g_t$
   \EndIf
   \State $\bar{\bm m}_t\gets\beta_1\bar{\bm m}_{t-1}+(1-\beta_1)\bm g_t$, \quad $\bar{\bm v}_t\gets\beta_2\bar{\bm v}_{t-1}+(1-\beta_2)\bm g_t^{2}$
-  \State $\bm u_t\gets\max\bigl(\bm u_{t-1},\;\bar{\bm v}_t/(1-\beta_2^{t})\bigr)$ \Comment{running maximum, as in AMSGrad}
+  \State $\bm u_t\gets\max\bigl(\bm u_{t-1},\;\bar{\bm v}_t/(1-\beta_2^{t})\bigr)$ \LineComment{running maximum, as in AMSGrad}
   \State $\bm P_t\gets\diag\bigl((\sqrt{u_{t,j}}+\epsilon)^{-1}\bigr)$
   \State $\bm\theta_{t+1}\gets(1-\alpha\lambda)\bm\theta_t-\alpha\,\bm P_t\bm d_t$
 \EndFor
@@ -619,16 +625,16 @@ The direction $\bm d_t$ is a biased estimate of $\nabla J(\bm\theta_t)$ by const
 \begin{lemma}
 \label{lem:displacement}
 Let $k_t$ be as in \eqref{eq:stein_weight} and $\bm d_t=\hat{\bm m}_{t-1}+k_t\bm Y_t$. Then, almost surely,
-\begin{equation}
+\begin{flalign}
 \label{eq:displacement}
-\bigl\|\bm d_t-\bm g_t\bigr\|
+&\bigl\|\bm d_t-\bm g_t\bigr\|
 =
 (1-k_t)\|\bm Y_t\|
 \le
-\sqrt{c_t\,\lambda_{\max}\bigl(\widehat{\bm\Sigma}_t\bigr)},
-\qquad
-\widehat{\bm\Sigma}_t=\diag\bigl(\hat\sigma^2_{t,j}+\epsilon\bigr).
-\end{equation}
+\sqrt{c_t\,\lambda_{\max}\bigl(\widehat{\bm\Sigma}_t\bigr)},\nonumber
+\\
+&\widehat{\bm\Sigma}_t=\diag\bigl(\hat\sigma^2_{t,j}+\epsilon\bigr).
+\end{flalign}
 Consequently $\|\bm b_t\|\le B_t:=\{c_t\lambda_{\max}(\widehat{\bm\Sigma}_t)\}^{1/2}$ for the conditional bias $\bm b_t=\E[\bm g_t-\bm d_t\mid\mathcal F_{t-1}]$.
 \end{lemma}
 
@@ -637,24 +643,25 @@ The bound is sharp, being attained when the block is homoscedastic and $\|\bm Y_
 \begin{theorem}
 \label{thm:convergence}
 Assume (A1), (A2) and (A4), and run Algorithm \ref{alg:sradam} with a constant step size $\alpha>0$ and $\lambda=0$. Write $p_{\min}=(G_\infty+\epsilon)^{-1}$, $p_{\max}=\epsilon^{-1}$, $\kappa=p_{\max}/p_{\min}$, $\Delta=J(\bm\theta_1)-J^\star$ and $\overline{B^2_T}=T^{-1}\sum_{t=1}^{T}\E[B^2_t]$. Then
-\begin{equation}
+\begin{flalign}
 \label{eq:conv_bound}
 \frac1T\sum_{t=1}^{T}\E\bigl\|\nabla J(\bm\theta_t)\bigr\|^{2}
-\le
+&\le
 \frac{2\Delta}{\alpha p_{\min}T}
-+\frac{2G_\infty^{2}\,p\,p_{\max}}{p_{\min}T}
-+\frac{L\alpha\,p^{2}_{\max}G^{2}}{p_{\min}}
++\frac{2G_\infty^{2}\,p\,p_{\max}}{p_{\min}T} \\ \nonumber
+&+\frac{L\alpha\,p^{2}_{\max}G^{2}}{p_{\min}}
 +\kappa\,\overline{B^2_T} .
-\end{equation}
+\end{flalign}
 Choosing $\alpha=\{2\Delta/(Lp^2_{\max}G^2T)\}^{1/2}$ gives
-\begin{equation}
+\begin{flalign}
 \label{eq:conv_rate}
 \min_{1\le t\le T}\E\bigl\|\nabla J(\bm\theta_t)\bigr\|^{2}
-\le
+&\le
 \frac{2}{p_{\min}}\sqrt{\frac{2\Delta L p^2_{\max}G^2}{T}}
-+\frac{2G_\infty^{2}p\,p_{\max}}{p_{\min}T}
+\\ \nonumber
+&+\frac{2G_\infty^{2}p\,p_{\max}}{p_{\min}T}
 +\kappa\,\overline{B^2_T},
-\end{equation}
+\end{flalign}
 so that the stationarity gap is $O(T^{-1/2})+O(T^{-1})$ plus a floor $\kappa\,\overline{B^2_T}$. If the shrinkage is annealed so that $\overline{B^2_T}\to0$, the whole right-hand side tends to zero as $T\to\infty$.
 \end{theorem}
 
@@ -706,7 +713,7 @@ Figure \ref{fig:risk_snr} shows the outcome and Table \ref{tab:risk_snr} gives r
 \label{fig:risk_snr}
 \end{figure*}
 
-\begin{table*}% spans both columns; CAS uses key-value options here
+\begin{table}
 \centering
 \caption{Conditional risk relative to the raw mini-batch gradient, and direction weights, at selected signal-to-noise ratios. Each entry is an average over $2\times10^{5}$ replicates.}
 \label{tab:risk_snr}
@@ -725,20 +732,20 @@ $\|\bm\delta\|^2/(p\sigma^2)$ & fixed $1-\beta_1$ & Stein & oracle & oracle & St
 31.623 & 25.623 & 0.970 & 0.969 & 0.969 & 0.969 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 \subsection{The variance estimator}
 
 Fix $p=2048$ coordinates with variances drawn uniformly on $[0.5,2]$, run the moment recursions \eqref{eq:moments} with $\beta_1=0.9$ and $\beta_2=0.999$ over $400$ independent replicates, and compare the uncorrected statistic with the corrected one \eqref{eq:debiased}. Figure \ref{fig:variance} plots both, divided by the truth. The uncorrected statistic starts at half the truth at $t=2$ and settles at $2\beta_1/(1+\beta_1)=0.9474$, matching the closed form of Theorem \ref{thm:variance_bias} to four decimal places at every iteration, and the corrected statistic sits on one throughout. Table \ref{tab:variance} gives the numbers alongside the closed form of Theorem \ref{thm:variance_bias}.
 
-\begin{figure*}% spans both columns; CAS uses key-value options here
+\begin{figure}
 \centering
 \includegraphics[width=0.48\textwidth]{sim_variance_bias.pdf}
 \caption{Moment-based variance estimates divided by the true average variance, against iteration, for $p=2048$ coordinates and $400$ replicates.}
 \label{fig:variance}
-\end{figure*}
+\end{figure}
 
-\begin{table*}% spans both columns; CAS uses key-value options here
+\begin{table}
 \centering
 \caption{Moment-based variance estimates divided by the true average variance, averaged over $400$ replicates with $p=2048$ coordinates. The last column is the closed form $1-\phi_t(\beta_1)$ of Theorem \ref{thm:variance_bias}. The algorithm additionally clips the statistic at zero, which raises the uncorrected value slightly at larger $t$, to $0.9492$ at $t=40$ and $0.9523$ at $t=60$.}
 \label{tab:variance}
@@ -756,7 +763,7 @@ $t$ & uncorrected & corrected & $1-\phi_t(0.9)$ \\
 $\infty$ & 0.9474 & 1.0000 & 0.9474 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 \subsection{Heteroscedasticity and the loss weighting}
 
@@ -793,14 +800,14 @@ $\peff$ & pooled scalar, $c=p-2$ & coordinatewise, $c=p-2$ & coordinatewise, $c=
 
 Draw $\bm Y$ from a multivariate Student law with $\nu$ degrees of freedom in $p=300$ dimensions, calibrate the rule to the marginal variance as Corollary \ref{cor:student} describes, and evaluate the risk for three values of the safety factor $\rho$. Figure \ref{fig:heavy} and Table \ref{tab:heavy} report the outcome. The rule with $\rho=1$ reduces risk at every $\nu$ examined, down to $\nu=3$, so the requirement $\nu>4$ that Corollary \ref{cor:student} imposes is sufficient rather than necessary, as one expects from a bound derived through a worst-case inequality. Reducing $\rho$ buys margin at a cost in risk reduction, and there is no setting in this study in which it pays.
 
-\begin{figure*}% spans both columns; CAS uses key-value options here
+\begin{figure}
 \centering
 \includegraphics[width=0.48\textwidth]{sim_heavy_tails.pdf}
 \caption{Risk relative to the raw gradient under multivariate Student gradient noise, against the degrees of freedom, for three safety factors, with $p=300$.}
 \label{fig:heavy}
-\end{figure*}
+\end{figure}
 
-\begin{table*}% spans both columns; CAS uses key-value options here
+\begin{table}
 \centering
 \caption{Risk relative to the raw gradient under multivariate Student gradient noise with $p=300$.}
 \label{tab:heavy}
@@ -816,7 +823,7 @@ $\nu$ & $\rho=1.00$ & $\rho=0.75$ & $\rho=0.50$ \\
 50 & 0.138 & 0.195 & 0.349 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 \subsection{Optimisation under controlled noise}
 \label{sec:sim_opt}
@@ -874,7 +881,7 @@ That last finding should be read carefully. At $B=8$ and at $B=32$ the differenc
 \label{fig:batch}
 \end{figure*}
 
-\begin{table*}% spans both columns; CAS uses key-value options here
+\begin{table*}[t]% spans both columns; CAS uses key-value options here
 \centering
 \caption{Batch-size study over five seeds. Losses are means with standard deviations across seeds; the paired difference is AdamW minus SR-Adam with its $t$ statistic.}
 \label{tab:batch}
@@ -987,7 +994,7 @@ Table \ref{tab:noise} and Figure \ref{fig:noise_sweep} isolate the effect of cor
 The controlled family isolates the high-dimensional claim of Sections \ref{sec:risk} and \ref{sec:convergence}. On a quadratic with diagonal curvature and additive gradient noise at scale $\tau$, and on multinomial logistic regression with a controlled label-flip rate, the block dimension $p$ runs over $\{10,20,50,100,200,400,500\}$. The paired gap on the terminal objective, AdamW minus SR-Adam, is recorded at $\tau\in\{0.1,1,4\}$, under Student-$t$ noise at $\tau=1$, and at label-flip rates $0.2$ and $0.4$. The step-size protocol itself is an ablation factor of this subsection, so the sweep is reported under both protocols, the shared-default one first: the step size the first version of this manuscript used --- $0.02$ on the quadratic problems and $0.03$ on the logistic problem for every optimiser, nothing tuned --- on identical seeds, step count and problem grid. Table \ref{tab:dim_sweep_common} reports that arm. The gap grows with $p$ on every column: the quadratic at $\tau=1$ runs from $+0.010$ at $p=10$ to $+0.621$ at $p=500$, Student-$t$ from $+0.006$ to $+0.400$, and the logistic problem at flip rate $0.2$ from $+0.000$ to $+1.452$, and $38$ of the $42$ settings favour SR-Adam --- the claim made by the earlier draft.
 
 %% Table tab:dim_sweep_common: code/path4_dim_sweep.py --common-lr -> out/path4_dim_sweep_common.json
-\begin{table*}% spans both columns; CAS uses key-value options here
+\begin{table}% spans both columns; CAS uses key-value options here
 \centering
 \caption{Ablation of the step-size protocol: the dimension sweep at the shared default step size that the first version of this manuscript used --- $0.02$ on the quadratic problems and $0.03$ on the logistic problem for every optimiser, nothing tuned. Paired gap on the terminal loss, AdamW minus SR-Adam, for $p\in\{10,20,50,100,200,400,500\}$: quadratic with Gaussian gradient noise at $\tau\in\{0.1,1,4\}$, quadratic with Student-$t$ noise at $\tau=1$, and logistic label noise at flip rates $0.2$ and $0.4$; identical seeds, steps and problem grid in both protocols. Positive values favour SR-Adam; $38$ of the $42$ settings do, the four exceptions being the $\tau=4$ column at $p\in\{10,20,50,400\}$, none of them significant ($|t|\leq 1.34$).}
 \label{tab:dim_sweep_common}
@@ -1006,12 +1013,12 @@ $p$ & \multicolumn{3}{c}{quadratic (Gaussian)} & Student-$t$ & \multicolumn{2}{c
 500 & $+0.111$ & $+0.621$ & $+0.383$ & $+0.400$ & $+1.452$ & $+1.049$ \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 Table \ref{tab:dim_sweep} repeats the sweep with the step sizes tuned per optimiser (the quadratic grid chosen at $\tau=1$ and reused at $\tau=0.1$ and under Student-$t$ noise, the logistic grid at flip rate $0.2$; the $\tau=4$ and flip-rate-$0.4$ columns are tuned at their own noise level). Under that protocol the sign of the gap is set by the noise level and not by the dimension --- exactly the regime statement of the risk analysis. SR-Adam wins at every $p$ at $\tau=0.1$ and at flip rate $0.4$, and at $\tau=4$ the gap turns positive at $p\in\{100,200,500\}$; a tuned AdamW is ahead only in the intermediate band ($\tau=1$, Student-$t$ at $\tau=1$, flip rate $0.2$). Seventeen of the forty-two settings favour SR-Adam, and every one of them sits at an end of the noise axis. The heavy label-noise column is the strongest evidence in the table: the paired gap grows with $p$ from $+0.015$ at $p=10$ to $+4.13$ at $p=500$ --- per coordinate from $7\times10^{-4}$ at $p=20$ to $8\times10^{-3}$ at $p=500$, an order of magnitude --- with $|t|$ between $10.5$ and $47.7$ at every $p\geq 50$. This is the corruption-dominated regime in which the risk-optimal weight departs furthest from any fixed momentum weight, and there the advantage does grow with the block dimension. The sign at this flip rate does not contradict Table \ref{tab:opt_noise}, where a tuned AdamW is a few per cent ahead at flip rates $0.3$ and $0.4$: that study trains on $N=20\,000$ points for $2000$ steps while this sweep trains on $N=4000$ for $800$, so per coordinate the sweep is the far more estimation-limited problem --- the two results place the crossover on the same axis, the variance of the gradient estimate per coordinate, rather than on the flip rate alone. At $\tau=0.1$ the per-coordinate gap stays flat ($3\times10^{-6}$ to $1.2\times10^{-4}$), so the growing component appears only once the noise clearly corrupts the signal.
 
 %% Table tab:dim_sweep: code/path4_dim_sweep.py -> out/path4_dim_sweep.json
-\begin{table*}% spans both columns; CAS uses key-value options here
+\begin{table}% spans both columns; CAS uses key-value options here
 \centering
 \caption{The same sweep as Table \ref{tab:dim_sweep_common} --- same problems, noise levels, $p$ grid, seeds, steps and problem grid --- with the step sizes tuned per optimiser: the quadratic grid is chosen at $\tau=1$ and reused at $\tau=0.1$ and under Student-$t$ noise, and the logistic grid at flip rate $0.2$, while the $\tau=4$ and flip-rate-$0.4$ columns are tuned at their own noise level. Paired gap on the terminal loss, AdamW minus SR-Adam; positive values favour SR-Adam.}
 \label{tab:dim_sweep}
@@ -1030,14 +1037,14 @@ $p$ & \multicolumn{3}{c}{quadratic (Gaussian)} & Student-$t$ & \multicolumn{2}{c
 500 & $+0.007$ & $-0.216$ & $+0.383$ & $-0.075$ & $-0.919$ & $+4.132$ \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 The two protocols differ in exactly twenty-one cells, and those cells are precisely the intermediate band ($\tau=1$, Student-$t$ at $\tau=1$, flip rate $0.2$). The mechanism is visible in the chosen values: halving the step size there takes AdamW from $0.02$ to $0.01$ on the quadratic and from $0.03$ to $0.01$ on the logistic problem, while SR-Adam keeps the value the shared default already gave it ($0.02$ and $0.03$) --- the common step size of the earlier draft was in effect SR-Adam's own tuned step size. Both ends of the noise axis give the same outcome under the two protocols (all seven cells at $\tau=0.1$, all seven at flip rate $0.4$, and the same three cells at $\tau=4$\rev{; the $\tau=4$ column is in fact identical in the two tables, because tuning at that noise level returned the shared default step size for both optimisers}), so the regime structure is a property of the problem and not of the comparison, while the size of the deficit at intermediate noise is a property of the baseline. Table \ref{tab:dim_sweep} is therefore the fair comparison and the headline of this subsection, and Table \ref{tab:dim_sweep_common} the ablation of the comparison itself.
 
 %\clearpage
 %\newpage 
 
-\clearpage
+%\clearpage
 
 %% Figure fig:regime_win: code/make_paper_barfigs.py (fractions from out/*.json)
 \begin{figure*}% spans both columns; CAS uses key-value options here
@@ -1133,14 +1140,14 @@ we obtain $\hat{\bm m}_t=(1-w_t)\hat{\bm m}_{t-1}+w_t\bm g_t$, which is the stat
 \subsection*{Proof of Theorem \ref{thm:master}}
 
 Write $\bm h(\bm y)=-c\,\bm y/Q(\bm y)$ with $Q(\bm y)=\bm y'\bm A^{-1}\bm y$, so that $\hat{\bm\mu}_c(\bm Y)=\bm Y+\bm h(\bm Y)$. Expanding the loss,
-\begin{equation}
+\begin{flalign}
 \label{eq:pf_expand}
-\E\bigl\|\bm Y+\bm h(\bm Y)-\bm\mu\bigr\|^2_{\bm D}
+&\E\bigl\|\bm Y+\bm h(\bm Y)-\bm\mu\bigr\|^2_{\bm D}
 =
-\tr(\bm D\bm\Sigma)
-+2\,\E\bigl[(\bm Y-\bm\mu)'\bm D\bm h(\bm Y)\bigr]
-+\E\bigl[\bm h(\bm Y)'\bm D\bm h(\bm Y)\bigr].
-\end{equation}
+\tr(\bm D\bm\Sigma) \\
+&+2\,\E\bigl[(\bm Y-\bm\mu)'\bm D\bm h(\bm Y)\bigr]
++\E\bigl[\bm h(\bm Y)'\bm D\bm h(\bm Y)\bigr].\nonumber
+\end{flalign}
 
 We first record the integrability needed. Since $\bm A$ is positive definite and diagonal, $Q(\bm y)\ge\|\bm y\|^2/\lambda_{\max}(\bm A)$, so $|h_i(\bm y)|\le c\lambda_{\max}(\bm A)|y_i|/\|\bm y\|^2\le c\lambda_{\max}(\bm A)/\|\bm y\|$. For a nondegenerate normal law on $\Real^p$ the density is bounded, so in polar coordinates $\E\|\bm Y\|^{-2}<\infty$ reduces to the convergence of $\int_0^{1}r^{-2}r^{p-1}\,dr=\int_0^{1}r^{p-3}\,dr$, which holds exactly when $p>2$, that is when $p\ge3$. Every term appearing below is $O(\|\bm y\|^{-2})$ near the origin, as the display \eqref{eq:pf_stein_sum} makes explicit, so no integrand of order $\|\bm y\|^{-4}$ arises and $p\ge3$ suffices throughout. In particular $\E[Q^{-1}]\le\lambda_{\max}(\bm A)\E\|\bm Y\|^{-2}<\infty$, and $\bm h$ is bounded outside any neighbourhood of the origin and is weakly differentiable on $\Real^p\setminus\{\bm 0\}$, a set of full Lebesgue measure. These are the conditions under which Stein's identity for a normal vector with covariance $\bm\Sigma$ applies \citep{stein1981, fourdrinier2018}, namely
 \begin{equation}
@@ -1152,13 +1159,13 @@ We first record the integrability needed. Since $\bm A$ is positive definite and
 for every weakly differentiable $f$ with $\E|\partial_jf(\bm Y)|<\infty$.
 
 Apply \eqref{eq:pf_stein} coordinatewise with $f=d_ih_i$. Since $\bm D$ is diagonal and fixed,
-\begin{equation}
+\begin{flalign}
 \E\bigl[(\bm Y-\bm\mu)'\bm D\bm h(\bm Y)\bigr]
-=
-\sum_{i=1}^{p}d_i\,\E\bigl[(Y_i-\mu_i)h_i(\bm Y)\bigr]
-=
+&=
+\sum_{i=1}^{p}d_i\,\E\bigl[(Y_i-\mu_i)h_i(\bm Y)\bigr] \nonumber \\
+&=
 \sum_{i=1}^{p}\sum_{j=1}^{p}\Sigma_{ij}d_i\,\E\bigl[\partial_jh_i(\bm Y)\bigr].
-\end{equation}
+\end{flalign}
 Differentiating $h_i(\bm y)=-cy_i/Q(\bm y)$ and using $\partial_jQ(\bm y)=2y_j/a_j$,
 \begin{equation}
 \partial_jh_i(\bm y)
@@ -1167,16 +1174,17 @@ Differentiating $h_i(\bm y)=-cy_i/Q(\bm y)$ and using $\partial_jQ(\bm y)=2y_j/a
 +\frac{2c\,y_i\,y_j/a_j}{Q(\bm y)^{2}} .
 \end{equation}
 Because $\bm\Sigma$ is diagonal, $\Sigma_{ij}=\sigma^2_i\mathbb 1\{i=j\}$, and therefore
-\begin{equation}
+\begin{flalign}
 \label{eq:pf_stein_sum}
 \sum_{i,j}\Sigma_{ij}d_i\,\partial_jh_i(\bm y)
-=
+&=
 -\frac{c\sum_{i}d_i\sigma^2_i}{Q(\bm y)}
 +\frac{2c\sum_{i}d_i\sigma^2_iy^2_i/a_i}{Q(\bm y)^{2}}
-=
+\nonumber \\
+&=
 -\frac{c\,\tr(\bm D\bm\Sigma)}{Q(\bm y)}
 +\frac{2c\,\bm y'\bm D\bm\Sigma\bm A^{-1}\bm y}{Q(\bm y)^{2}} .
-\end{equation}
+\end{flalign}
 Both terms on the right are $O(\|\bm y\|^{-2})$, since $\bm y'\bm D\bm\Sigma\bm A^{-1}\bm y\le\max_i(d_i\sigma^2_i)\,Q(\bm y)$, so they are integrable for $p\ge3$ as claimed. Finally
 \begin{equation}
 \E\bigl[\bm h(\bm Y)'\bm D\bm h(\bm Y)\bigr]
@@ -1190,27 +1198,27 @@ For the window, bound the two positive terms. Because $\bm\Sigma$, $\bm A$ and $
 \bm Y'\bm D\bm\Sigma\bm A^{-1}\bm Y
 &=&
 \sum_{j}d_j\sigma^2_j\frac{Y^2_j}{a_j}
-\;\le\;
+\le
 \Bigl(\max_{j}d_j\sigma^2_j\Bigr)Q,
 \cr
 \bm Y'\bm D\bm Y
 &=&
 \sum_{j}d_ja_j\frac{Y^2_j}{a_j}
-\;\le\;
-\Bigl(\max_{j}d_ja_j\Bigr)Q .
+\le
+\Bigl(\max_{j}d_ja_j\Bigr)Q 
 \end{eqnarray}
 Both inequalities hold pointwise and every factor is nonnegative, so substituting them into \eqref{eq:master_identity} and using $c>0$,
-\begin{equation}
+\begin{flalign}
 \label{eq:pf_window}
-\E\bigl\|\hat{\bm\mu}_c(\bm Y)-\bm\mu\bigr\|^2_{\bm D}-\tr(\bm D\bm\Sigma)
-\le
-\E\left[\frac{1}{Q}\right]
+&\E\bigl\|\hat{\bm\mu}_c(\bm Y)-\bm\mu\bigr\|^2_{\bm D}-\tr(\bm D\bm\Sigma)
+\le \\ \nonumber
+&\E\left[\frac{1}{Q}\right]
 \Bigl\{
 c^{2}\max_{j}d_ja_j
 +4c\max_{j}d_j\sigma^2_j
 -2c\,\tr(\bm D\bm\Sigma)
 \Bigr\}.
-\end{equation}
+\end{flalign}
 Since $\E[Q^{-1}]$ is finite and strictly positive, the right-hand side is negative exactly when the brace is negative, that is when
 \begin{equation}
 c\max_{j}d_ja_j<2\,\tr(\bm D\bm\Sigma)-4\max_{j}d_j\sigma^2_j ,
@@ -1243,27 +1251,27 @@ For monotonicity, put $r_j=\sigma^2_j/\max_k\sigma^2_k\in(0,1]$. Since $\max_j\s
 \subsection*{Proof of Corollary \ref{cor:twofold}}
 
 Take $\bm D=\bm I_p$, $\bm\Sigma=\sigma^2\bm I_p$ and $\bm A=\hat\sigma^2\bm I_p$, so $Q=\|\bm Y\|^2/\hat\sigma^2$ and the estimator $(1-c/Q)\bm Y$ with $c=p-2$ is the one in the statement. Specialising the identity \eqref{eq:master_identity},
-\begin{eqnarray}
-\E\|\hat{\bm\mu}(\bm Y)-\bm\mu\|^2-p\sigma^2
-&=&
+\begin{flalign}
+&\E\|\hat{\bm\mu}(\bm Y)-\bm\mu\|^2-p\sigma^2\\
+&=\nonumber
 \E\left[
 -\frac{2c\,p\sigma^2\hat\sigma^2}{\|\bm Y\|^2}
 +\frac{4c\,\sigma^2\hat\sigma^{4}\|\bm Y\|^2/\hat\sigma^2}{\|\bm Y\|^{4}}
 +\frac{c^{2}\hat\sigma^{4}\|\bm Y\|^2}{\|\bm Y\|^{4}}
 \right]
-\cr
-&=&
+\cr\\
+&=\nonumber
 \E\left[\frac{1}{\|\bm Y\|^2}\right]
 \Bigl\{
 -2c\,p\,\sigma^2\hat\sigma^2+4c\,\sigma^2\hat\sigma^2+c^{2}\hat\sigma^{4}
 \Bigr\}
-\cr
-&=&
+\cr\\
+&=\nonumber
 \E\left[\frac{1}{\|\bm Y\|^2}\right]
 \Bigl\{
 c^{2}\hat\sigma^{4}-2c(p-2)\sigma^2\hat\sigma^2
 \Bigr\}.
-\end{eqnarray}
+\end{flalign}
 Here every inequality used in the proof of Theorem \ref{thm:master} holds with equality, because $\bm\Sigma$ and $\bm A$ are both multiples of the identity. Substituting $c=p-2$,
 \begin{equation}
 \E\|\hat{\bm\mu}(\bm Y)-\bm\mu\|^2-p\sigma^2
@@ -1278,17 +1286,17 @@ which is \eqref{eq:twofold_gain}. Since $\E\|\bm Y\|^{-2}\in(0,\infty)$ for $p\g
 Write $\widetilde{\bm Y}=\bm\Sigma^{-1/2}\bm Y$ and $\widetilde{\bm\mu}=\bm\Sigma^{-1/2}\bm\mu$, so that $\widetilde{\bm Y}\sim\mathcal N_p(\widetilde{\bm\mu},\bm I_p)$ and $Q=\|\widetilde{\bm Y}\|^2$. Because $\bm A=\bm\Sigma$ and $\bm D=\bm\Sigma^{-1}$, the loss becomes $\|\hat{\bm\mu}-\bm\mu\|^2_{\bm D}=\|\bm\Sigma^{-1/2}\hat{\bm\mu}-\widetilde{\bm\mu}\|^2$ for any estimator $\hat{\bm\mu}$ and the two estimators become $(1-c/\|\widetilde{\bm Y}\|^2)\widetilde{\bm Y}$ and its positive part. The problem is thus spherical.
 
 On the event $\mathcal A=\{\|\widetilde{\bm Y}\|^2<c\}$ the truncated estimator equals $\bm 0$ and the untruncated one equals $-\gamma\widetilde{\bm Y}$ with $\gamma=c/\|\widetilde{\bm Y}\|^2-1>0$; off $\mathcal A$ the two agree. Hence
-\begin{eqnarray}
+\begin{flalign}
 \label{eq:pf_pp_diff}
-\E\bigl\|\hat{\bm\mu}_c-\bm\mu\bigr\|^2_{\bm D}
--\E\bigl\|\hat{\bm\mu}^{+}_c-\bm\mu\bigr\|^2_{\bm D}
-&=&
+&\E\bigl\|\hat{\bm\mu}_c-\bm\mu\bigr\|^2_{\bm D}
+-\E\bigl\|\hat{\bm\mu}^{+}_c-\bm\mu\bigr\|^2_{\bm D} \\
+&=\nonumber
 \E\Bigl[\Bigl(\bigl\|-\gamma\widetilde{\bm Y}-\widetilde{\bm\mu}\bigr\|^2-\bigl\|\widetilde{\bm\mu}\bigr\|^2\Bigr)\mathbb 1_{\mathcal A}\Bigr]
-\cr
-&=&
+\cr \\
+&=\nonumber
 \E\Bigl[\Bigl(\gamma^{2}\bigl\|\widetilde{\bm Y}\bigr\|^{2}+2\gamma\,\widetilde{\bm Y}'\widetilde{\bm\mu}\Bigr)\mathbb 1_{\mathcal A}\Bigr].
-\end{eqnarray}
-Write $\widetilde{\bm Y}=R\bm U$ with $R=\|\widetilde{\bm Y}\|$ and $\bm U$ on the unit sphere $\mathbb S^{p-1}$. Both $\gamma$ and $\mathbb 1_{\mathcal A}$ are functions of $R$ alone. Conditionally on $R=r$, the density of $\bm U$ with respect to the uniform measure $\nu$ on $\mathbb S^{p-1}$ is proportional to $\exp(r\bm u'\widetilde{\bm\mu})$, since the normal density at $r\bm u$ is proportional to $\exp(-r^2/2)\exp(r\bm u'\widetilde{\bm\mu})\exp(-\|\widetilde{\bm\mu}\|^2/2)$ and only the middle factor depends on $\bm u$. Therefore
+\end{flalign}
+Write $\widetilde{\bm Y}=R\bm U$ with $R=\|\widetilde{\bm Y}\|$ and $\bm U$ on the unit sphere $\mathbb S^{p-1}$. Both $\gamma$ and $\mathbb 1_{\mathcal A}$ are functions of $R$ alone. Conditionally on $R=r$, the density of $\bm U$ with respect to the uniform measure $\nu$ on $\mathbb S^{p-1}$ is proportional to $\exp(r\bm u'\widetilde{\bm\mu})$, since the normal density at $r\bm u$ is proportional to $$\exp(-r^2/2)\exp(r\bm u'\widetilde{\bm\mu})\exp(-\|\widetilde{\bm\mu}\|^2/2)$$ and only the middle factor depends on $\bm u$. Therefore
 \begin{equation}
 \E\bigl[\bm U'\widetilde{\bm\mu}\mid R=r\bigr]
 =
@@ -1311,15 +1319,15 @@ For a scale mixture, condition additionally on $W=w$. Given $(W=w,R=r)$ the cond
 \subsection*{Proof of Theorem \ref{thm:elliptical}}
 
 Condition on $W=w$. Under (A3$'$), $\bm Y\mid(\mathcal F_{t-1},W=w)\sim\mathcal N_p(\bm\mu,w\bm\Sigma)$, so the identity \eqref{eq:master_identity} of Theorem \ref{thm:master} applies with $\bm\Sigma$ replaced by $w\bm\Sigma$. The bounding step \eqref{eq:pf_window} then gives
-\begin{eqnarray}
-&&\E\Bigl[\bigl\|\hat{\bm\mu}_c-\bm\mu\bigr\|^2_{\bm D}\Bigm| W=w\Bigr]-w\,\tr(\bm D\bm\Sigma)
-\cr
-&&\qquad\le\;
-\E\left[\frac1Q\Bigm| W=w\right]
+\begin{flalign}
+&\E\Bigl[\bigl\|\hat{\bm\mu}_c-\bm\mu\bigr\|^2_{\bm D}\Bigm| W=w\Bigr]-w\,\tr(\bm D\bm\Sigma)
+\le\; \\ \nonumber
+&\E\left[\frac1Q\Bigm| W=w\right]
 \Bigl\{
-c^{2}\max_j d_ja_j+4cw\max_jd_j\sigma^2_j-2cw\,\tr(\bm D\bm\Sigma)
+c^{2}\max_j d_ja_j \\ \nonumber
+&+4cw\max_jd_j\sigma^2_j-2cw\,\tr(\bm D\bm\Sigma)
 \Bigr\}.
-\end{eqnarray}
+\end{flalign}
 Taking expectations over $W$, and writing $\Lambda=\tr(\bm D\bm\Sigma)-2\max_jd_j\sigma^2_j$,
 \begin{equation}
 \E\bigl\|\hat{\bm\mu}_c-\bm\mu\bigr\|^2_{\bm D}-\E[W]\tr(\bm D\bm\Sigma)
@@ -1404,12 +1412,12 @@ For the variance of $\hat m_t$, serial uncorrelatedness in (A5) gives
 \Var(\hat m_t)
 &=&
 \frac{(1-\beta_1)^2}{(1-\beta_1^{t})^{2}}\sum_{k=1}^{t}\beta_1^{2(t-k)}s^2
-\;=\;
+=
 \frac{(1-\beta_1)^2}{(1-\beta_1^{t})^{2}}\cdot\frac{1-\beta_1^{2t}}{1-\beta_1^{2}}\,s^2
 \cr
 &=&
 \frac{(1-\beta_1)\bigl(1-\beta_1^{2t}\bigr)}{(1+\beta_1)\bigl(1-\beta_1^{t}\bigr)^{2}}\,s^2
-\;=\;
+=
 \phi_t(\beta_1)\,s^2 ,
 \end{eqnarray}
 where the third equality uses $1-\beta_1^2=(1-\beta_1)(1+\beta_1)$. Therefore
@@ -1455,28 +1463,28 @@ By (A2), $\E[\varepsilon_{k,j}\mid\mathcal F_{k-1}]=0$, so the cross terms $\Del
 =\sigma^2_j+\tfrac12\E\bigl[\Delta^2_{k,j}\bigr]-\E\bigl[\Delta_{k,j}\varepsilon_{k-1,j}\bigr].
 \end{equation}
 The cross term with $\bm\varepsilon_{k-1}$ does not vanish in general, since $\bm\theta_k$, and hence $\bm\mu_k$, depends on $\bm g_{k-1}$. Averaging over $j$,
-\begin{equation}
+\begin{flalign}
 \label{eq:pf_diff_step}
 \Bigl|\frac1p\sum_{j=1}^{p}\E\Bigl[\tfrac12\bigl(g_{k,j}-g_{k-1,j}\bigr)^2\Bigr]-\bar s^2\Bigr|
-\le
+\le \\ \nonumber
 \frac{1}{2p}\E\|\bm\Delta_k\|^2+\frac1p\E\bigl[\|\bm\Delta_k\|\,\|\bm\varepsilon_{k-1}\|\bigr].
-\end{equation}
+\end{flalign}
 By (A1) and the update of Algorithm \ref{alg:sradam} with $\lambda=0$, $\|\bm\Delta_k\|\le L\|\bm\theta_k-\bm\theta_{k-1}\|=L\alpha\|\bm P_{k-1}\bm d_{k-1}\|\le L\alpha p_{\max}\|\bm d_{k-1}\|\le a$, using $\|\bm d_{k-1}\|\le G$ from the proof of Theorem \ref{thm:convergence}. By the Cauchy--Schwarz inequality, $\E\|\bm\varepsilon_{k-1}\|\le(\E\|\bm\varepsilon_{k-1}\|^2)^{1/2}=(\tr\bm\Sigma)^{1/2}=\sqrt p\,\bar s$. The right-hand side of \eqref{eq:pf_diff_step} is therefore at most $a^2/(2p)+a\bar s/\sqrt p$ for every $k\ge2$. Finally $\tilde\sigma^2_t$ is the average over $j$ of a convex combination over $k=2,\dots,t$ of the terms bounded in \eqref{eq:pf_diff_step}, the weights $(1-\beta_2)\beta_2^{t-k}/(1-\beta_2^{t-1})$ summing to one, so the same bound holds for $|\E[\tilde\sigma^2_t]-\bar s^2|$, which is \eqref{eq:diff_bias}. \qed
 %%\end{revblock}
 
 \subsection*{Proof of Theorem \ref{thm:concentration}}
 
 Unbiasedness is immediate from Theorem \ref{thm:variance_bias} and linearity, since $\E[\hat\sigma^2_t]=p^{-1}\sum_j\E[\hat s^2_{t,j}]=p^{-1}\sum_js^2_j=\bar s^2$. For the variance,
-\begin{equation}
+\begin{flalign}
 \Var\bigl(\hat\sigma^2_t\bigr)
 =
 \frac{1}{p^{2}}\sum_{j=1}^{p}\sum_{k=1}^{p}\Cov\bigl(\hat s^2_{t,j},\hat s^2_{t,k}\bigr)
-\le
+\le \\ \nonumber
 \frac{1}{p^{2}}\sum_{j=1}^{p}\sum_{k=1}^{p}\bigl|\Cov\bigl(\hat s^2_{t,j},\hat s^2_{t,k}\bigr)\bigr|
 \le
 \frac{1}{p^{2}}\cdot pC
 =\frac{C}{p},
-\end{equation}
+\end{flalign}
 using the uniform summability in (A5). The finite fourth moment in (A5) is what makes each covariance finite, since $\hat s^2_{t,j}$ is a quadratic form in the gradients. Chebyshev's inequality then gives, for every $\eta>0$,
 \begin{equation}
 \mathbb P\Bigl(\bigl|\hat\sigma^2_t-\bar s^2\bigr|>\eta p^{-1/2}\Bigr)
@@ -1498,11 +1506,12 @@ Two cases arise. If $c_t\ge Q_t$ then $1-k_t=1$ and $\|\bm Y_t\|^2\le\lambda Q_t
 (1-k_t)\|\bm Y_t\|=\frac{c_t\|\bm Y_t\|}{Q_t}\le\frac{c_t\lambda}{\|\bm Y_t\|},
 \end{equation}
 and since also $(1-k_t)\|\bm Y_t\|\le\|\bm Y_t\|$, multiplying the two bounds gives $\{(1-k_t)\|\bm Y_t\|\}^2\le c_t\lambda$, hence the same conclusion. This proves \eqref{eq:displacement}. Finally, since $\E[\bm g_t\mid\mathcal F_{t-1}]=\nabla J(\bm\theta_t)$ by (A2),
-\begin{equation}
-\|\bm b_t\|=\bigl\|\E[\bm g_t-\bm d_t\mid\mathcal F_{t-1}]\bigr\|
+\begin{flalign}
+&\|\bm b_t\|=\bigl\|\E[\bm g_t-\bm d_t\mid\mathcal F_{t-1}]\bigr\|
 \le\E\bigl[\|\bm g_t-\bm d_t\|\bigm|\mathcal F_{t-1}\bigr]
-\le\bigl(c_t\lambda\bigr)^{1/2}=B_t,
-\end{equation}
+\nonumber  \\
+&\le\bigl(c_t\lambda\bigr)^{1/2}=B_t,
+\end{flalign}
 using Jensen's inequality and the fact that $c_t$ and $\widehat{\bm\Sigma}_t$ are $\mathcal F_{t-1}$-measurable. \qed
 
 \subsection*{Proof of Theorem \ref{thm:convergence}}
@@ -1526,14 +1535,16 @@ Split the inner product as
 -\bigl\langle\nabla J_t,(\bm P_{t-1}-\bm P_t)\bm d_t\bigr\rangle .
 \end{equation}
 For the second term, all entries of $\bm P_{t-1}-\bm P_t$ are nonnegative, so
-\begin{equation}
+\begin{flalign}
 \label{eq:pf_drift}
-\bigl|\bigl\langle\nabla J_t,(\bm P_{t-1}-\bm P_t)\bm d_t\bigr\rangle\bigr|
-\le
+&\bigl|\bigl\langle\nabla J_t,(\bm P_{t-1}-\bm P_t)\bm d_t\bigr\rangle\bigr|
+\nonumber \\
+&\le
 \sum_{j=1}^{p}\bigl|\nabla_jJ_t\bigr|\,\bigl|d_{t,j}\bigr|\bigl(P_{t-1,j}-P_{t,j}\bigr)
-\le
+\nonumber \\
+&\le
 G_\infty^{2}\sum_{j=1}^{p}\bigl(P_{t-1,j}-P_{t,j}\bigr),
-\end{equation}
+\end{flalign}
 and summing \eqref{eq:pf_drift} over $t=1,\dots,T$ telescopes to
 \begin{equation}
 \label{eq:pf_telescope}
@@ -1546,33 +1557,34 @@ For the first term, $\bm P_{t-1}$ is $\mathcal F_{t-1}$-measurable, so writing $
 \bigl\langle\nabla J_t,\bm P_{t-1}\nabla J_t\bigr\rangle-\bigl\langle\nabla J_t,\bm P_{t-1}\bm b_t\bigr\rangle .
 \end{equation}
 By the Cauchy--Schwarz inequality in the inner product induced by the positive definite $\bm P_{t-1}$, and then by $xy\le(x^2+y^2)/2$,
-\begin{equation}
-\bigl\langle\nabla J_t,\bm P_{t-1}\bm b_t\bigr\rangle
+\begin{flalign}
+&\bigl\langle\nabla J_t,\bm P_{t-1}\bm b_t\bigr\rangle
 \le
 \|\nabla J_t\|_{\bm P_{t-1}}\|\bm b_t\|_{\bm P_{t-1}}
-\le
+\nonumber \\
+&\le
 \tfrac12\|\nabla J_t\|^2_{\bm P_{t-1}}+\tfrac12\|\bm b_t\|^2_{\bm P_{t-1}} ,
-\end{equation}
+\end{flalign}
 whence, using $\|\bm x\|^2_{\bm P_{t-1}}\ge p_{\min}\|\bm x\|^2$ and $\|\bm x\|^2_{\bm P_{t-1}}\le p_{\max}\|\bm x\|^2$ and Lemma \ref{lem:displacement},
-\begin{equation}
+\begin{flalign}
 \label{eq:pf_lower}
-\E\bigl[\bigl\langle\nabla J_t,\bm P_{t-1}\bm d_t\bigr\rangle\bigm|\mathcal F_{t-1}\bigr]
+&\E\bigl[\bigl\langle\nabla J_t,\bm P_{t-1}\bm d_t\bigr\rangle\bigm|\mathcal F_{t-1}\bigr]
 \ge
 \tfrac12\|\nabla J_t\|^2_{\bm P_{t-1}}-\tfrac12\|\bm b_t\|^2_{\bm P_{t-1}}
-\ge
-\frac{p_{\min}}2\|\nabla J_t\|^{2}-\frac{p_{\max}}2B^2_t .
-\end{equation}
+\ge \nonumber \\
+&\frac{p_{\min}}2\|\nabla J_t\|^{2}-\frac{p_{\max}}2B^2_t .
+\end{flalign}
 For the quadratic term in \eqref{eq:pf_descent}, $\|\bm P_t\bm d_t\|^2\le p^2_{\max}\|\bm d_t\|^2\le p^2_{\max}G^2$.
 
 Taking expectations in \eqref{eq:pf_descent}, substituting \eqref{eq:pf_lower}, \eqref{eq:pf_drift} and the quadratic bound, summing over $t=1,\dots,T$, using \eqref{eq:pf_telescope} and $J(\bm\theta_{T+1})\ge J^\star$,
-\begin{equation}
-\frac{\alpha p_{\min}}{2}\sum_{t=1}^{T}\E\|\nabla J_t\|^{2}
-\le
-\Delta
+\begin{flalign}
+&\frac{\alpha p_{\min}}{2}\sum_{t=1}^{T}\E\|\nabla J_t\|^{2}
+\le  \\\nonumber
+&\Delta
 +\frac{\alpha p_{\max}}{2}\sum_{t=1}^{T}\E\bigl[B^2_t\bigr]
 +\alpha G_\infty^{2}p\,p_{\max}
 +\frac{L\alpha^{2}T}{2}p^{2}_{\max}G^{2}.
-\end{equation}
+\end{flalign}
 Dividing by $\alpha p_{\min}T/2$ and recalling $\kappa=p_{\max}/p_{\min}$ gives \eqref{eq:conv_bound}. Substituting $\alpha=\{2\Delta/(Lp^2_{\max}G^2T)\}^{1/2}$ makes the first and third terms of \eqref{eq:conv_bound} equal, each to $p_{\min}^{-1}\{2\Delta Lp^2_{\max}G^2/T\}^{1/2}$, and bounding the average by the minimum gives \eqref{eq:conv_rate}. If $\overline{B^2_T}\to0$, every term on the right of \eqref{eq:conv_rate} tends to zero. \qed
 
 \subsection*{Proof of Proposition \ref{prop:batch}}
