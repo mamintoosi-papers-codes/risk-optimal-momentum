@@ -1,152 +1,90 @@
 # Risk-Optimal Momentum Weights for Stochastic Gradient Estimation in High Dimensions
 
-Reference implementation and manuscript for **SR-Adam**: a risk-optimal replacement for the fixed momentum weight in adaptive gradient methods.
+This repository contains the implementation, experiment outputs, and manuscript for **SR-Adam**, a stochastic-gradient direction estimator that replaces Adam's fixed first-moment weight with a positive-part Stein shrinkage rule.
 
-Paper title:
-*Risk-Optimal Momentum Weights for Stochastic Gradient Estimation in High Dimensions*
+**Manuscript:** *Risk-Optimal Momentum Weights for Stochastic Gradient Estimation in High Dimensions*  
+**Authors:** Mohammad Arashi and Mahmood Amintoosi  
+**Manuscript source:** `paper/sn-article.tex`  
+**Bibliography:** `paper/sample.bib`
 
-Authors: Mohammad Arashi, Mahmood Amintoosi (Ferdowsi University of Mashhad)
+## What the paper studies
 
-Code URL used in the manuscript: `https://github.com/mamintoosi-papers-codes/risk-optimal-momentum`
+Adam's bias-corrected first moment can be written as a convex combination of the current mini-batch gradient and the historical average. SR-Adam treats that direction as an estimator of the population gradient and chooses its shrinkage weight using a conditional quadratic-risk analysis.
 
-## What this repository contains
+The method and paper cover:
 
-| Path | Contents |
-|------|----------|
-| `code/` | SR-Adam optimizer, CIFAR driver, Monte Carlo studies, theory checks |
-| `figs/` | Simulation figures embedded in the manuscript |
-| `out/` | Machine-readable Monte Carlo results used by `make_figures.py` |
-| `paper/` | LaTeX sources (Springer Nature `sn-jnl`) and figure PDFs |
-| `scripts/` | Helper scripts for the CIFAR experimental grid |
-| `data/` | CIFAR download directory (gitignored) |
+- A conditional risk-dominance result for heteroscedastic gradient noise, estimated scale matrices, and diagonal quadratic loss weights.
+- Positive-part shrinkage and the role of nominal versus effective dimension under different loss metrics.
+- Elliptically contoured noise, including multivariate Student noise.
+- The finite-iteration bias in an exponential-moving-average variance estimate, its debiasing correction under a stationary gradient mean, and analysis of bias under a drifting mean.
+- A convergence analysis for the deliberately biased direction, with an explicit residual floor and qualifications on when it scales with batch size.
+- Monte Carlo checks of theoretical constants and optimisation experiments on real tabular regression/classification tasks, citation-graph node classification, and controlled-noise settings.
 
+The empirical findings are **regime-dependent**, not a claim that SR-Adam universally outperforms AdamW. The paper reports settings where it helps and others—particularly some intermediate-noise and clean-classification settings—where tuned AdamW matches or performs better. The experiments do not establish performance on large-scale CNNs or transformers.
 
-## Method in one paragraph
+## Repository layout
 
-Adam’s bias-corrected first moment can be written as a convex combination
-`mhat_t = mhat_{t-1} + w_t (g_t - mhat_{t-1})` with a fixed weight `w_t = (1-beta1)/(1-beta1^t)`.
-SR-Adam keeps that form and replaces `w_t` by a positive-part Stein weight
-`k_t = [1 - c_t / Q_t]^+` whose constant and statistic are set by the block dimension and the coordinatewise gradient-noise variance. Moments are formed from the **raw** gradients; the variance estimate is **debiased** by the exact EMA factor `1 - phi_t(beta1)` and optionally pooled; an **effective-dimension gate** reverts a block to the Adam weight when the variance estimates look unreliable. The preconditioner is the AMSGrad running maximum. When the gate is closed the update coincides with AMSGrad-flavoured AdamW.
+| Path | Purpose |
+| --- | --- |
+| `code/` | SR-Adam implementation, unit tests, theory checks, experiment drivers, and table/figure-generation scripts. |
+| `out/` | Machine-readable experiment and Monte Carlo outputs used by the manuscript and analysis scripts. |
+| `figs/` | Generated figures from the simulation and experiment pipeline. |
+| `paper/` | Springer Nature LaTeX source, bibliography, generated tables, manuscript figures, and compiled PDF. |
+| `scripts/phaseD.bat` | Ordered full experiment rerun and refresh of manuscript-facing outputs on Windows. |
+| `scripts/phaseE.bat` | Manuscript checks, placeholder audit, figure-freshness checks, and LaTeX/BibTeX build on Windows. |
 
-## Installation
+The repository also contains supporting reports and helper scripts. Manuscript tables are generated from stored outputs; avoid hand-editing generated table cells.
+
+## Environment
+
+The experiment drivers use Python and scientific-computing / machine-learning packages, including NumPy, SciPy, Matplotlib, and PyTorch; graph experiments additionally require the relevant graph-learning dependencies. Install the repository's specified dependencies from `requirements.txt` in an environment compatible with your PyTorch and CUDA installation.
+
+For example, on a Unix-like shell:
 
 ```bash
-# from the repository root
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
-PyTorch CUDA wheels: install the build that matches your driver from https://pytorch.org/get-started/locally/ if the default CPU wheel is not enough. On a Linux + RTX 3090 machine, a CUDA 12.x wheel is appropriate.
+Install a PyTorch build compatible with the local hardware and driver when the default package installation does not provide the required accelerator support.
 
-## Quick correctness check
+## Checks and manuscript build
 
-```bash
-cd code
-python test_sr_adam.py
+From a Windows command prompt at the repository root:
+
+```bat
+scripts\phaseE.bat check
 ```
 
-Expected: all four tests pass, including exact agreement with AMSGrad-AdamW when the peff gate is forced shut.
+This runs the manuscript-facing checks without rebuilding the PDF. The checks include generated-table provenance, an audit for unresolved `\\torerun{...}` placeholders in the manuscript body, and a byte-level comparison between generated figures and the copies included in `paper/`.
 
-## Monte Carlo / theory verification
+To run the checks and rebuild the manuscript (requires `pdflatex` and `bibtex` on `PATH`):
 
-These scripts need only NumPy / SciPy / Matplotlib (and PyTorch for `simulation_batch.py` / `simulation_noise.py`).
-
-```bash
-cd code
-python verify_theory.py        # closed-form constants vs Monte Carlo
-python verify_theory2.py
-python simulation_study.py     # writes ../out/*.json and ../figs/*.pdf
-python simulation_study3.py
-python simulation_batch.py
-python simulation_noise.py
-python make_figures.py         # rebuild paper figures from stored ../out JSON
+```bat
+scripts\phaseE.bat
 ```
 
-Stored outputs in `out/` and `figs/` already match the current manuscript text. Re-run only if you change theory constants or sampling settings.
+The full experiment pipeline is orchestrated by `scripts\phaseD.bat`. It reruns theory checks, simulations, tuned baseline comparisons, tabular tasks, graph pilots, figure/table generation, and statistical tests. It can be computationally expensive; use it when intentionally regenerating experiment outputs, not merely to compile the current manuscript.
 
-## CIFAR experimental grid
+The LaTeX source uses the Springer Nature `sn-jnl` class included in `paper/`. The manuscript has no unresolved experimental placeholders in its body; do not follow older instructions that describe the former CIFAR grid or ask for new CIFAR runs.
 
-The manuscript still has red `\torerun{...}` placeholders in the image-classification tables. Fill them by running the grids **on a GPU machine** from `code/`:
+## Reproducibility notes
 
-```bash
-cd code
-python train_cifar.py --grid diagnostics --out results.csv
-python train_cifar.py --grid scope       --seeds 3 --out results.csv
-python train_cifar.py --grid batch       --seeds 3 --out results.csv
-python train_cifar.py --grid main        --seeds 5 --out results.csv
-```
-
-Or use the helper:
-
-```bash
-bash scripts/run_cifar_grids.sh
-```
-
-Grids:
-
-| `--grid` | Purpose | Paper tables |
-|----------|---------|----------------|
-| `main` | optimizers × noise levels, batch 512 | `tab:main_acc`, timings |
-| `batch` | batch-size ablation, noise 0.05 | `tab:batch_cifar` |
-| `scope` | component ablation | `tab:ablation` |
-| `diagnostics` | per-layer peff / gate stats | `tab:arch` gate column |
-
-Notes:
-
-- CIFAR is downloaded to `./data` relative to the working directory (run from `code/`, data lands in `code/data`; symlink or move to repo-root `data/` if you prefer).
-- Results append to a CSV (default `results.csv`). Aggregate final-epoch rows per (dataset, noise, optimizer, batch_size, seed) before pasting into the tex.
-- Optimizers used in `main`: `sgd`, `momentum`, `adam`, `adamw`, `amsgrad`, `sradam`.
-- Ablation variants: `sradam`, `sradam_conv`, `sradam_nogate`, `sradam_peff`, `sradam_nodebias`.
-- Full `main` grid is large (2×3×6×5×20 epochs). On one RTX 3090 expect on the order of a day; reduce `--seeds` only for smoke tests, not for paper numbers.
-
-### Filling `\torerun` in the manuscript
-
-1. Run the grids above.
-2. Compute **final-epoch** mean ± std over seeds for each cell.
-3. Replace every `\torerun{...}` in `paper/sn-article.tex` (search for `torerun`).
-4. Recompile `paper/` with `pdflatex` + `bibtex` (Springer Nature `sn-jnl` class is included).
-
-The tex comment block at the head of §Image classification lists the exact commands expected for each table.
-
-## Repository layout details
-
-```
-risk-optimal-momentum/
-├── README.md
-├── requirements.txt
-├── .gitignore
-├── code/                 # all Python; import paths assume this CWD
-│   ├── sr_adam.py        # SRAdam optimizer
-│   ├── train_cifar.py    # CIFAR-10/100 grids
-│   ├── test_sr_adam.py
-│   ├── simulation_*.py
-│   ├── verify_theory*.py
-│   └── make_figures.py   # reads ../out, writes ../figs
-├── figs/                 # simulation PDFs for the paper
-├── out/                  # Monte Carlo JSON
-├── paper/                # sn-article.tex, sample.bib, class/bst, figure PDFs
-├── scripts/
-│   └── run_cifar_grids.sh
-└── data/                 # CIFAR root (ignored by git)
-```
-
-`make_figures.py` and the simulation scripts resolve `../figs` and `../out` relative to `code/`. Keep that folder relationship.
+- The manuscript's numerical tables and figures are tied to stored machine-readable outputs and the table/figure-generation scripts in `code/`.
+- Use the ordered phase-D pipeline when changing experiment code, estimator settings, baseline tuning, or simulation constants; then run phase E to check the refreshed manuscript and build the PDF.
+- The manuscript's code-availability statement points to this repository. Before journal submission, ensure it is accessible to editors and reviewers (for example, by making an appropriate public or anonymized review copy available).
 
 ## Citation
 
-If you use this code, please cite the manuscript *Risk-Optimal Momentum Weights for Stochastic Gradient Estimation in High Dimensions*.
+If you use the method or code, cite the manuscript:
 
 ```bibtex
 @article{arashi2026sradam,
   title   = {Risk-Optimal Momentum Weights for Stochastic Gradient Estimation in High Dimensions},
   author  = {Arashi, Mohammad and Amintoosi, Mahmood},
-  journal = {under review},
+  journal = {Manuscript under review},
   year    = {2026},
-  note    = {Code: https://github.com/mamintoosi-papers-codes/risk-optimal-momentum}
+  note    = {Code repository: mamintoosi-papers-codes/risk-optimal-momentum}
 }
 ```
-
-## License / declarations
-
-Research code accompanying a manuscript under review. No competing interests declared by the authors. Add a LICENSE file before making the repository public if the venue requires one.
