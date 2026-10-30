@@ -101,7 +101,7 @@
 \nonumnote{The two authors contributed equally to this work.}
 
 \begin{abstract}
-Adaptive stochastic gradient methods form their search direction by averaging the current mini-batch gradient with a running average of past gradients, using a weight fixed in advance by a decay hyperparameter. We show that this direction is exactly a shrinkage estimator of the population gradient, with a deterministic weight, and we ask what weight minimises its conditional quadratic risk. The answer is a positive-part Stein rule whose constant is set by the dimension of the parameter block and whose statistic is the current gradient standardised by the coordinatewise gradient-noise variance. We give a dominance theorem that covers heteroscedastic noise, an estimated scale matrix and an arbitrary diagonal loss weighting in one statement, and we show that the loss weighting decides whether the nominal dimension or an effective dimension governs the admissible constant. Because the rule needs a variance estimate, we analyse the natural candidate built from the moments an adaptive optimiser already maintains, and we prove that it is biased by a factor we compute in closed form for every iteration, which yields an exactly unbiased correction. Under elliptically contoured gradient noise the dominance window contracts by an explicitly computable factor, equal to one minus twice the reciprocal degrees of freedom for the multivariate Student law. The resulting algorithm, SR-Adam, is analysed as a biased stochastic approximation and converges at the usual non-convex rate up to a floor set by the largest coordinatewise gradient-noise variance of the block, \rev{which is inversely proportional to the batch size when the scale matrix is known and is bounded below at that rate when it is estimated.} Monte Carlo studies confirm every constant. Controlled optimisation experiments, in which every baseline is given its own tuned step size, show that the resulting method is regime-dependent: it improves on AdamW where the gradient noise is small relative to the curvature or very large, and is behind it in the intermediate band and under heavy label noise.
+Adaptive stochastic gradient methods form their search direction by averaging the current mini-batch gradient with a running average of past gradients, using a weight fixed in advance by a decay hyperparameter. We show that this direction is exactly a shrinkage estimator of the population gradient, with a deterministic weight, and we ask what weight minimises its conditional quadratic risk. The answer is a positive-part Stein rule whose constant is set by the dimension of the parameter block and whose statistic is the current gradient standardised by the coordinatewise gradient-noise variance. We give a dominance theorem that covers heteroscedastic noise, an estimated scale matrix and an arbitrary diagonal loss weighting in one statement, and we show that the loss weighting decides whether the nominal dimension or an effective dimension governs the admissible constant. Because the rule needs a variance estimate, we analyse the natural candidate built from the moments an adaptive optimiser already maintains, and we prove that it is biased by a factor we compute in closed form for every iteration, which yields an exactly unbiased correction. Under elliptically contoured gradient noise the dominance window contracts by an explicitly computable factor, equal to one minus twice the reciprocal degrees of freedom for the multivariate Student law. The resulting algorithm, SR-Adam, is analysed as a biased stochastic approximation and converges at the usual non-convex rate up to a floor set by the largest coordinatewise gradient-noise variance of the block, \rev{which is inversely proportional to the batch size when the scale matrix is known and is bounded below at that rate when it is estimated.} Monte Carlo studies confirm every constant. Controlled optimisation experiments, in which every baseline is given its own tuned step size, show that the resulting method is regime-dependent: it improves on AdamW where the gradient noise is small relative to the curvature or very large, and is behind it in the intermediate band and on the large-sample logistic task at high label-flip rates.
 \end{abstract}
 
 % No graphical abstract accompanies this manuscript.
@@ -692,7 +692,7 @@ Suppose the mini-batch of size $B$ is drawn with replacement from $\mathcal D$, 
 \begin{equation}
 B^2_t=c_t\lambda_{\max}(\bm\Sigma_t)=\frac{c_t\lambda_{\max}\bigl(\bm\Sigma^{(1)}_t\bigr)}{B},
 \end{equation}
-exactly, since $c_t=\rho(p-2)$ does not depend on $B$. The floor in \eqref{eq:conv_bound} therefore halves when the batch size doubles. With the plug-in scale matrix \rev{only a lower bound is available: $\E[\lambda_{\max}(\widehat{\bm\Sigma}_t)]\ge\lambda_{\max}(\bm\Sigma_t)$ holds by Jensen's inequality and Theorem \ref{thm:variance_bias}, so $\E[B^2_t]$ is at least of order $B^{-1}$, but no matching upper bound is claimed.}
+exactly, since $c_t=\rho(p-2)$ does not depend on $B$. The floor in \eqref{eq:conv_bound} therefore halves when the batch size doubles. With the plug-in scale matrix, under (A5), write $\bar\sigma_t^{2,(1)}=p^{-1}\tr\bm\Sigma_t^{(1)}$. The pooled estimates satisfy $\E[\hat\sigma^2_{t,j}]=(1-\omega)\sigma^{2,(1)}_{t,j}/B+\omega\bar\sigma_t^{2,(1)}/B$, and Jensen's inequality gives $\E[\lambda_{\max}(\widehat{\bm\Sigma}_t)]\ge\{(1-\omega)\lambda_{\max}(\bm\Sigma_t^{(1)})+\omega\bar\sigma_t^{2,(1)}\}/B+\epsilon$. Thus $\E[B^2_t]$ is at least of order $B^{-1}$, with a constant depending on $\omega$ and the coordinatewise variances; no matching upper bound is claimed.
 \end{proposition}
 
 Proposition \ref{prop:batch} makes a prediction that Section \ref{sec:simulation} tests directly, and it locates a regime boundary. The batch size at which gradient noise stops dominating has been studied empirically at scale \citep{keskar2017, smith2018, shallue2019}, and the floor above is a statistical counterpart of the plateau those studies report. At small batch sizes the floor is large and the theory promises little, while at large batch sizes the floor is small and the guarantee approaches the one available for an unbiased direction. Any benefit that depends on the guarantee should therefore be regime-dependent in the batch size.
@@ -1603,14 +1603,23 @@ Dividing by $\alpha p_{\min}T/2$ and recalling $\kappa=p_{\max}/p_{\min}$ gives 
 
 Under sampling with replacement the mini-batch gradient is an average of $B$ independent single-sample gradients with common conditional covariance $\bm\Sigma^{(1)}_t$, so $\bm\Sigma_t=\bm\Sigma^{(1)}_t/B$ and in particular $\sigma^2_{t,j}=\sigma^{2,(1)}_{t,j}/B$ for each $j$. Taking the maximum over $j$ gives $\lambda_{\max}(\bm\Sigma_t)=\lambda_{\max}(\bm\Sigma^{(1)}_t)/B$, and since $c_t=\rho(p-2)$ is free of $B$ the displayed identity follows, which proves the first claim.
 
-For the plug-in version, Theorem \ref{thm:variance_bias} gives $\E[\hat s^2_{t,j}]=\sigma^2_{t,j}$ under (A5), and the pooling \eqref{eq:pooled} is a convex combination of unbiased estimates and therefore preserves the mean, so $\E[\hat\sigma^2_{t,j}]=\sigma^{2,(1)}_{t,j}/B$ for each $j$. The maximum is a convex function of its arguments, so Jensen's inequality gives
+For the plug-in version, Theorem \ref{thm:variance_bias} gives $\E[\hat s^2_{t,j}]=\sigma^2_{t,j}=\sigma^{2,(1)}_{t,j}/B$ under (A5). By linearity, the pooling \eqref{eq:pooled} therefore gives
 \begin{equation}
-\E\Bigl[\max_j\bigl(\hat\sigma^2_{t,j}+\epsilon\bigr)\Bigr]
-\ge
-\max_j\E\bigl[\hat\sigma^2_{t,j}+\epsilon\bigr]
-=\frac{\lambda_{\max}\bigl(\bm\Sigma^{(1)}_t\bigr)}{B}+\epsilon ,
+\E[\hat\sigma^2_{t,j}]
+=(1-\omega)\frac{\sigma^{2,(1)}_{t,j}}{B}
++\omega\frac{\bar\sigma_t^{2,(1)}}{B},
+\qquad
+\bar\sigma_t^{2,(1)}=\frac1p\tr\bm\Sigma_t^{(1)}.
 \end{equation}
-so the floor is at least of order $B^{-1}$. An equality statement in the other direction would require control of $\E[\max_j\hat\sigma^2_{t,j}]-\max_j\E[\hat\sigma^2_{t,j}]$, which depends on the joint law of the coordinatewise estimates and is not claimed here. \qed
+Since the maximum is a convex function of its arguments, Jensen's inequality yields
+\begin{equation}
+\begin{split}
+\E\Bigl[\max_j\bigl(\hat\sigma^2_{t,j}+\epsilon\bigr)\Bigr]
+&\ge \max_j\E\bigl[\hat\sigma^2_{t,j}+\epsilon\bigr]\\
+&=\frac{(1-\omega)\lambda_{\max}(\bm\Sigma_t^{(1)})+\omega\bar\sigma_t^{2,(1)}}{B}+\epsilon.
+\end{split}
+\end{equation}
+For $\omega>0$ this generally differs from $\lambda_{\max}(\bm\Sigma_t^{(1)})/B+\epsilon$ unless the coordinate variances are equal. Thus $\E[B^2_t]$ remains bounded below at order $B^{-1}$, with a constant depending on $\omega$ and the coordinatewise variances. An upper bound would require control of $\E[\max_j\hat\sigma^2_{t,j}]-\max_j\E[\hat\sigma^2_{t,j}]$, which depends on the joint law of the coordinatewise estimates and is not claimed here. \qed
 
 \end{appendices}
 
