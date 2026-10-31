@@ -18,6 +18,7 @@ data/*
 tmp/
 
 # LaTeX build artifacts
+paper/
 paper/*.aux
 paper/*.log
 paper/*.out
@@ -28,6 +29,7 @@ paper/*.toc
 paper/*.bbl
 paper/*.blg
 
+els-paper/
 els-paper/*.aux
 els-paper/*.log
 els-paper/*.out
